@@ -1,0 +1,16 @@
+.comments{
+    background-color: rgba(0, 0, 0, 0.641);
+    animation: intro 0.8s linear alternate;
+    
+    
+}
+@keyframes intro {
+    from{
+       transform: translateY(-30px); /* Start above the viewport */
+    opacity: 0;
+    }
+    to{
+       transform: translateY(0); /* End at the original position */
+    opacity: 1; /* End visible */
+    }
+}
