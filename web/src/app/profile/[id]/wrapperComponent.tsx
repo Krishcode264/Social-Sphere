@@ -1,4 +1,4 @@
-"use client"
+// "use client"
 import Loading from "@/app/loading";
 import AuthNav from "@/components/profile/auth_nav";
 import { userInfoState } from "@/store/selectors/user-selector";
@@ -7,10 +7,10 @@ import React, { Suspense } from "react";
 import { useRecoilValue } from "recoil";
 
 const WrapperComponent = ({ children }: { children: React.ReactNode[] }) => {
-      const { id } = useRecoilValue(userInfoState);
+      // const { id } = useRecoilValue(userInfoState);
   
   return (
-    <>{id ? (  <Suspense fallback={<Loading />}>
+    <> <Suspense fallback={<Loading />}>
         <div className="  flex-col user_profile h-full w-full  lg:justify-between lg:flex-row lg:flex ">
           <div className="lg:w-[43%]  px-5 h-full  ">{children[0]}</div>
           <div className=" overflow-y-scroll  justify-center lg:w-[55%] h-full bg-slate-900 post_container">
@@ -20,7 +20,7 @@ const WrapperComponent = ({ children }: { children: React.ReactNode[] }) => {
             {children[1]}
           </div>
         </div>
-      </Suspense>) : ( <AuthNav text="you need to authenticate to see user's profiles" />)}
+      </Suspense> 
   
     </>
   );

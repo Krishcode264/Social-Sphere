@@ -120,9 +120,13 @@ export  const  ImageGallary = () => {
     });
   }
   return (
-    <div className="flex flex-wrap w-full justify-around gap-2  p-2 bg-slate-900 rounded-lg">
-      {photos.length > 0 && renderPhotos(photos)}
-      <UploadPhoto />
-    </div>
+    // <div className="flex flex-wrap w-full justify-around gap-2  p-2 bg-slate-900 rounded-lg">
+    //   {photos.length > 0 && renderPhotos(photos)}
+    //   <UploadPhoto />
+    // </div>
+    <>
+      {photos.length > 0 ? renderPhotos(photos) : <h1>dont have any posts </h1> }
+      
+    </>
   );
 };

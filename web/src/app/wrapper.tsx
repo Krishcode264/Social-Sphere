@@ -16,8 +16,8 @@ const path=usePathname()
   if (isLoading) {
     return <Loading />;
   }
-  if (!id && isValid.status === false && !isLoading && !publicRoutes.includes(path)) {
-    return <AuthNav text={isValid.message} />;
+  if ((!id || isValid.status === false) && !isLoading && !publicRoutes.includes(path)) {
+    return <AuthNav text="You need to Authenticate.." />;
   }
   return <>{children}</>;
 };
