@@ -107,7 +107,7 @@ const CommentBox = ({
         />
       </span>
 
-      <div className="commentWrapper h-[78%] overflow-scroll p-2">
+      <div className="commentWrapper h-[78%] overflow-y-scroll p-2">
         {fetchingSuccess &&
           comments.map((c: CommentProps) => {
             return <Comment commentData={c} key={c._id} />;
@@ -122,7 +122,7 @@ const CommentBox = ({
           </p>
         )}
       </div>
-      <div className="bg-slate-950  w-[100%]   text-slate-700 flex  items-center rounded-lg  ">
+      <div className="bg-slate-900  w-[100%]   text-slate-700 flex  items-center rounded-lg  ">
         <input
           value={input}
           onChange={(e) => {

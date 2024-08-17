@@ -2,15 +2,15 @@ import React from "react";
 import CameraIcon from "@mui/icons-material/Camera";
 import MicIcon from "@mui/icons-material/Mic";
 import { useEffect } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userPermissionState } from "@/store/atoms/user-permissions_atom";
-import { useRecoilState } from "recoil";
 import { mediaStreamState } from "@/store/atoms/media-stream-atom";
 import { peerConnectionState } from "@/store/selectors/pc-selector";
+import { usePC } from "@/context/peerConnectionContext";
 const MediaPermission = () => {
   const { video, audio } = useRecoilValue(userPermissionState);
-  const [{}, setMediaStreamAll] = useRecoilState(mediaStreamState);
-  const peerConnection = useRecoilValue(peerConnectionState);
+  const setMediaStreamAll = useSetRecoilState(mediaStreamState);
+  const peerConnection = usePC()
 
   const getUserMediaStream = () => {
     const setDefaultdisabledTracks = (stream: MediaStream) => {

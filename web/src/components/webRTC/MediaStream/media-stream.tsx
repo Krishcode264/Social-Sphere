@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import VideocamOffIcon from "@mui/icons-material/VideocamOff";
 import MicOffIcon from "@mui/icons-material/MicOff";
@@ -7,6 +7,7 @@ import { AudioComponent, VideoComponent } from "./media-stream-component";
 import { useRecoilValue } from "recoil";
 import { peerConnectionState } from "../../../store/selectors/pc-selector";
 import { mediaStreamState } from "../../../store/atoms/media-stream-atom";
+import { usePC } from "@/context/peerConnectionContext";
 interface ToggleButtonsProps {
   state: boolean;
   Icon: React.FC;
@@ -36,21 +37,25 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
   );
 };
 const MediaStream = () => {
-  const peerConnection = useRecoilValue(peerConnectionState);
+  const peerConnection = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
   const { mediaStream } = useRecoilValue(mediaStreamState);
   console.log(mediaStream, "mediaStream");
   const toggleTracks = (type: string) => {
+    console.log("toggle tracks running ",type,peerConnection,mediaStream)
+ console.log("this thing is ruuning outer ",peerConnection?.getSenders());
     peerConnection?.getSenders().forEach((sender: RTCRtpSender) => {
+             
       if (sender.track?.kind === type) {
         sender.track.enabled = !sender.track.enabled;
-        type === "audio"
-          ? setAudio((prev) => !prev)
-          : setVideo((prev) => !prev);
+        type === "audio"  ? setAudio((prev) => !prev) : setVideo((prev) => !prev);
       }
     });
   };
+  useEffect(()=>{
+    console.log("video chnaged",video)
+  },[video])
   return (
     <>
       <div className="flex flex-col items-center flex-1 mx-auto">

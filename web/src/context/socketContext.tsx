@@ -10,23 +10,21 @@ import { offerState } from "@/store/atoms/pc-atom";
 import { showComponentState } from "@/store/atoms/show-component";
 import { connectedUsersState } from "@/store/atoms/socket-atom";
 import type { Offer, Candidate, User } from "@/types/types";
-
+import { userInfoState } from "@/store/selectors/user-selector";
+import { usePC } from "./peerConnectionContext";
 const SocketContext = createContext<Socket | null>(null);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
-
-  const userData={id:"wewewfc",name:"dwvewrv"}
-  const [{ connectedUsers }, setConnectedUsers] =
-    useRecoilState(connectedUsersState);
-  const [showComponent, setShowComponent] = useRecoilState(showComponentState);
+  const { id, profile, name } = useRecoilValue(userInfoState);
+  const userData = { id, name };
+  const setConnectedUsers = useSetRecoilState(connectedUsersState);
+  const setShowComponent = useSetRecoilState(showComponentState);
   const setOffer = useSetRecoilState(offerState);
-  const [{ persontoHandshake }, setPersontoHandshake] =
-    useRecoilState(guestState);
-  const { showCall, showform, showWebrtcConnection } = showComponent;
-
+  const setPersontoHandshake = useSetRecoilState(guestState);
+  const peerConnection = usePC();
   useEffect(() => {
-    if (!socketRef.current) {
+    if (!socketRef.current && id) {
       const uri =
         process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:8080";
       socketRef.current = io(uri, {
@@ -35,12 +33,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
       socketRef.current.on("connect", () => {
         console.log("socket connection established");
-        socketRef.current?.emit("newUserConnected", {userData});
-        // setShowComponent({
-        //   showCall,
-        //   showform,
-        //   showWebrtcConnection: !showWebrtcConnection,
-        // });
+        socketRef.current?.emit("newUserConnected", { userData });
+        setShowComponent((prev) => ({
+          ...prev,
+          showWebrtcConnection: !prev.showWebrtcConnection,
+        }));
       });
 
       socketRef.current.on("activeUsers", (activeUsers: ConnectedUsers) => {
@@ -75,30 +72,29 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
           console.log(offerReceived, "Offer from receive offer for RTC");
           setOffer({ offer: offerReceived });
           setPersontoHandshake({ persontoHandshake: receivedUser });
-          // setShowComponent({
-          //   showCall: true,
-          //   showform,
-          //   showWebrtcConnection,
-          // });
+          setShowComponent((prev) => ({
+            ...prev,
+            showCall: true,
+          }));
         }
       );
 
       socketRef.current.on("receivedAnswerToRTC", async ({ answer }: Offer) => {
-        // if (peerConnection?.remoteDescription) {
-        //   return;
-        // }
-        // await peerConnection?.setRemoteDescription(answer);
+        if (peerConnection?.remoteDescription) {
+          return;
+        }
+        await peerConnection?.setRemoteDescription(answer);
       });
 
       socketRef.current.on("candidate", async ({ candidate }: Candidate) => {
         console.log("Getting ICE candidate from guest");
-        // if (peerConnection?.remoteDescription) {
-        //   try {
-        //     await peerConnection.addIceCandidate(candidate);
-        //   } catch (error) {
-        //     console.error("Error adding ICE candidate:", error);
-        //   }
-        // }
+        if (peerConnection?.remoteDescription) {
+          try {
+            await peerConnection.addIceCandidate(candidate);
+          } catch (error) {
+            console.error("Error adding ICE candidate:", error);
+          }
+        }
       });
     }
 
@@ -108,7 +104,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         socketRef.current = null;
       }
     };
-  }, []);
+  }, [id]); //user id change will trigger socket connection
 
   return (
     <SocketContext.Provider value={socketRef.current}>
@@ -119,8 +115,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useSocket = (): Socket | null => {
   const context = useContext(SocketContext);
-  if (context === null) {
-    throw new Error("useSocket must be used within a SocketProvider");
-  }
+  // if (context === null) {
+  //   throw new Error("useSocket must be used within a SocketProvider");
+  // }
   return context;
 };

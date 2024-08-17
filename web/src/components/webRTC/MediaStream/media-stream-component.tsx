@@ -11,6 +11,7 @@ export const VideoComponent: React.FC<MediaProps> = ({ media }) => {
   useEffect(() => {
     console.log(media, "from video component ");
     if (videoref.current) {
+      console.log(media,"video src object here ")
       videoref.current.srcObject = media;
 
       videoref.current.addEventListener("loadedmetadata", () => {
