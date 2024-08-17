@@ -22,7 +22,7 @@ export default async function RootLayout({
         <title>Social Sphere</title>
       </head>
       <body className="  h-screen ">
-        <div className="h-full w-full flex  p-2 sm:p-5 py-2 bg-slate-900">
+        <div className="h-full w-full flex   bg-slate-900">
           <RecoilRoot>
         <QueryProvider>
               <AuthProvider>

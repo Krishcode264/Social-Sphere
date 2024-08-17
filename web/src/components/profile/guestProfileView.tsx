@@ -8,6 +8,7 @@ import TransgenderRoundedIcon from "@mui/icons-material/TransgenderRounded";
 import { getUser } from '@/utils/fechers';
 export type Gender = "Male" | "Female" | "Other" |"Unknown";
  import Error from '../basic/Error';
+import { ContactButtons } from './clientUi';
 
 export type GuestProfileViewProps = {
   profile: string;
@@ -62,21 +63,7 @@ if (!user){
       </span>
 
    
-        <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
-          <button
-         
-            type="button"
-            className="text-slate-400 flex-grow bg-slate-800 px-2 py-1.5 rounded-md hover:text-slate-200 "
-          >
-            Send Friend Request
-          </button>
-          <button
-            type="button"
-            className="text-slate-400 flex-grow bg-slate-800  px-2 py-1.5 rounded-md hover:text-slate-200"
-          >
-            Message
-          </button>
-        </div>
+      <ContactButtons guestId={id}/>
     
 
       <div className="boundray  overflow-y-auto  h-[55%]">

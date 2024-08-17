@@ -7,6 +7,7 @@ import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import { showComponentState } from "@/store/atoms/show-component";
+import { userInfoState } from "@/store/selectors/user-selector";
 export const LikedButton = ({ photoId }: { photoId: string }) => {
   const [{ likedPhotos, id }, setUser] = useRecoilState(userBasicInfoState);
   const isLiked = () => {
@@ -52,23 +53,42 @@ export const LikedButton = ({ photoId }: { photoId: string }) => {
   );
 };
 
-
-
 export const CommentButton = ({
   photoId,
   handleCommentBoxVisibility,
 }: {
   photoId: string;
-  handleCommentBoxVisibility:React.Dispatch<React.SetStateAction<boolean>>
+  handleCommentBoxVisibility: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
- 
   function handleShowComponent() {
-
     handleCommentBoxVisibility((prev) => !prev);
   }
   return (
     <button onClick={handleShowComponent}>
       <CommentRoundedIcon className="text-3xl  hover:cursor-pointer hover:text-slate-400" />
     </button>
+  );
+};
+
+export const ContactButtons = ({ guestId }: { guestId: string }) => {
+  const { id } = useRecoilValue(userInfoState);
+  if (id === guestId) {
+    return null;
+  }
+  return (
+    <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
+      <button
+        type="button"
+        className="text-slate-400 flex-grow bg-slate-800 px-2 py-1.5 rounded-md hover:text-slate-200 "
+      >
+        Send Friend Request
+      </button>
+      <button
+        type="button"
+        className="text-slate-400 flex-grow bg-slate-800  px-2 py-1.5 rounded-md hover:text-slate-200"
+      >
+        Message
+      </button>
+    </div>
   );
 };
