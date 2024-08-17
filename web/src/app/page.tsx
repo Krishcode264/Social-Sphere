@@ -6,6 +6,7 @@ import Link from "next/link";
 import React, { Suspense } from "react";
 export const revalidate = 10;
 import { cookies } from "next/headers";
+import Error from "@/components/basic/Error";
 export default async function Page() {
   const users = await getFeedUsers();
 
@@ -21,7 +22,7 @@ export default async function Page() {
             );        
           })
         ) : (
-          <h3> something went wrong from our side </h3>
+        <Error tip="something went wrong from our side"/>
         )}
       </Suspense>
     </div>

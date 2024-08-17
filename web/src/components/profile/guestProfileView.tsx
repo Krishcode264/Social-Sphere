@@ -28,6 +28,10 @@ export const genderIcon={
    "Unknown":""
 }
 export const revalidate=1; //for dev 
+
+
+
+
 const GuestProfileView = async ({id}:{id:string}) => {
 
   const user=await getUser(id)

@@ -1,5 +1,5 @@
 "use client"
-import React, {  useState } from "react";
+import React, {  useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { PhotoType } from "@/types/types";
 
@@ -7,12 +7,16 @@ import { ShareRounded } from "@mui/icons-material";
 
 import CommentBar from "./commentBar";
 import {  CommentButton, LikedButton } from "./clientUi";
+import CommentBox from "./commentBar";
 
 
 const PostView = ({photo,userId}:{photo:PhotoType,userId?:string}) => {
 
  const [showCommentBox,setShowCommentBox] = useState<boolean>(false)
- 
+
+function closeCommentBox(){
+  setShowCommentBox(false)
+}
   const Caption = () => {
     return (
       <div className="caption p-2 font-mono text-xl  w-full ">
@@ -51,11 +55,13 @@ const PostView = ({photo,userId}:{photo:PhotoType,userId?:string}) => {
           <span> 500</span>
         </span>
       </div>
-      {showCommentBox && (
-        <CommentBar handleCommentBoxVisibility={setShowCommentBox} photoId={photo.id} />
-      )}
-    
 
+      {showCommentBox && (
+        <CommentBox
+          photoId={photo.id}
+          handleCommentBoxVisibility={closeCommentBox}
+        />
+      )}
     </div>
   );
 };

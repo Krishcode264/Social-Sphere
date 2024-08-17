@@ -18,9 +18,7 @@ export const ChatHeadContainer = () => {
       <ChatHead />
       <ChatHead />
       <ChatHead />
-      <ChatHead />
-      <ChatHead />
-      <ChatHead />
+  
     </div>
   );
 };

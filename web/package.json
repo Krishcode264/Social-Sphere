@@ -19,6 +19,7 @@
     "axios": "^1.6.7",
     "js-cookie": "^3.0.5",
     "live-connect": "file:",
+    "lodash": "^4.17.21",
     "next": "^14.2.4",
     "react": "^18",
     "react-dom": "^18",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
+    "@types/lodash": "^4.17.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

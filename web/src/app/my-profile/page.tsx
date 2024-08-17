@@ -8,14 +8,14 @@ import { useRouter } from "next/navigation";
 import { ImageGallary } from "@/components/my-profile/Uploads";
 
 import UserProfileView from "./useerProfileView";
+import { userInfoState } from "@/store/selectors/user-selector";
 
 const Page = () => {
   const router = useRouter();
-  const userData = useRecoilValue(userBasicInfoState);
-
+ const {id}=useRecoilValue(userInfoState)
   return (
     <div className=" rounded-lg  h-full w-full">
-      {userData.id ? (
+      {id ? (
         <div className="flex-col user_profile h-full w-full  lg:justify-between lg:flex-row lg:flex ">
           <div className=" bg-slate-900 lg:w-[45%] p-4 min-h-full rounded-md relative">
             <button

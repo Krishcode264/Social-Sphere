@@ -32,8 +32,7 @@ const DetailedChatView=()=>{
 }
 
 const Page = () => {
-const {id,...user}=useRecoilValue(userInfoState) 
-console.log(id,user,"here in messages ")
+const {id}=useRecoilValue(userInfoState)
     return (
       <div className='h-full from-slate-950  to-slate-800 bg-gradient-to-br'>
         {!id ? (
@@ -44,7 +43,7 @@ console.log(id,user,"here in messages ")
             <ChatHeadContainer />
             <DetailedChatView />
           </div>
-        )}
+        )} 
       </div>
     );
 }

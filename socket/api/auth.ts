@@ -25,7 +25,7 @@ const sanitizeUserData = (user: any) => {
 };
 const generateToken = (data: any) => {
   const secretKey = process.env.JWT_SECRET as string;
-  const token = jwt.sign(data, secretKey, { expiresIn: "1h" });
+  const token = jwt.sign(data, secretKey, { expiresIn: "7h" });
 
   return token;
 };

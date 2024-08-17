@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRecoilValue } from "recoil";
 
 import SendIcon from "@mui/icons-material/Send";
@@ -11,6 +11,7 @@ import { userInfoState } from "@/store/selectors/user-selector";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loading from "../basic/loading";
+import { debounce } from "lodash"
 
 const addComment = async (data: any) => {
   const res = await axios.post(
@@ -20,7 +21,6 @@ const addComment = async (data: any) => {
       withCredentials: true,
     }
   );
-
 };
 
 const CommentBox = ({
@@ -28,31 +28,72 @@ const CommentBox = ({
   handleCommentBoxVisibility,
 }: {
   photoId: string;
-  handleCommentBoxVisibility: React.Dispatch<React.SetStateAction<boolean>>;
+  handleCommentBoxVisibility:()=>void
 }) => {
   const { profile, id, name } = useRecoilValue(userInfoState);
   const [input, setInput] = useState("");
-  const queryClient=useQueryClient()
+  const queryClient = useQueryClient();
 
- // fetching comments for the post
-  const { isPending, error, data:comments , isFetching ,isSuccess:fetchingSuccess} = useQuery({
+  // fetching comments for the post
+  const {
+    isPending,
+    error,
+    data: comments,
+    isFetching,
+    isSuccess: fetchingSuccess,
+  } = useQuery({
     queryKey: ["comments", photoId],
-    queryFn: async() =>  await fetchCommentsForPost(photoId),
+    queryFn: async () => await fetchCommentsForPost(photoId),
   });
 
-  //adding new comment and mutating it 
-  const { mutateAsync: handleAddComment,isPending:addingComment,isSuccess } = useMutation({
+  //adding new comment and mutating it
+  const {
+    mutateAsync: handleAddComment,
+    isPending: addingComment,
+    isSuccess,
+  } = useMutation({
     mutationFn: addComment,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey:["comments",photoId]});
+      queryClient.invalidateQueries({ queryKey: ["comments", photoId] });
     },
   });
-//closing commentobx when it goes 50 % above the viewPort 
 
+ // closing commentobx when it goes 50-70 % above the parent scroll element
+  const childRef = useRef<HTMLDivElement | null>(null);
+  const [topFromVt, setTopFromVt] = useState(0);
+  const [parentTop, setParentTop] = useState(0);
+  useEffect(() => {
+    const targetParent = childRef.current?.parentElement?.parentElement;
 
+    if (targetParent) {
+      const handleScroll = debounce(() => {
+        if (childRef.current) {
+          const { top, height } = childRef.current.getBoundingClientRect();
+          const { top: newParentTop } = targetParent.getBoundingClientRect();
+
+          setTopFromVt((prevTop) => (prevTop !== top ? top : prevTop));
+          setParentTop((prevParentTop) =>
+            prevParentTop !== newParentTop ? newParentTop : prevParentTop
+          );
+        }
+      }, 100); // adjusting debounce here :)
+      targetParent.addEventListener("scroll", handleScroll);
+
+      return () => {
+        targetParent.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, []);
+ // 430px is the height of comment box
+ useEffect(()=>{
+  if (topFromVt < -430 / 2 + parentTop) {
+    // console.log("closing");
+    handleCommentBoxVisibility();
+  }
+ },[topFromVt])
 
   return (
-    <div className="absolute h-[80%] w-[70%]  top-0 left-auto bg-slate-950   sm:w-[50%] md:w-[60%] flex-col  px-1 ">
+    <div ref={childRef} className="absolute h-[80%] w-[70%]  top-0 left-auto bg-slate-950   sm:w-[50%] md:w-[60%] flex-col  px-1 ">
       <span className="flex justify-between items-center  ">
         <p className="text-slate-200 text-xl translate-x-[-2px] m-0 p-1">
           Comments
@@ -60,7 +101,7 @@ const CommentBox = ({
 
         <CancelIcon
           onClick={() => {
-            handleCommentBoxVisibility((prev) => false);
+            handleCommentBoxVisibility();
           }}
           className="text-slate-300 hover:text-orange-700 hover:cursor-pointer"
         />
@@ -81,7 +122,6 @@ const CommentBox = ({
           </p>
         )}
       </div>
-
       <div className="bg-slate-950  w-[100%]   text-slate-700 flex  items-center rounded-lg  ">
         <input
           value={input}

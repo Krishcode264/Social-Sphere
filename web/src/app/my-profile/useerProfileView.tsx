@@ -8,6 +8,9 @@ import Image from "next/image";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
 import { genderIcon } from "@/components/profile/guestProfileView";
 import { Gender } from "@/components/profile/guestProfileView";
+
+
+
 const UserProfileView = () => {
 const user=useRecoilValue(userBasicInfoState)
   return (
