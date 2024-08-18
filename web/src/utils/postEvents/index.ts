@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { Dispatch, SetStateAction } from "react";
+import { token } from "../fechers";
 
 export class PostEvents {
   static socketUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
@@ -21,7 +22,13 @@ export class PostEvents {
           userId,
           action,
         },
-        { withCredentials: true }
+
+        {
+          withCredentials: true,
+          headers: {
+            Cookie: token(), // Set the token in the Cookie header
+          },
+        }
       );
        handleLikeChange(true)
      

@@ -31,11 +31,11 @@ const generateToken = (data: any) => {
 };
 const handleUserSignup = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
-  console.log(email, password, name);
+ // console.log(email, password, name);
   try {
     const alreadyExistedUserWithSameEmail =
       await UserService.checkUserAlreadyExist(email);
-    console.log(alreadyExistedUserWithSameEmail);
+   // console.log(alreadyExistedUserWithSameEmail);
     if (alreadyExistedUserWithSameEmail.length === 0) {
       const createdUser = await UserService.saveUserData(req.body, {
         provider: "credencial",
@@ -81,7 +81,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
         name: userwithEmail.name,
         id: userwithEmail._id,
       });
-      console.log(sanitizeUserData(userwithEmail), "sanitized user data");
+     // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
       res.cookie("token", token);
         res.cookie("auth-token", "my auth ");
       return res.send({

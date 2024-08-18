@@ -36,7 +36,7 @@ export class PhotoService {
             if (new Date() > new Date(photo.urlExpirationTime.toISOString())) {
               const url = await AwsHandler.getObjectUrl(photo.key, 1800);
               await this.updatePhotoUrl(url, photo._id);
-              console.log("updated image url of user ", url);
+             // console.log("updated image url of user ", url);
               return {
                 id: photo._id,
                 likes: photo.likes,
@@ -44,7 +44,7 @@ export class PhotoService {
                 imageUrl: url,
               };
             }
-           console.log(" we did not updated url its alredy valid ");
+         //  console.log(" we did not updated url its alredy valid ");
             return {
               id: photo._id,
               likes: photo.likes,

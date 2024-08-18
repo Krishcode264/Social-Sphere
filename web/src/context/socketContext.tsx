@@ -17,7 +17,7 @@ const SocketContext = createContext<Socket | null>(null);
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
   const { id, profile, name } = useRecoilValue(userInfoState);
-  const userData = { id, name };
+
   const setConnectedUsers = useSetRecoilState(connectedUsersState);
   const setShowComponent = useSetRecoilState(showComponentState);
   const setOffer = useSetRecoilState(offerState);
@@ -33,13 +33,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
       socketRef.current.on("connect", () => {
         console.log("socket connection established");
-        socketRef.current?.emit("newUserConnected", { userData });
+        socketRef.current?.emit("newUserConnected", {id,name});
         setShowComponent((prev) => ({
           ...prev,
           showWebrtcConnection: !prev.showWebrtcConnection,
         }));
       });
-
+      
       socketRef.current.on("activeUsers", (activeUsers: ConnectedUsers) => {
         setConnectedUsers((prev) => ({
           ...prev,
@@ -96,6 +96,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       });
+
+
+      socketRef.current.on("joinedRoom",(data)=>{
+       console.log("hey server automatiically kjoined in room ",data)
+      })
     }
 
     return () => {

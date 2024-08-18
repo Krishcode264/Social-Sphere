@@ -17,11 +17,12 @@ export default async function RootLayout({
 }>) {
 
   return (
-    <html lang="en">
+    <html lang="en" >
       <head>
         <title>Social Sphere</title>
+        <meta name="referrer" content="no-referrer" />
       </head>
-      <body className="  h-screen ">
+      <body className="  h-screen w-screen">
         <div className="h-full w-full flex   bg-slate-900">
           <RecoilRoot>
             <AuthProvider>
@@ -29,7 +30,7 @@ export default async function RootLayout({
                 <PcProvider>
                   <QueryProvider>
                     <SideBar />
-                    <div className="  rounded-lg   flex-1 h-full overflow-y-auto shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
+                    <div className="  rounded-lg   flex-1 h-full  shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
                       <Wrapper>{children}</Wrapper>
                     </div>
                   </QueryProvider>

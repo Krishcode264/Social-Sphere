@@ -3,6 +3,8 @@ import { UserSchemaType } from "../../types/types";
 import { atom } from "recoil";
 import { PhotoType } from "../../types/types";
 import type { Gender } from "@/components/profile/guestProfileView";
+// import { recoilPersist } from "recoil-persist";
+
 export interface UserBasicInfo {
   name: string;
   id: string;
@@ -21,7 +23,7 @@ export interface UserBasicInfo {
   [key: string]: string | number | string[] | undefined; // Index signature
 }
 
-
+// const { persistAtom } = recoilPersist();
 export const userBasicInfoState = atom<UserBasicInfo>({
   key: "user-basic-info-state",
   default: {
@@ -36,10 +38,11 @@ export const userBasicInfoState = atom<UserBasicInfo>({
     intrests: [],
     pronouns: "",
     sexuality: "",
-    languages_learning_or_speak:[],
-    likedPhotos:[],
-    places_want_to_visit:[],
+    languages_learning_or_speak: [],
+    likedPhotos: [],
+    places_want_to_visit: [],
   },
+  // effects_UNSTABLE: [persistAtom],
 });
 
 // User connectivity status

@@ -4,22 +4,24 @@ import UserService from "../Services/UserService/userService";
 import { io } from "..";
 import { UserData } from "../mongoose/schemas/userSchema";
 
-export function socketioConnection() {
-  io.on("connection", async (socket: Socket) => {
-    console.log("user connected", socket.id);
+export function socketioConnection(socket:Socket) {
+
+   // console.log("user connected", socket.id);
     //getting all active users, sending to newly connected user
-    UserData.find(
-      {
-        isConnected: true,
-        socketID: { $ne: socket.id },
-      },
-      "name id"
-    ).then((activeUsers) => {
-      socket.emit("activeUsers", activeUsers);
-    });
+    // UserData.find(
+    //   {
+    //     isConnected: true,
+    //     socketID: { $ne: socket.id },
+    //   },
+    //   "name id"
+    // }
+    // ).then((activeUsers) => {
+    //   socket.emit("activeUsers", activeUsers);
+    // });
 
     //sending newly connected user to alredy active members
     socket.on("newUserConnected", async (user: User) => {
+      console.log("user connected",user)
       UserService.updateUserProfile(
         user.id,
         {
@@ -27,9 +29,9 @@ export function socketioConnection() {
           isConnected: true,
         }
       ).then((data) => {
-        const { name, id } = user;
-        console.log("new user connected", user.name);
-        socket.broadcast.emit("newUserConnected", { name, id });
+  
+        //console.log("new user connected", user.name);
+        socket.broadcast.emit("newUserConnected", {...user});
       });
     });
 
@@ -110,5 +112,5 @@ export function socketioConnection() {
         );
       }
     );
-  });
+
 }

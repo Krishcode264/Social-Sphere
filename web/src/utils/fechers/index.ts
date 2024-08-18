@@ -1,8 +1,19 @@
 "use server";
-import type { User, UserSchemaType } from "@/types/types";
+import type { MessageHistoryResponse } from "@/app/messages";
+import type { ConvoType, User, UserSchemaType } from "@/types/types";
 import axios from "axios";
+import Cookies from "js-cookie";
+import { cookies } from "next/headers";
 import { cache } from "react";
 
+//getcookietoken
+export const token =() => {
+  const cookieStore =  cookies();
+  const token = cookieStore.get("token")?.value;
+  //  console.log(token,"here is token at token methode ")
+  return `token=${token}`;
+};
+//feed
 export const getFeedUsers = cache(async () => {
   try {
     const res = await axios.get(
@@ -14,15 +25,22 @@ export const getFeedUsers = cache(async () => {
     return [];
   }
 });
-
+//profile
 export const getUser = cache(
   async (id: string): Promise<UserSchemaType | null> => {
+
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
-        { params: { id }, withCredentials: true }
+        {
+          params: { id },
+          headers: {
+            Cookie:await token(), // Set the token in the Cookie header
+          },
+          withCredentials: true,
+        }
       );
-      console.log(res.data, "res .data in getuser");
+      // console.log(res.data, "res .data in getuser");
       return res.data.user;
     } catch (err) {
       console.log("something went wron gin getuser actiom to feed/getUser");
@@ -30,12 +48,17 @@ export const getUser = cache(
     }
   }
 );
+
 export const getUserPhotos = cache(async (id: string) => {
+
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
       {
         params: { id },
+        headers: {
+          Cookie:await token(), // Set the token in the Cookie header
+        },
         withCredentials: true,
       }
     );
@@ -47,11 +70,16 @@ export const getUserPhotos = cache(async (id: string) => {
     return [];
   }
 });
+
+//on reload it will run in auth context
 export const getUserByToken = cache(async () => {
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
       {
+        headers: {
+          Cookie: await token(), // Set the token in the Cookie header
+        },
         withCredentials: true,
       }
     );
@@ -62,25 +90,50 @@ export const getUserByToken = cache(async () => {
     return null;
   }
 });
-
+//user profile
 export const getPhotosbyUserId = cache(async (userId: string) => {
   console.log("getPhotos running ");
   const photos = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
-    { params: { id: userId }, withCredentials: true }
+    {
+      params: { id: userId },
+      headers: {
+        Cookie: await token(), // Set the token in the Cookie header
+      },
+      withCredentials: true,
+    }
   );
   return photos.data;
 });
 
+// post comments
 export const fetchCommentsForPost = async (photoId: string) => {
   const res = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/getComments`,
-    { params: { id: photoId }, withCredentials: true }
+    {
+      params: { id: photoId },
+      headers: {
+        Cookie: await token(), // Set the token in the Cookie header
+      },
+      withCredentials: true,
+    }
   );
-  console.log(res.data)
+  console.log(res.data);
   return res.data;
 };
-const handlePostComm = async (
+
+export const addComment = async (data: any) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
+    {
+      ...data,
+      withCredentials: true,
+      Cookie: await token(),
+    }
+  );
+};
+
+export const handlePostComm = async (
   photoId: string,
   userId: string,
   data: any
@@ -93,6 +146,9 @@ const handlePostComm = async (
       {
         params: { photoId, userId },
         body: { content: data.input, photo: data.profile },
+        headers: {
+          Cookie: await  token(), // Set the token in the Cookie header
+        },
         withCredentials: true,
       }
     );
@@ -102,3 +158,45 @@ const handlePostComm = async (
     return null;
   }
 };
+
+//messages
+
+export const fetchMessageHistory = async (
+  id: string
+): Promise<MessageHistoryResponse | null> => {
+  try {
+    console.log(id)
+    const messageHistoryResponse = await axios.get(
+      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getMessageHistory`,
+      {
+        params: { guestId: id },
+      
+         headers:{ Cookie: await token()},  // Set the token in the Cookie header
+      
+        withCredentials: true,
+      }
+    );
+    return messageHistoryResponse.data;
+  } catch (err) {
+    console.log("errr in messages feature");
+    return null;
+  }
+};
+
+export const getUserConvos=async():Promise<ConvoType[]|[]>=>{
+try {
+
+  const userConvos = await axios.get(
+    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getConvos`,
+    {
+      headers: { Cookie: await token() }, // Set the token in the Cookie header
+      withCredentials: true,
+    }
+  );
+  return userConvos.data.data;
+} catch (err) {
+  console.log("errr in fetching convos ");
+  return [];
+}
+}
+

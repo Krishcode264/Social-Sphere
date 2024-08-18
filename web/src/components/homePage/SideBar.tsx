@@ -17,6 +17,7 @@ import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificati
 import defaultUserProfile from "@/images/user-profile.png";
 import { getUserByToken } from "@/utils/fechers";
 import { userInfoState } from "@/store/selectors/user-selector";
+import i2 from '@/images/duf.webp'
 const generateSideBarOptions = (
   options: { name: string; icon: ReactJSXElement }[]
 ) => {
@@ -42,19 +43,20 @@ const Sidebarheader = () => {
   return (
     <div className="">
       <Link href={"/"}>
-        <Image
-          className=" h-10 w-10 rounded-full  mx-auto"
-          src={profile || defaultUserProfile}
-          alt="profile pic"
-          width={15}
-          height={15}
-          unoptimized={true}
-        />
+       
+          <Image
+            className=" h-10 w-10 rounded-full  mx-auto"
+            src={profile || i2}
+            alt="profile pic"
+            width={15}
+            height={15}
+            unoptimized={true}
+          />
+        
+        <h3 className="text-center sm:text-xl text-slate-400 font-bold hidden lg:block">
+          {name}
+        </h3>
       </Link>
-
-      <h3 className="text-center sm:text-xl text-slate-400 font-bold hidden lg:block">
-        {name}
-      </h3>
     </div>
   );
 };

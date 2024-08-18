@@ -5,9 +5,9 @@ import Link from "next/link";
 import ChatIcon from "@mui/icons-material/Chat";
 import GroupsIcon from "@mui/icons-material/Groups";
 import SettingsIcon from "@mui/icons-material/Settings";
-
+import Image from "next/image";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-
+ import defaultUserProfile from "@/images/user-profile.png";
 import {  useRecoilValue } from "recoil";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
 import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-namespace";
@@ -22,7 +22,7 @@ const generateSideBarOptions = (
         href={`/${option.name.toLocaleLowerCase().split(" ").join("-")}`}
         className=" rounded-xl  hover:bg-slate-100 hover:cursor-pointer p-2 active:bg-slate-100"
       >
-        <button className=" w-full  h-auto flex gap-2 items-center   mx-auto  text-orange-500 text-[100px] border bg-blue-400">
+        <button className=" w-full  h-auto flex gap-2 items-center   mx-auto  text-orange-500 text-[100px]  bg-blue-400">
           {option.icon}
 
           <p className="  text-blue-600"> {}dhhbdvhb</p>
@@ -37,7 +37,15 @@ const Sidebarheader = () => {
   return (
     <>
       <Link href={"/"}>
-        <ProfilePic size={16} iconSize={50} src={user.profile} />
+        {/* <ProfilePic size={16} iconSize={50} src={user.profile} /> */}
+        {/* <Image
+          className="w-full h-full rounded-full   "
+          src={user.profile || defaultUserProfile}
+          alt="profile pic"
+          width={15}
+          height={15}
+          unoptimized={true}
+        /> */}
       </Link>
 
       <h3 className="text-center sm:text-xl text-blue-600 font-bold">

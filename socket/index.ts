@@ -16,6 +16,12 @@ import { expressMiddleware } from "@apollo/server/express4";
 import { postEventsRouter } from "./api/postEvents";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+import { messageRouter } from "./api/message";
+import { messageIoConection } from "./Services/MessageService/messageIo";
+import { MessageService } from "./Services/MessageService/messageService";
+import { UserData } from "./mongoose/schemas/userSchema";
+import type { User } from "./types/types";
+import UserService from "./Services/UserService/userService";
 export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
   app.use(
@@ -47,17 +53,40 @@ async function init() {
   app.use("/auth", authRouter);
   app.use("/feed", feedRouter);
   app.use("/uploads", checkTokenValidity, uploadRouter);
-  app.use("/post-events", postEventsRouter);
-
+  app.use("/post-events",postEventsRouter);
+  app.use("/message", checkTokenValidity,messageRouter);
   app.get("/health", (req, res) => {
     res.cookie("token","this is token as coojkie ")
     res.send("running :)");
   });
   httpServer.listen(process.env.PORT || 8080, () => {
     console.log("server is listening on port 8080");
-
     connectMongo();
-    socketioConnection();
+io.on("connection",(socket)=>{
+
+
+
+  // socketioConnection(socket);
+  messageIoConection(socket);
+
+    socket.on("newUserConnected", async (user: User) => {
+      console.log("user connnedted",user.name)
+      UserService.updateUserProfile(user.id, {
+        socketID: socket.id,
+        isConnected: true,
+      })
+    });
+
+     socket.on("disconnect", async () => {
+       console.log("disconnection with user comming from the client ");
+       await UserData.findOneAndUpdate(
+         { socketID: socket.id },
+         { socketID: "", isConnected: false }
+       )
+     });
+})
+    
+  
   });
 }
 init();

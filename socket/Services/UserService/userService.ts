@@ -38,18 +38,19 @@ export default class UserService {
     }
   };
 
-  static getUserSocketIdById = async (id: string): Promise<string | null> => {
+  static getUserSocketIdById = async (id: string): Promise<string | false> => {
     try {
-      const targetUser: UserSchemaType | null = await UserData.findOne({ id });
+      const targetUser: UserSchemaType | null = await UserData.findById(id);
 
       if (!targetUser?.socketID) {
-        return null; // Return null when user is not found
+        return false; // Return null when user is not found
       }
 
       return targetUser.socketID;
     } catch (error) {
       console.error("Error finding user by ID:", error);
-      throw error; // Handle the error or rethrow for higher-level handling
+      return false
+      // Handle the error or rethrow for higher-level handling
     }
   };
 

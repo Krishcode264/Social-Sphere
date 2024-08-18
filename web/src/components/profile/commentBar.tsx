@@ -6,34 +6,38 @@ import SendIcon from "@mui/icons-material/Send";
 import "../common.css";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { Comment, type CommentProps } from "./comment";
-import { fetchCommentsForPost } from "@/utils/fechers";
+import { fetchCommentsForPost, token } from "@/utils/fechers";
 import { userInfoState } from "@/store/selectors/user-selector";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loading from "../basic/loading";
-import { debounce } from "lodash"
-
-const addComment = async (data: any) => {
-  const res = await axios.post(
-    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
-    {
-      ...data,
-      withCredentials: true,
-    }
-  );
-};
+import { debounce } from "lodash";
+import { Cookie } from "@mui/icons-material";
 
 const CommentBox = ({
   photoId,
   handleCommentBoxVisibility,
 }: {
   photoId: string;
-  handleCommentBoxVisibility:()=>void
+  handleCommentBoxVisibility: () => void;
 }) => {
   const { profile, id, name } = useRecoilValue(userInfoState);
   const [input, setInput] = useState("");
   const queryClient = useQueryClient();
 
+  const addComment = async (data: any) => {
+    const t = await token();
+    console.log(data, " before psodting the comment ");
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
+      {
+        ...data,
+        withCredentials: true,
+         Cookie:t
+      }
+    );
+    console.log(res, "res from add comment ");
+  };
   // fetching comments for the post
   const {
     isPending,
@@ -58,7 +62,7 @@ const CommentBox = ({
     },
   });
 
- // closing commentobx when it goes 50-70 % above the parent scroll element
+  // closing commentobx when it goes 50-70 % above the parent scroll element
   const childRef = useRef<HTMLDivElement | null>(null);
   const [topFromVt, setTopFromVt] = useState(0);
   const [parentTop, setParentTop] = useState(0);
@@ -84,16 +88,19 @@ const CommentBox = ({
       };
     }
   }, []);
- // 430px is the height of comment box
- useEffect(()=>{
-  if (topFromVt < -430 / 2 + parentTop) {
-    // console.log("closing");
-    handleCommentBoxVisibility();
-  }
- },[topFromVt])
+  // 430px is the height of comment box
+  useEffect(() => {
+    if (topFromVt < -430 / 2 + parentTop) {
+      // console.log("closing");
+      handleCommentBoxVisibility();
+    }
+  }, [topFromVt]);
 
   return (
-    <div ref={childRef} className="absolute h-[80%] w-[70%]  top-0 left-auto bg-slate-950   sm:w-[50%] md:w-[60%] flex-col  px-1 ">
+    <div
+      ref={childRef}
+      className="absolute h-[80%] w-[70%]  top-0 left-auto bg-slate-950   sm:w-[50%] md:w-[60%] flex-col  px-1 "
+    >
       <span className="flex justify-between items-center  ">
         <p className="text-slate-200 text-xl translate-x-[-2px] m-0 p-1">
           Comments

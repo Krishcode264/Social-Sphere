@@ -30,8 +30,8 @@ export async function getUserPhotos(req: Request, res: Response) {
   }
 }
 export async function getUser(req: Request, res: Response) {
-  const { id } = req.query;
-    console.log("req is coming to get user by user id ")
+  const { id } = req.query
+   // console.log("req is coming to get user by user id ")
   try {
     if (isString(id)) {
       const userProfile = await UserService.getUserProfile(id);
@@ -43,7 +43,7 @@ export async function getUser(req: Request, res: Response) {
 }
 export async function getUserByToken(req: Request, res: Response) {
   const { id } = req.body.user
-  console.log(req.body, "at get token by id ");
+ // console.log(req.body, "at get token by id ");
   try {
     const userProfile = await UserService.getUserProfile(id);
     res.send(userProfile);
@@ -54,7 +54,7 @@ export async function getUserByToken(req: Request, res: Response) {
 }
 
 feedRouter.get("/getFeedUsers", getFeedUsers);
-feedRouter.get("/getUser", getUser);
+feedRouter.get("/getUser", checkTokenValidity, getUser);
 feedRouter.get("/getUserByToken",checkTokenValidity, getUserByToken);
-feedRouter.get("/getUserPhotos",  getUserPhotos);
+feedRouter.get("/getUserPhotos", checkTokenValidity, getUserPhotos);
 

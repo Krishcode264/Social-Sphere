@@ -8,6 +8,7 @@ import { userBasicInfoState } from "@/store/atoms/user-atom";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import { showComponentState } from "@/store/atoms/show-component";
 import { userInfoState } from "@/store/selectors/user-selector";
+import { redirect, useRouter } from "next/navigation";
 export const LikedButton = ({ photoId }: { photoId: string }) => {
   const [{ likedPhotos, id }, setUser] = useRecoilState(userBasicInfoState);
   const isLiked = () => {
@@ -75,6 +76,7 @@ export const ContactButtons = ({ guestId }: { guestId: string }) => {
   if (id === guestId) {
     return null;
   }
+  const router = useRouter();
   return (
     <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
       <button
@@ -86,6 +88,9 @@ export const ContactButtons = ({ guestId }: { guestId: string }) => {
       <button
         type="button"
         className="text-slate-400 flex-grow bg-slate-800  px-2 py-1.5 rounded-md hover:text-slate-200"
+        onClick={()=>{
+           
+       router.push(`/messages/${guestId}`)}}
       >
         Message
       </button>

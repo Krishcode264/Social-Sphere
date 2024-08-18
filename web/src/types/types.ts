@@ -52,4 +52,11 @@ export type PhotoType = {
 
   }
 
-  
+  export type ConvoType={
+    convoId:string,
+    updatedAt:string,
+    lastMessage:string,
+    guestName:string,
+    guestProfile:string,
+    guestId:string,
+  }
