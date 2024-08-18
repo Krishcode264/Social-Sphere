@@ -31,9 +31,9 @@ export const ChatHead:React.FC<ChatHeadProps> = ({convo}) => {
         className="rounded-full"
       ></Image>
 
-      <h2 className="text-xl font-semibold hidden md:block text-slate-400">
+      <p className="text-xl font-semibold hidden md:block text-slate-400 text-[16px] sm:text-[14px]">
         {convo.guestName}
-      </h2>
+      </p>
     </Link>
   );
 };
@@ -65,9 +65,9 @@ export const MessageTemplate = ({m,profile,name}:{m:MessageType,profile:string|S
       ></Image>
       <div className="flex flex-col">
         <div className="flex gap-3 flex-row">
-          <h4 className="  text-slate-500 font-semibold hover:text-slate-300">
+          <p className="  text-slate-500 font-semibold hover:text-slate-300 text-[16px] sm:text-[14px]">
             {name?.slice(0, 15)}
-          </h4>
+          </p>
           <span className="text-slate-600 text-[15px]">
             {getTimeString(m.timestamp,"en-IN")}
           </span>

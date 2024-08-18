@@ -24,10 +24,10 @@ const MessageTopBar = ({
           className="rounded-full w-[30px] h-[30px] mx-auto "
         />
 
-        <span className="text-center  ">
+        <span className="text-center text-[10px]  sm:text-[14px] ">
           <Link href={`/profile/${id}`}> {name}</Link>
 
-          <span className="text-slate-400 sm:text-[11px] md:text-[16px] ml-4">(Last Seen 29 min ago)</span>
+          <span className="text-slate-400 sm:text-[11px] md:text-[16px] mb:text-[10px] ml-4">(Last Seen 29 min ago)</span>
         </span>
       </div>
       <div className="flex gap-2">
