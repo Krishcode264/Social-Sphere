@@ -27,6 +27,7 @@
       "@/utils/*": ["src/utils/*"],
       "@/store/*": ["src/store/*"],
       "@/images/*": ["src/images/*"],
+      "@/sounds/*": ["public/sounds/*"],
       "@/*": ["./src/*"]
     }
   },

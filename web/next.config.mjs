@@ -23,6 +23,21 @@ const nextConfig = {
       },
     ],
   },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.(mp3|wav|ogg|flac)$/,
+      use: {
+        loader: "file-loader",
+        options: {
+          name: "[name].[ext]",
+          outputPath: "static/sounds/",
+          publicPath: "/_next/static/sounds/",
+        },
+      },
+    });
+
+    return config;
+   },
 };
 
 export default nextConfig;

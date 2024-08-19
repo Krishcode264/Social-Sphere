@@ -38,25 +38,26 @@ console.log("got the evevnt => message ")
   );
 
   socket.on("startConvo", async (data) => {
-    const roomId = generateRoomId(data.userId, data.guestId);
-    console.log(roomId,"here is room id userconnced  ",data.userId)
-    socket.join(roomId);
-    const guestSocketId = await UserService.getUserSocketIdById(data.guestId);
-          console.log("here is guest socket id ", guestSocketId);
-    if (guestSocketId) {
+    console.log("got start convo from user ",data.userId)
+//     const roomId = generateRoomId(data.userId, data.guestId);
+//     console.log(roomId,"here is room id userconnced  ",data.userId)
+//     socket.join(roomId);
+//     const guestSocketId = await UserService.getUserSocketIdById(data.guestId);
+//           console.log("here is guest socket id ", guestSocketId);
+//     if (guestSocketId) {
 
-      const guestSocket = io.sockets.sockets.get(guestSocketId);
-      if (guestSocket) {
-        console.log("guest joined room ")
-        guestSocket.join(roomId);
-        socket.to(guestSocketId).emit("joinedRoom",{guest:"new room joined "})
-// (response: { error: any; status: any; }) => {
-//   if (response.error) {
-//     console.error("Failed to deliver message:", response);
-//   } else {
-//     console.log("Message delivered successfully:", response);
-//   }
-      }
-    }
+//       const guestSocket = io.sockets.sockets.get(guestSocketId);
+//       if (guestSocket) {
+//         console.log("guest joined room ")
+//         guestSocket.join(roomId);
+//         socket.to(guestSocketId).emit("joinedRoom",{guest:"new room joined "})
+// // (response: { error: any; status: any; }) => {
+// //   if (response.error) {
+// //     console.error("Failed to deliver message:", response);
+// //   } else {
+// //     console.log("Message delivered successfully:", response);
+// //   }
+//       }
+//     }
   });
 };

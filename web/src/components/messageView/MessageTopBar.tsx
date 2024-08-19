@@ -13,7 +13,7 @@ const MessageTopBar = ({
   id:string
 }) => {
   return (
-    <div className="text-slate-300 flex items-center bg-slate-800 justify-between py-2 px-3 rounded-md sticky top-0  ">
+    <div className="text-slate-300 flex items-center hover:bg-slate-800 bg-slate-950 justify-between py-2 px-3 rounded-md sticky top-0  ">
       <div className="flex  items-center justify-center gap-2">
         <Image
           src={profile || i2}

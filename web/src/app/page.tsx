@@ -11,7 +11,7 @@ export default async function Page() {
   const users = await getFeedUsers();
 
   return (
-    <div className="flex gap-4 flex-wrap p-4">
+    <div className="flex flex-wrap gap-4  p-2 max-h-screen overflow-y-scroll">
       <Suspense fallback={<Loading />}>
         {users.length > 0 ? (
           users.map((user: FeedUserType) => {
@@ -19,6 +19,7 @@ export default async function Page() {
               <Link href={`/profile/${user._id}`} key={user._id}>
                 <ProfileView user={user} />
               </Link>
+             
             );        
           })
         ) : (

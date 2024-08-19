@@ -12,6 +12,7 @@ import { cache, Suspense } from "react";
 import getTimeString from "@/utils/helpers/times";
 import type { ConvoType } from "@/types/types";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 interface ChatHeadProps {
   convo: ConvoType;
@@ -40,15 +41,16 @@ export const ChatHead:React.FC<ChatHeadProps> = ({convo}) => {
 
 export const ChatHeadContainer = async() => {
   const convos=await getUserConvos()
-  console.log("convos here ",convos)
+  //  if(convos.length>0 ) redirect(`/messages/${convos[0].guestId}`)
   return (
-    <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[20%] items-center md:items-start  ">
-    {convos.length>0 && convos.map((convo:ConvoType)=>{
-      return (
-        <ChatHead convo={convo} key={convo.convoId}/>
-      )
-    })}
-    </div>
+    <Suspense fallback={<Loading/>}>
+      <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[20%] items-center md:items-start  ">
+        {convos.length > 0 &&
+          convos.map((convo: ConvoType) => {
+            return <ChatHead convo={convo} key={convo.convoId} />;
+          })}
+      </div>
+    </Suspense>
   );
 };
 
@@ -69,11 +71,12 @@ export const MessageTemplate = ({m,profile,name}:{m:MessageType,profile:string|S
             {name?.slice(0, 15)}
           </p>
           <span className="text-slate-600 text-[15px]">
-            {getTimeString(m.timestamp,"en-IN")}
+            {getTimeString(m.timestamp, "en-IN")}
           </span>
         </div>
-
-        <p className="text-slate-300">{m.content}</p>
+        <p className="text-slate-300  text-[16px] sm:text-[14px]">
+          {m.content}
+        </p>
       </div>
     </div>
   );
