@@ -34,9 +34,9 @@ export class PhotoService {
         return await Promise.all(
           photos.map(async (photo) => {
             if (new Date() > new Date(photo.urlExpirationTime.toISOString())) {
-              const url = await AwsHandler.getObjectUrl(photo.key, 1800);
+              const url = await AwsHandler.getObjectUrl(photo.key, 604800);//7 days of expiry
               await this.updatePhotoUrl(url, photo._id);
-             // console.log("updated image url of user ", url);
+             console.log("updated image url of user ");
               return {
                 id: photo._id,
                 likes: photo.likes,

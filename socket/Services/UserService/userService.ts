@@ -85,7 +85,7 @@ export default class UserService {
         photos.map(async (photo) => {
         //  console.log(photo)
           if (new Date() > new Date(photo.urlExpirationTime.toISOString())) {   //checking if url expired 
-            const url = await AwsHandler.getObjectUrl(photo.key, 1800);    //setting up 30 min of expiration time  :) 
+            const url = await AwsHandler.getObjectUrl(photo.key, 604800);    //setting up 7 days min of expiration time  :) 
             await PhotosData.findByIdAndUpdate(photo._id, { imageUrl: url });
             return { likes:photo.likes,uploadedAt:photo.uploadedAt, imageUrl:url,id:photo._id};
           }

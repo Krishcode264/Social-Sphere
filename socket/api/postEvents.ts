@@ -30,43 +30,51 @@ const handlePostLikeDislike = async (req: Request, res: Response) => {
 
 const getPostComments = async (req: Request, res: Response) => {
   const { id } = req.query;
-  try{
-      console.log("handle get post coment runnign");
-const comments = await CommentData.find({photo:id}).select("commenter _id content ").sort({ createdAt: -1 }).lean().exec()
-// const transformedComments = comments.map((comment) => ({
-//   commenter: comment.commenter,
-//   id: comment._id,
-//   content: comment.content,
-//   createdAt:comment.createdAt
-// }));
- res.send(comments)
-
-  }catch(err){
-console.log("err in fetching comments",err)
-res.status(500).send("thing went wrong in fetching comments ")
+  try {
+    console.log("handle get post coment runnign");
+    const comments = await CommentData.find({ photo: id })
+      .select("commenter _id content ")
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    // const transformedComments = comments.map((comment) => ({
+    //   commenter: comment.commenter,
+    //   id: comment._id,
+    //   content: comment.content,
+    //   createdAt:comment.createdAt
+    // }));
+    res.send(comments);
+  } catch (err) {
+    console.log("err in fetching comments", err);
+    res.status(500).send("thing went wrong in fetching comments ");
   }
-
 };
 
-const handlePostComment=async(req:Request,res:Response)=>{
-  console.log(req,"req.body here ")
-const {userId,photoId,content,profile,name}=req.body
+const handlePostComment = async (req: Request, res: Response) => {
+  console.log(req, "req.body here ");
+  const { userId, photoId, content, profile, name } = req.body;
 
-try{
-  console.log("handle post coment runnign")
-const createComment= await new CommentData({commenter:{id:userId,profile,name},photo:photoId,content}).save()
+  try {
+    console.log("handle post coment runnign");
+    const createComment = await new CommentData({
+      commenter: { id: userId, profile, name },
+      photo: photoId,
+      content,
+    }).save();
 
-console.log(createComment)
- res.status(200).send({content:createComment.content,commenter:createComment.commenter,id:createComment._id})
-}
-
-catch(err){
-  console.log("comment on post failed",err)
-res.status(500).send("soemthing went wrong in posting the comment ")
-}
-
-   
-}
+    console.log(createComment);
+    res
+      .status(200)
+      .send({
+        content: createComment.content,
+        commenter: createComment.commenter,
+        id: createComment._id,
+      });
+  } catch (err) {
+    console.log("comment on post failed", err);
+    res.status(500).send("soemthing went wrong in posting the comment ");
+  }
+};
 
 postEventsRouter.use("/liked", handlePostLikeDislike);
 postEventsRouter.get("/getComments", getPostComments);

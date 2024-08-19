@@ -11,9 +11,9 @@ import type { ObjectId } from "mongoose";
 import mongoose from "mongoose";
 
 export async function createPresignedUrl(req: Request, res: Response) {
-  const {  fileName, type } = req.query;
-  const {id}=req.body.user
-console.log(req.body.user,"user from token ")
+  const { fileName, type } = req.query;
+  const { id } = req.body.user;
+  console.log(req.body.user, "user from token ");
   const key = `users/${id}/${Date.now()}_${fileName}`;
   try {
     const url = await AwsHandler.getPresignedUrlForS3(key, type);
@@ -26,17 +26,16 @@ console.log(req.body.user,"user from token ")
 
 async function handleFileUploadSuccess(req: Request, res: Response) {
   const { key } = req.query;
-    const { id } = req.body.user;
+  const { id } = req.body.user;
   try {
-
-    if (typeof key == "string" && typeof id=="string") {
-      console.log(id,"id at handle file uplaod ")
-      const url = await AwsHandler.getObjectUrl(key, 1800);                      
+    if (typeof key == "string" && typeof id == "string") {
+      console.log(id, "id at handle file uplaod ");
+      const url = await AwsHandler.getObjectUrl(key, 604800); //7 days od expiry
       const photo = await PhotoService.savePhoto({
         key: key,
         imageUrl: url,
-        uploader:new mongoose.Types.ObjectId(id),
-        urlExpirationTime: new Date(new Date().getTime() + 1600 * 1000),
+        uploader: new mongoose.Types.ObjectId(id),
+        urlExpirationTime: new Date(new Date().getTime() + 604600 * 1000),
       });
       console.log("image save success", photo);
       res
@@ -48,23 +47,21 @@ async function handleFileUploadSuccess(req: Request, res: Response) {
     res.status(404).json({ message: "something went wrong with image upload" });
   }
 }
-const handleUpdateUserProfile=async(req:Request,res:Response)=>{
-const { data}=req.body;
- const { id } = req.body.user;
-//console.log(id,data)
-if(id && data ){
-  //need to do further type cheaking with zod 
-  console.log("updating user")
- const user= await UserService.updateUserProfile( id , data);
-if(user){
-  res.send({status:"success",user})
-}else{
-res.status(500).send({ status: "update failed" });
-}
-
-
-}
-}
+const handleUpdateUserProfile = async (req: Request, res: Response) => {
+  const { data } = req.body;
+  const { id } = req.body.user;
+  //console.log(id,data)
+  if (id && data) {
+    //need to do further type cheaking with zod
+    console.log("updating user");
+    const user = await UserService.updateUserProfile(id, data);
+    if (user) {
+      res.send({ status: "success", user });
+    } else {
+      res.status(500).send({ status: "update failed" });
+    }
+  }
+};
 
 uploadRouter.use("/getPresignedUrl", createPresignedUrl);
 uploadRouter.use("/success", handleFileUploadSuccess);
