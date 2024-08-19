@@ -1,5 +1,5 @@
 import http from "http";
-import { socketioConnection } from "./webRTC";
+// import { socketioConnection } from "./webRTC";
 import express from "express";
 const app = express();
 export const httpServer = http.createServer(app);
@@ -53,40 +53,39 @@ async function init() {
   app.use("/auth", authRouter);
   app.use("/feed", feedRouter);
   app.use("/uploads", checkTokenValidity, uploadRouter);
-  app.use("/post-events",postEventsRouter);
-  app.use("/message", checkTokenValidity,messageRouter);
+  app.use("/post-events", postEventsRouter);
+  app.use("/message", checkTokenValidity, messageRouter);
   app.get("/health", (req, res) => {
-    res.cookie("token","this is token as coojkie ")
+    res.cookie("token", "this is token as coojkie ");
     res.send("running :)");
   });
   httpServer.listen(process.env.PORT || 8080, () => {
     console.log("server is listening on port 8080");
     connectMongo();
-io.on("connection",(socket)=>{
 
+    io.on("connection", (socket) => {
+      // socketioConnection(socket);
+      //mesages socket io activation
+      messageIoConection(socket);
 
+      socket.on("newUserConnected", async (user: User) => {
+        console.log("user connnedted", user.name);
+        await MessageService.updateSocketId(user.id, socket.id, true);
 
-  // socketioConnection(socket);
-  messageIoConection(socket);
-
-    socket.on("newUserConnected", async (user: User) => {
-      console.log("user connnedted",user.name)
-      UserService.updateUserProfile(user.id, {
-        socketID: socket.id,
-        isConnected: true,
-      })
+        socket.on("disconnect", async () => {
+          console.log("disconnection with user comming from the client ",socket.id);
+          try {
+            await UserData.findOneAndUpdate(
+              { socketID: socket.id },
+              { socketID: "", isConnected: false }
+            );
+            console.log("user socket id removed success");
+          } catch (err) {
+            console.log("err removing useres socket id after disconnection");
+          }
+        });
+      });
     });
-
-     socket.on("disconnect", async () => {
-       console.log("disconnection with user comming from the client ");
-       await UserData.findOneAndUpdate(
-         { socketID: socket.id },
-         { socketID: "", isConnected: false }
-       )
-     });
-})
-    
-  
   });
 }
 init();

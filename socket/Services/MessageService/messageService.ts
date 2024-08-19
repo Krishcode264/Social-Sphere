@@ -3,6 +3,7 @@ import {
   ConversationData,
   MessageData,
 } from "../../mongoose/schemas/chatSchema";
+import { UserData } from "../../mongoose/schemas/userSchema";
 export class MessageService {
 
 
@@ -37,4 +38,21 @@ export class MessageService {
   // static joinFriendRoom=(socketId:string)=>{
 
   // }
-}
+
+  static async  updateSocketId(userId:string,socketID:string,isConnected:boolean):Promise<boolean>{
+    try {
+     await UserData.findByIdAndUpdate(
+        userId,
+        {socketID,isConnected},
+    
+      );
+     console.log("updating socket id",socketID,"user is connected",isConnected);
+      return true
+    } catch (err) {
+      console.log("update user failed");
+      return false;
+    }
+  };
+
+  }
+

@@ -16,7 +16,7 @@ console.log("got the evevnt => message ")
         const { _id, content, sender, recipient, timestamp, status, ...message }=savedmsg;
         console.log("emititng message to  guest client => newMessage")
         const guestSocketId=await UserService.getUserSocketIdById(recipient.toString())
-        console.log("emitting new Messgage direcvtly without room  ",guestSocketId)
+        console.log("emitting new Messgage direcvtly without room message should send to  ",guestSocketId)
         io.to(guestSocketId as string).emit("newMessage", {
           id: _id,
           sender,

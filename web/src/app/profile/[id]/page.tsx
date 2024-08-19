@@ -7,10 +7,12 @@ import WrapperComponent from "./wrapperComponent";
 
 const Page = ({ params }: { params: { id: string } }) => {
   return (
-    <WrapperComponent>
-      <GuestProfileView id={params.id} />
-      <GuestImageGallary guestId={params.id} />
-    </WrapperComponent>
+
+      <WrapperComponent>
+        <GuestProfileView id={params.id} />
+        <GuestImageGallary guestId={params.id} />
+      </WrapperComponent>
+ 
   );
 };
 export default Page;

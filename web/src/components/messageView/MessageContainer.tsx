@@ -54,7 +54,7 @@ useEffect(()=>{
    
       });
     }
-},[])
+},[socket])
 
   useEffect(() => {
 setMessages(()=>[...messages])

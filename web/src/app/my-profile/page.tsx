@@ -15,7 +15,7 @@ const Page = () => {
   return (
     <div className=" rounded-lg  h-full w-full">
       {/* {id ? ( */}
-      <div className="flex-col user_profile h-full w-full  lg:justify-between lg:flex-row lg:flex ">
+      <div className="flex-col user_profile h-full w-full  lg:justify-between lg:flex-row lg:flex overflow-y-scroll">
         <div className=" bg-slate-900 lg:w-[45%] p-4 min-h-full rounded-md relative">
           <button
             onClick={() => router.push("/my-profile/edit-profile")}
@@ -27,7 +27,7 @@ const Page = () => {
           <UserProfileView />
         </div>
 
-        <div className=" overflow-y-scroll flex-col items-center  lg:w-[55%] bg-slate-900 h-full ">
+        <div className=" overflow-y-scroll flex-col items-center  lg:w-[55%] bg-slate-900  ">
           <ImageGallary />
           <UploadPhoto />
         </div>
