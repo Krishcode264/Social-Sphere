@@ -31,11 +31,11 @@ const generateToken = (data: any) => {
 };
 const handleUserSignup = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
- // console.log(email, password, name);
+  // console.log(email, password, name);
   try {
     const alreadyExistedUserWithSameEmail =
       await UserService.checkUserAlreadyExist(email);
-   // console.log(alreadyExistedUserWithSameEmail);
+    // console.log(alreadyExistedUserWithSameEmail);
     if (alreadyExistedUserWithSameEmail.length === 0) {
       const createdUser = await UserService.saveUserData(req.body, {
         provider: "credencial",
@@ -45,7 +45,11 @@ const handleUserSignup = async (req: Request, res: Response) => {
           name: createdUser.name,
           id: createdUser._id,
         });
-        res.cookie("token", token);
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+          sameSite: "none",
+        });
         res.send({
           status: "success",
           message: "successfully signed up",
@@ -81,15 +85,20 @@ const handleUserLogin = async (req: Request, res: Response) => {
         name: userwithEmail.name,
         id: userwithEmail._id,
       });
-     // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
-      res.cookie("token", token);
-        res.cookie("auth-token", "my auth ");
+      // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
+      res.cookie("token", token, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "lax",
+      }); //for developement
+      //only sending token
       return res.send({
         status: "success",
         message: "successfully logged in",
-        token,
         user: sanitizeUserData(userwithEmail),
       });
+    //  res.redirect(WEB_CLIENT_URL)
+     //return res.send({ status: "success", message: "successfully logged in" });
     } else {
       return res.send({
         status: "error",
@@ -181,5 +190,5 @@ authRouter.get("/google", googleLogin);
 authRouter.get("/callback/google", handleGoogleCallback);
 authRouter.get("/health", (req, res) => {
   res.cookie("auth-token", "my auth fuck you ");
- return  res.send("auth/health goood");
+  return res.send("auth/health goood");
 });

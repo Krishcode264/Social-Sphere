@@ -6,7 +6,7 @@ import SendIcon from "@mui/icons-material/Send";
 import "../common.css";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { Comment, type CommentProps } from "./comment";
-import { fetchCommentsForPost, token } from "@/utils/fechers";
+import {  fetchCommentsForPost, token } from "@/utils/fechers";
 import { userInfoState } from "@/store/selectors/user-selector";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,19 +25,7 @@ const CommentBox = ({
   const [input, setInput] = useState("");
   const queryClient = useQueryClient();
 
-  const addComment = async (data: any) => {
-    const t = await token();
-    console.log(data, " before psodting the comment ");
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
-      {
-        ...data,
-        withCredentials: true,
-         Cookie:t
-      }
-    );
-    console.log(res, "res from add comment ");
-  };
+
   // fetching comments for the post
   const {
     isPending,
@@ -51,6 +39,25 @@ const CommentBox = ({
   });
 
   //adding new comment and mutating it
+
+  const addComment = async (data: any) => {
+   // const t = await token();
+   console.log("add comment ");
+   console.log(data, " before psodting the comment ");
+   const res = await axios.post(
+     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
+     {
+       ...data,
+       withCredentials: true,
+       //  Cookie:t
+     },
+     {
+       withCredentials: true,
+     }
+   );
+   console.log("res from add comment ");
+ };
+
   const {
     mutateAsync: handleAddComment,
     isPending: addingComment,
@@ -67,8 +74,7 @@ const CommentBox = ({
   const [topFromVt, setTopFromVt] = useState(0);
   const [parentTop, setParentTop] = useState(0);
   useEffect(() => {
-    const targetParent = childRef.current?.parentElement?.parentElement;
-
+    const targetParent = childRef.current?.parentElement?.parentElement;  //we need to add scrooll on grand parent elelemt 
     if (targetParent) {
       const handleScroll = debounce(() => {
         if (childRef.current) {

@@ -53,7 +53,7 @@ async function init() {
   app.use("/auth", authRouter);
   app.use("/feed", feedRouter);
   app.use("/uploads", checkTokenValidity, uploadRouter);
-  app.use("/post-events", postEventsRouter);
+  app.use("/post-events", checkTokenValidity,postEventsRouter);
   app.use("/message", checkTokenValidity, messageRouter);
   app.get("/health", (req, res) => {
     res.cookie("token", "this is token as coojkie ");

@@ -19,3 +19,6 @@
 //     reader.readAsDataURL(e.target.files[0]);
 //   });
 // };
+export const generateRoomId = (userId1: string, userId2: string) => {
+  return [userId1, userId2].sort().join("-");
+};

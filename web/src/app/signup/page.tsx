@@ -12,6 +12,7 @@ import googleLogo from '../images/google.png'
 import Image from "next/image";
 import googlePic from "@/images/google.png";
 import { useEffect } from "react";
+import { handleLoginWithGoogle } from "../login/page";
 const SignUpSchema = z.object({
   name: z.string().min(4),
   email: z.string().email(),
@@ -36,7 +37,7 @@ const Signup = () => {
       // console.log(data);
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/signup`,
-        data
+        data,{withCredentials:true}
       );
       if (res.data.status === "success") {
         // Set token in local storage with time limit
@@ -66,6 +67,8 @@ const Signup = () => {
     }
  
   
+ 
+
   return (
     <div className="flex justify-center items-center h-full w-full font-mono">
       <div className="  rounded-lg w-full mb:w-[90%] md:w-[50%] 2xl:w-[35%] xl:w-[30%] mx-auto mt-4  p-3 py-4">
@@ -116,9 +119,7 @@ const Signup = () => {
           <button
             type="button"
             disabled={isSubmitting}
-            onClick={() =>
-             console.log("do signup")
-            }
+            onClick={handleLoginWithGoogle}
             className="p-2 hover:bg-slate-700 rounded-xl text-xl bg-slate-800 text-slate-400 font-medium flex items-center justify-center gap-2"
           >
             <p className="">sign up with </p>

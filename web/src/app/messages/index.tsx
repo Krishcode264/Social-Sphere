@@ -1,3 +1,4 @@
+"use client"
 import Loading from "@/components/basic/loading";
 import MessageContainer, { type MessageType } from "@/components/messageView/MessageContainer";
 import MessageTopBar from "@/components/messageView/MessageTopBar";
@@ -13,38 +14,44 @@ import getTimeString from "@/utils/helpers/times";
 import type { ConvoType } from "@/types/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { useRecoilValue } from "recoil";
+import { MessageNotificationState, newMessagesCountSelector } from "@/store/atoms/notificationState";
+import { ChatHead } from "@/components/messageView/ChatHead";
+import { userInfoState } from "@/store/selectors/user-selector";
 
-interface ChatHeadProps {
-  convo: ConvoType;
-}
-export const ChatHead:React.FC<ChatHeadProps> = ({convo}) => {
-  return (
-    <Link
-      href={`${process.env.BASE_URL}/messages/${convo.guestId}`}
-      className="flex  items-center justify-center gap-3  hover:bg-slate-700 hover:cursor-pointer md:p-1.5  bg:rounded-md rounded-lg md:justify-start min-w-12 h-12  w-full  bg-slate-900 "
-    >
-      <Image
-        src={convo.guestProfile || i2}
-        width={30}
-        height={30}
-        unoptimized={true}
-        alt="user"
-        className="rounded-full"
-      ></Image>
+// export const ChatHead:React.FC<ChatHeadProps> = ({convo}) => {
+//   const {lastMsg,count}= useRecoilValue(newMessagesCountSelector(convo.guestId));
+//   return (
+//     <Link
+//       href={`${process.env.BASE_URL}/messages/${convo.guestId}`}
+//       className="flex  items-center justify-center gap-3  hover:bg-slate-700 hover:cursor-pointer md:p-1.5  bg:rounded-md rounded-lg md:justify-start min-w-12 h-12  w-full  bg-slate-900 "
+//     >
+//       <Image
+//         src={convo.guestProfile || i2}
+//         width={30}
+//         height={30}
+//         unoptimized={true}
+//         alt="user"
+//         className="rounded-full"
+//       ></Image>
 
-      <p className="text-xl font-semibold hidden md:block text-slate-400 text-[16px] sm:text-[14px]">
-        {convo.guestName}
-      </p>
-    </Link>
-  );
-};
+//       <p className="text-xl font-semibold hidden md:block text-slate-400 text-[16px] sm:text-[14px]">
+//         {convo.guestName}
+//       </p>
+//       {count>0 && <Badge badgeContent={count} color="primary"/>}
+//       <p className="text-xl font-semibold hidden md:block text-slate-400 text-[16px] sm:text-[14px]">
+//         {lastMsg}
+//       </p>
+//     </Link>
+//   );
+// };
 
 export const ChatHeadContainer = async() => {
   const convos=await getUserConvos()
   //  if(convos.length>0 ) redirect(`/messages/${convos[0].guestId}`)
   return (
     <Suspense fallback={<Loading/>}>
-      <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[20%] items-center md:items-start  ">
+      <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[30%] items-center md:items-start  ">
         {convos.length > 0 &&
           convos.map((convo: ConvoType) => {
             return <ChatHead convo={convo} key={convo.convoId} />;
@@ -54,7 +61,8 @@ export const ChatHeadContainer = async() => {
   );
 };
 
-export const MessageTemplate = ({m,profile,name}:{m:MessageType,profile:string|StaticImageData,name?:string}) => {
+export const MessageTemplate = ({m,profile,name,status}:{m:MessageType,profile:string|StaticImageData,name?:string,status:string}) => {
+  const {id}=useRecoilValue(userInfoState)
   return (
     <div className="flex  gap-3 hover:bg-slate-800 hover:cursor-pointer  p-2 rounded-md items- justify-start min-w-24 ">
       <Image
@@ -73,6 +81,14 @@ export const MessageTemplate = ({m,profile,name}:{m:MessageType,profile:string|S
           <span className="text-slate-600 text-[15px]">
             {getTimeString(m.timestamp, "en-IN")}
           </span>
+          {m.recipient !== id && (
+            <span
+              className=" text-[13px] "
+              style={{ color: `${status === "sent" ? "green" : "orange"}` }}
+            >
+              {status}
+            </span>
+          )}
         </div>
         <p className="text-slate-300  text-[16px] sm:text-[14px]">
           {m.content}

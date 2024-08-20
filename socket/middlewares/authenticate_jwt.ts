@@ -23,6 +23,7 @@ async function checkTokenValidity(
     //   res.send(user);
     //   console.log("valid token");
     // } else {
+    console.log("token is here eeheh",token , "requested path",req.path)
       req.body.user = user;
       next();
   //  }

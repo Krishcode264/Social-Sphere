@@ -11,6 +11,7 @@ import { currentMessagesState } from "@/store/atoms/messages-atom";
 import type { MessageType } from "./MessageContainer";
 import { randomUUID } from "crypto";
 import { v4 } from "uuid";
+import { generateRoomId } from "@/utils/helpers/helper";
 export const ChatBar = ({ guestId }: { guestId: string }) => {
   return (
     <div className="bg-slate-800  rounded-md  gap-2 shadow-sm sm:w-[80%] mr-auto w-full flex items-center px-2 py-1.5  absolute bottom-0 left-0 z-30">
@@ -51,6 +52,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
       let date = new Date();
       const msg: MessageType = {
         sender: id,
+        roomId:generateRoomId(id,receiver),
         recipient: receiver,
         content: value,
         status: "sending",
@@ -58,13 +60,14 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
         id: v4(),
       };
 
-      socket?.emit("message", {
+      socket?.emit("newMessage", {
         sender: id,
         receiver,
+        roomId: msg.roomId,
         message: value,
         conformationId: msg.id,
       });
-
+       
       setMessage((prev) => [...prev, msg]);
       setValue(() => "");
     }

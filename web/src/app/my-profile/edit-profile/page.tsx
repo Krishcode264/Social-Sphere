@@ -32,7 +32,6 @@ const Page = () => {
   const handleUserUpdate = async () => {
     try {
       setUpdating(true);
-      const token = sessionStorage.getItem("token");
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/update-profile`,
@@ -75,7 +74,7 @@ const Page = () => {
     });
   };
   return (
-    <div className="p-4 relative  text-slate-400 font-mono bg-gradient-to-br from-slate-950 to-slate-700">
+    <div className="p-4 relative h-full overflow-y-scroll text-slate-400 font-mono bg-gradient-to-br from-slate-950 to-slate-700">
       <div>
         <h2 className="text-2xl relative font-semibold">Edit Profile </h2>
       </div>

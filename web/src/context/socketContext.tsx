@@ -12,8 +12,20 @@ import { connectedUsersState } from "@/store/atoms/socket-atom";
 import type { Offer, Candidate, User } from "@/types/types";
 import { userInfoState } from "@/store/selectors/user-selector";
 import { usePC } from "./peerConnectionContext";
-const SocketContext = createContext<Socket | null>(null);
+import { usePathname } from "next/navigation";
+import type { MessageType } from "@/components/messageView/MessageContainer";
+import { MessageNotificationState } from "@/store/atoms/notificationState";
+import { playSound } from "@/utils/DomMutations/domMutations";
+import { currentGuestIdFromMessageState } from "@/store/atoms/messages-atom";
+import { usePath } from "./pathContext";
 
+const SocketContext = createContext<Socket | null>(null);
+export type MessageNotifyType = {
+  content:string,
+  conversationId:string,
+  sender:string,
+  roomId:string
+};
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
   const { id, profile, name } = useRecoilValue(userInfoState);
@@ -23,6 +35,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const setOffer = useSetRecoilState(offerState);
   const setPersontoHandshake = useSetRecoilState(guestState);
   const peerConnection = usePC();
+const path = usePath()
+const currentPathRef = useRef(path);
+  const setMessageNotification=useSetRecoilState(MessageNotificationState)
+
+
   useEffect(() => {
     if (!socketRef.current && id) {
       const uri =
@@ -99,12 +116,42 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
 
       socketRef.current.on("joinedRoom",(data)=>{
+       
        console.log("hey server automatiically kjoined in room ",data)
       })
+     
+      socketRef.current.on("message_Notify", (messageData: MessageNotifyType) => {
+        console.log(
+          "currentref.current ",
+          currentPathRef.current,
+          "sender path  ",
+          `messages/${messageData.sender}`
+        );
+        
+        if (currentPathRef.current === `/messages/${messageData.sender}`) return;
+   
+        setMessageNotification((prev) => [
+          ...prev,
+          {
+            roomId:messageData.roomId,
+            guestId: messageData.sender,
+            convoId: messageData.conversationId,
+            content: messageData.content,
+          },
+        ]);
+        console.log(
+          "updating notification",
+          "user is on this path",
+          currentPathRef.current,
+          messageData.content
+        );
+        playSound.play();
+      });
     }
 
     return () => {
       if (socketRef.current) {
+        socketRef.current.removeAllListeners()
         socketRef.current.disconnect();
         socketRef.current = null;
       }

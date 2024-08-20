@@ -3,56 +3,75 @@ import React, { useEffect, useMemo } from "react";
 import ProfilePic from "../profile/profile_photo";
 import Link from "next/link";
 import ChatIcon from "@mui/icons-material/Chat";
-import { Icon } from "@mui/material";
+import { Badge, Icon } from "@mui/material";
 import StreamIcon from "@mui/icons-material/Stream";
 import GroupsIcon from "@mui/icons-material/Groups";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Image from "next/image";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-
-import { userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
+import {
+  useRecoilCallback,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+} from "recoil";
 import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-namespace";
 import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificationsRounded";
-import defaultUserProfile from "@/images/user-profile.png";
-import { getUserByToken } from "@/utils/fechers";
 import { userInfoState } from "@/store/selectors/user-selector";
-import i2 from '@/images/duf.webp'
+import i2 from "@/images/duf.webp";
+import { MessageNotificationState, unreadMessageCount, type MessageNotificationType } from "@/store/atoms/notificationState";
+import { usePath } from "@/context/pathContext";
+
+export type SideBarOptionType = {
+  name: string;
+  icon: ReactJSXElement;
+  badge?:number;
+};
+
+
+const SideBarOption = ({ name, icon,badge }: SideBarOptionType) => {
+  return (
+    <Link
+      key={name}
+      href={`/${name.toLocaleLowerCase().split(" ").join("-")}`}
+      className=" rounded-xl  hover:bg-slate-800 hover:cursor-pointer p-2"
+    >
+      <button className=" w-full  h-auto flex gap-2 items-center   mx-auto text-orange-100 ">
+        {badge && badge > 0 ? (
+          <Badge badgeContent={badge} color="primary">
+            {icon}
+          </Badge>
+        ) : (
+          icon
+        )}
+        <p className=" hidden lg:block  text-slate-400"> {name}</p>
+      </button>
+    </Link>
+  );
+};
 const generateSideBarOptions = (
-  options: { name: string; icon: ReactJSXElement }[]
+  options: { name: string; icon: ReactJSXElement }[],
 ) => {
   return options.map((option) => {
-    return (
-      <Link
-        key={option.name}
-        href={`/${option.name.toLocaleLowerCase().split(" ").join("-")}`}
-        className=" rounded-xl  hover:bg-slate-800 hover:cursor-pointer p-2"
-      >
-        <button className=" w-full  h-auto flex gap-2 items-center   mx-auto text-orange-100 ">
-          {option.icon}
 
-          <p className=" hidden lg:block  text-slate-400"> {option.name}</p>
-        </button>
-      </Link>
-    );
+   
+    return <SideBarOption name={option.name} icon={option.icon} key={option.name}/>;
   });
 };
 
 const Sidebarheader = () => {
-  const {name,profile}=useRecoilValue(userInfoState)
+  const { name, profile } = useRecoilValue(userInfoState);
   return (
     <div className="">
       <Link href={"/"}>
-       
-          <Image
-            className=" h-10 w-10 rounded-full  mx-auto"
-            src={profile || i2}
-            alt="profile pic"
-            width={15}
-            height={15}
-            unoptimized={true}
-          />
-        
+        <Image
+          className=" h-10 w-10 rounded-full  mx-auto"
+          src={profile || i2}
+          alt="profile pic"
+          width={15}
+          height={15}
+          unoptimized={true}
+        />
         <h3 className="text-center sm:text-xl text-slate-400 font-bold hidden lg:block">
           {name}
         </h3>
@@ -60,44 +79,40 @@ const Sidebarheader = () => {
     </div>
   );
 };
+//we have to show message badge so to avoid unnecessary rendering we are bwriting separate messagesideoption components 
+const MessageSideBarOption=()=>{
+    const path=usePath()
+   const msgs = useRecoilValue(unreadMessageCount)  ;
+        
+   console.log("current path is chnaging from message ",path.startsWith("/messages"))
+
+  return (
+    <SideBarOption name={"Messages"} badge={path.startsWith("/messages/") ? 0 : msgs} icon={<ChatIcon />} />
+  );
+}
+  
 
 const SideBar = () => {
-  // const [userdata, setUserData] = useRecoilState(userBasicInfoState);
-  // const setPhotos = useSetRecoilState(UserPhotosState);
-  //  const { isValid, isLoading, user } = useAuth();
-  // useEffect(() => {
-  //   const token = window.sessionStorage.getItem("token");
-  //   if (token && !userdata.id) {
-  //     console.log("running ");
-  //     const fetchUser = async () => {
-  //       console.log("running fetcher");
-  //       const data = await getUserByToken();
-  //       if (data?.user) {
-  //         setUserData((prev) => ({ ...prev, ...data.user, id: data.user._id }));
-  //         setPhotos(() => data.photos);
-  //       }
-  //     };
-
-  //     fetchUser();
-  //   }
-  // }, []);
 
   const icons = useMemo(
     () => [
-      { name: "Messages", icon: <ChatIcon /> },
+      // { name: "Messages", icon: <ChatIcon /> },
       //  { name: "Feed", icon: <StreamIcon /> },
       { name: "Rooms", icon: <GroupsIcon /> },
       { name: "My Profile", icon: <AccountCircleIcon /> },
       { name: "Settings", icon: <SettingsIcon /> },
+
       { name: "Notification", icon: <CircleNotificationsRoundedIcon /> },
+      { name: "demo", icon: <SettingsIcon /> },
     ],
     []
   );
 
   return (
-    <div className="rounded-lg h-[100%]  md:w-[8%]  lg:w-[15%] sm:p-2 flex flex-col   justify-start font-mono text-l   bg-gradient-to-br from-slate-900 to-slate-800 ">
+    <div className="rounded-lg h-[100%]  md:w-[8%] p-1 lg:w-[15%] sm:p-2 flex flex-col   justify-start font-mono text-l   bg-gradient-to-br from-slate-900 to-slate-800 ">
       <Sidebarheader />
       <div className="flex flex-col gap-2 text-center  text-l mt-12  w-full  mx-auto">
+        <MessageSideBarOption />
         {generateSideBarOptions(icons)}
       </div>
     </div>

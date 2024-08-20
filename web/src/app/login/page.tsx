@@ -17,7 +17,10 @@ import Image from "next/image";
 import { userInfo } from "os";
 import { userInfoState } from "@/store/selectors/user-selector";
 
-
+export const handleLoginWithGoogle = () => {
+  const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
+  window.location.href = path;
+};
 type FormFields = z.infer<typeof LoginSchema>;
 
 const Login = () => {
@@ -36,31 +39,27 @@ const Login = () => {
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/login`,
-        data
+        data,{withCredentials:true}
       );
       if (res.data.status === "success") {
-        const { token , user } = res.data;
-        sessionStorage.setItem("token", token);
+        const { user } = res.data;
+      
         console.log(user,"got user ")
         setUser((prevUser) => ({
           ...prevUser,
           ...user
         }));
 
-        Router.replace("/");
+      //  Router.replace("/");
       }
       if (res.data.status === "error") {
         setError("root", { message: res.data.message });
       }
     }
   };
-if(id){
-  Router.back()
-}
-const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
-function handleLoginWithGoogle() {
-window.location.href = path
-}
+
+
+
   return (
     <div className="flex justify-center items-center h-full w-full font-mono ">
       <div className="rounded-lg  w-full mb:w-[90%] md:w-[50%] 2xl:w-[35%] xl:w-[30%] mx-auto mt-4 p-3 py-4  ">

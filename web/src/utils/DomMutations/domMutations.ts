@@ -1,3 +1,4 @@
+"use client"
 import s1 from "@/sounds/n1.mp3"
 export const handleScrollDown = (ref: HTMLDivElement | null) => {
   if (ref) {

@@ -25,9 +25,9 @@ export class PostEvents {
 
         {
           withCredentials: true,
-          headers: {
-            Cookie: token(), // Set the token in the Cookie header
-          },
+          // headers: {
+          //   Cookie: token(), // Set the token in the Cookie header
+          // },
         }
       );
        handleLikeChange(true)

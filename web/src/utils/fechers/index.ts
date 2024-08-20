@@ -6,6 +6,8 @@ import Cookies from "js-cookie";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+//dont need to pass explicit token anymore issue resolved , keep in mind dont call server actions inside tanstak query :)))))
+
 //getcookietoken
 export const token =() => {
   const cookieStore =  cookies();
@@ -77,9 +79,9 @@ export const getUserByToken = cache(async () => {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
       {
-        headers: {
-          Cookie: await token(), // Set the token in the Cookie header
-        },
+        // headers: {
+        //   Cookie: await token(), // Set the token in the Cookie header
+        // },
         withCredentials: true,
       }
     );
@@ -118,22 +120,24 @@ export const fetchCommentsForPost = async (photoId: string) => {
       withCredentials: true,
     }
   );
-  console.log(res.data);
+ // console.log(res,"fetch comments res here ");
   return res.data;
 };
 
-export const addComment = async (data: any) => {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
-    {
-      ...data,
-      withCredentials: true,
-      Cookie: await token(),
-    }
-  );
-};
+// export const addComment = async (data: any) => {
+//   const res = await axios.get(
+//     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
+//     {
+//       ...data,
+//       withCredentials: true,
+//       Cookie: await token(),
+//     }
+//   );
+// };
 
-export const handlePostComm = async (
+
+//  cant use this for now , client request with tanstak showing error with server actions 
+ const handlePostComm = async (    
   photoId: string,
   userId: string,
   data: any
@@ -146,9 +150,9 @@ export const handlePostComm = async (
       {
         params: { photoId, userId },
         body: { content: data.input, photo: data.profile },
-        headers: {
-          Cookie: await  token(), // Set the token in the Cookie header
-        },
+        // headers: {
+        //   Cookie: await  token(), // Set the token in the Cookie header
+        // },
         withCredentials: true,
       }
     );
@@ -165,7 +169,7 @@ export const fetchMessageHistory = async (
   id: string
 ): Promise<MessageHistoryResponse | null> => {
   try {
-    console.log(id)
+   // console.log(id)
     const messageHistoryResponse = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getMessageHistory`,
       {

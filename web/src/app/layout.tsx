@@ -4,6 +4,7 @@ import RecoilRoot from "../utils/RecoilRoot";
 interface LayoutProps {
   children: React.ReactNode;
 }
+import { PathProvider } from "@/context/pathContext";
 import { SocketProvider } from "@/context/socketContext";
 import { AuthProvider } from "@/context/authContext";
 import SideBar from "@/components/homePage/SideBar";
@@ -17,7 +18,7 @@ export default async function RootLayout({
 }>) {
 
   return (
-    <html lang="en" >
+    <html lang="en">
       <head>
         <title>Social Sphere</title>
         <meta name="referrer" content="no-referrer" />
@@ -25,18 +26,20 @@ export default async function RootLayout({
       <body className="  h-screen w-screen">
         <div className="h-full w-full flex   bg-slate-900">
           <RecoilRoot>
-            <AuthProvider>
-              <SocketProvider>
-                <PcProvider>
-                  <QueryProvider>
-                    <SideBar />
-                    <div className="  rounded-lg   flex-1 h-full  shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
-                      <Wrapper>{children}</Wrapper>
-                    </div>
-                  </QueryProvider>
-                </PcProvider>
-              </SocketProvider>
-            </AuthProvider>
+            <PathProvider>
+              <AuthProvider>
+                <SocketProvider>
+                  <PcProvider>
+                    <QueryProvider>
+                      <SideBar />
+                      <div className="  rounded-lg   flex-1 h-full  shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
+                        <Wrapper>{children}</Wrapper>
+                      </div>
+                    </QueryProvider>
+                  </PcProvider>
+                </SocketProvider>
+              </AuthProvider>
+            </PathProvider>
           </RecoilRoot>
         </div>
       </body>
