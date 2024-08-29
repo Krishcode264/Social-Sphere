@@ -4,7 +4,6 @@ import { PhotosData } from "../mongoose/schemas/photoSchema";
 import UserService from "../Services/UserService/userService";
 import { UserData } from "../mongoose/schemas/userSchema";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
 import axios from "axios";
 const NEXT_PUBLIC_SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -44,6 +43,7 @@ const handleUserSignup = async (req: Request, res: Response) => {
         const token = generateToken({
           name: createdUser.name,
           id: createdUser._id,
+          profile:createdUser.profile
         });
         res.cookie("token", token, {
           httpOnly: true,
@@ -84,6 +84,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
       const token = generateToken({
         name: userwithEmail.name,
         id: userwithEmail._id,
+        profile: userwithEmail.profile,
       });
       // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
       res.cookie("token", token, {
@@ -162,9 +163,11 @@ async function handleGoogleCallback(req: Request, res: Response) {
         const token = generateToken({
           name: createdUser.name,
           id: createdUser._id,
+          profile: createdUser.profile,
         });
 
         res.cookie("token", token);
+        // res.send({user:createdUser})
         res.redirect(WEB_CLIENT_URL);
       }
     }
@@ -189,6 +192,5 @@ authRouter.post("/login", handleUserLogin);
 authRouter.get("/google", googleLogin);
 authRouter.get("/callback/google", handleGoogleCallback);
 authRouter.get("/health", (req, res) => {
-  res.cookie("auth-token", "my auth fuck you ");
   return res.send("auth/health goood");
 });

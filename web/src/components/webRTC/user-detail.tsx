@@ -11,39 +11,38 @@ import { Icon } from "@mui/material";
 import { useSocket } from '@/context/socketContext';
 import { Socket } from "socket.io-client";
 import { usePC } from "@/context/peerConnectionContext";
-import { PC } from "@/utils/PC";
+
 
 const CallStateIcon = () => {
   const callingState = useRecoilValue(callState);
   return (
     <div className="flex items-center justify-center p-1">
-      {callingState !== "default" && <p>{callingState}</p>}
-      {callingState === "default" && <CallIcon />}
-      {callingState === "calling" && <CallIcon className="" />}
+      {callingState.status !== "default" && <p>{callingState.status}</p>}
+      {callingState.status === "default" && <CallIcon />}
+      {callingState.status === "calling" && <CallIcon className="" />}
     </div>
   );
 };
 
 const UserDetail = ({ id, name }: User) => {
-  const [{ persontoHandshake }, setPersontoHandshake] =
+  const [persontoHandshake , setPersontoHandshake] =
     useRecoilState(guestState);
   const socket = useSocket();
   const peerConnection = usePC();
   const user = useRecoilValue(userInfoState);
   const [callingState, setCallingState] = useRecoilState(callState);
-const pc:PC|null = peerConnection ? new PC(peerConnection) : null;
-
+const {PC:pc}=usePC()
   const emitUserRequestForVideoCall = async (
     requestedUser: User
   ): Promise<void> => {
-    setCallingState("calling");
-    const createdOffer = await pc?.createOffer();
-    setPersontoHandshake(() => ({ persontoHandshake: requestedUser }));
+    // setCallingState();
+    // const createdOffer = await pc?.createOffer();
+    // setPersontoHandshake(() => ({ persontoHandshake: requestedUser }));
 
-    if (socket !== null && createdOffer) {
-     // console.log("socket is preset: here is offer ", createdOffer);
-      socket?.emit("receivedOfferForRTC", { createdOffer, requestedUser, user });
-    }
+    // if (socket !== null && createdOffer) {
+    //  // console.log("socket is preset: here is offer ", createdOffer);
+    //   socket?.emit("receivedOfferForRTC", { createdOffer, requestedUser, user });
+    // }
   };
 
   return (

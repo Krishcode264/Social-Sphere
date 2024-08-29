@@ -7,62 +7,23 @@ import { userPermissionState } from "@/store/atoms/user-permissions_atom";
 import { mediaStreamState } from "@/store/atoms/media-stream-atom";
 import { peerConnectionState } from "@/store/selectors/pc-selector";
 import { usePC } from "@/context/peerConnectionContext";
-const MediaPermission = () => {
-  const { video, audio } = useRecoilValue(userPermissionState);
-  const setMediaStreamAll = useSetRecoilState(mediaStreamState);
-  const peerConnection = usePC()
+const MediaPermission = ({mode,callback}:{mode:string,callback:()=>void}) => {
 
-  const getUserMediaStream = () => {
-    const setDefaultdisabledTracks = (stream: MediaStream) => {
-      stream.getTracks().forEach((track) => {
-        track.enabled = false;
-        peerConnection?.addTrack(track, stream);
-      });
 
-     // console.log("stream after track.enable=false ", stream.getTracks());
-      setMediaStreamAll((prev) => ({
-        ...prev,
-        mediaStream: stream,
-        tracksAdded: true,
-        video: false,
-        audio: false,
-      }));
-    };
 
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        console.log("got the strem here 1 ")
-        setDefaultdisabledTracks(stream);
-      })
-      .catch((err) => {
-        console.log("errro getiig n stream")
-        throw err;
-      });
-  };
-
-  useEffect(() => {
-    console.log(video, audio, "from medi permission");
-    if (audio === "granted" && video === "granted") {
-      console.log("this is running");
-      getUserMediaStream();
-    }
-  }, [video, audio]);
 
   return (
-    <div className="  text-slate-800 bg-gradient-to-br from-sky-900 to-blue-900 shadow-lg shadow-sky-700 p-6 w-3/5 md:w-1/2 m-auto flex flex-col items-center rounded-xl relative top-40">
+    <div className="  bg-slate-800  border py-2 px-3 w-3/5 md:w-1/2 m-auto flex flex-col items-center rounded-xl relative top-40">
       <p className="text-xl text-slate-400">
-        we need acces to your camera and microphone
+        we need acces to your {mode}, for that you have to give permission. reset
+        permission settings from your browser
       </p>
-      <div className="m-auto">
+      <div className="m-auto text-orange-500">
         <CameraIcon sx={{ fontSize: "33px" }} />
         <MicIcon sx={{ fontSize: "33px" }} />
       </div>
-      <button
-        className="p-1  text-slate-800 bg-sky-700 hover:bg-sky-600    mt-4 text-xl font-semibold rounded-lg"
-        onClick={getUserMediaStream}
-      >
-        Give Access
+      <button className="  text-orange-500" onClick={callback}>
+        click here if you have updated the settings
       </button>
     </div>
   );

@@ -1,14 +1,21 @@
 "use client";
 
-import { MessageTemplate } from "@/app/messages";
+import { MessageTemplate, type MessageTopBarProps } from "@/app/messages";
 import { useSocket } from "@/context/socketContext";
 import { userInfoState } from "@/store/selectors/user-selector";
 import { useEffect, useRef, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import i2 from "@/images/duf.webp";
 import { currentMessagesState } from "@/store/atoms/messages-atom";
 import { handleScrollDown, playSound } from "@/utils/DomMutations/domMutations";
 import { generateRoomId } from "@/utils/helpers/helper";
+import { MessageNotificationState } from "@/store/atoms/notificationState";
+import { showComponentState } from "@/store/atoms/show-component";
+import CallIcon from "@mui/icons-material/Call";
+import DuoIcon from "@mui/icons-material/Duo";
+import { CallWindowAtomState } from "@/store/atoms/callWindowStates";
+import { guestState } from "@/store/atoms/guest-atom";
+import { callState } from "@/store/atoms/calling-state";
 export type MessageType = {
   id: string;
   sender: string;
@@ -34,9 +41,18 @@ export default function MessageContainer({
   const socket = useSocket();
   const { id, profile, name } = useRecoilValue(userInfoState);
   const [msgs, setMessages] = useRecoilState(currentMessagesState);
+  const updateConvoState=useSetRecoilState(MessageNotificationState)
   const convoStarted = useRef<boolean>(false);
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(()=>{
+ 
+          updateConvoState((prev)=>{
+            return {totalUnreadCount:0,unreadConvos:prev.unreadConvos.filter((convo)=>convo.guestId !== guestId)}
+          }) 
+  },[])
   useEffect(() => {
+    
     if (socket) {
       if (!convoStarted.current) {
         socket.emit("startConvo", { userId: id, guestId });
@@ -69,7 +85,7 @@ export default function MessageContainer({
               }
             } else {
               if (!prev.find((m) => m.id === newMsg.id)) {
-                playSound.play();
+                playSound();
                 return [...prev, newMsg];
               }
             }
@@ -104,7 +120,7 @@ export default function MessageContainer({
       return (
         <MessageTemplate
           m={m}
-          key={m.id}
+          key={m.timestamp}
           status={m.status}
           name={m.sender === id ? name : guestName}
           profile={m.sender === id ? profile || i2 : guestProfile || i2}
@@ -119,3 +135,41 @@ export default function MessageContainer({
     </div>
   );
 }
+
+
+export const AudioVideoCallButton = ({
+  state,
+   id,
+   profile,
+   name
+}: {
+  state: "audio" | "video";
+   id:string;
+   profile:string;
+   name:string;
+}) => {
+  const setShowCompennts = useSetRecoilState(showComponentState);
+  const setMode = useSetRecoilState(CallWindowAtomState);
+  const setPersonToHandshake = useSetRecoilState(guestState);
+  const [call,setCall]=useRecoilState(callState)
+    const activateCallWindow = () => {
+if(call.status ==="default")  {
+ setMode((prev) => ({ ...prev, mode: state }));
+ setPersonToHandshake(() => ({ id, name, profile }));
+//  setCall((prev)=> ({status:"calling" , action:"offerer"}))
+ setShowCompennts((prev) => {
+   return { ...prev, showCallWindow: true };
+ });
+}
+   
+  };
+  return (
+    <button
+      className="bg-blue-600 rounded-md py-1 px-2 text-slate-300 hover:text-slate-200"
+      onClick={activateCallWindow}
+    >
+      {state === "audio" ? <CallIcon /> : <DuoIcon />}
+    </button>
+  );
+};
+

@@ -25,7 +25,7 @@ export async function createPresignedUrl(req: Request, res: Response) {
 }
 
 async function handleFileUploadSuccess(req: Request, res: Response) {
-  const { key } = req.query;
+  const { key,caption ,tags } = req.body;
   const { id } = req.body.user;
   try {
     if (typeof key == "string" && typeof id == "string") {
@@ -34,10 +34,12 @@ async function handleFileUploadSuccess(req: Request, res: Response) {
       const photo = await PhotoService.savePhoto({
         key: key,
         imageUrl: url,
+        caption,
+        tags,
         uploader: new mongoose.Types.ObjectId(id),
         urlExpirationTime: new Date(new Date().getTime() + 604600 * 1000),
-      });
-      console.log("image save success", photo);
+      })
+      console.log("image save success");
       res
         .status(200)
         .send({ message: "we saved your image url to databse ", photo });
@@ -64,6 +66,6 @@ const handleUpdateUserProfile = async (req: Request, res: Response) => {
 };
 
 uploadRouter.use("/getPresignedUrl", createPresignedUrl);
-uploadRouter.use("/success", handleFileUploadSuccess);
+uploadRouter.post("/success", handleFileUploadSuccess);
 uploadRouter.post("/update-profile", handleUpdateUserProfile);
 export default uploadRouter;

@@ -1,5 +1,4 @@
 import http from "http";
-// import { socketioConnection } from "./webRTC";
 import express from "express";
 const app = express();
 export const httpServer = http.createServer(app);
@@ -14,19 +13,19 @@ import uploadRouter from "./api/uploads";
 import createGraphqlServer from "./graphql/index";
 import { expressMiddleware } from "@apollo/server/express4";
 import { postEventsRouter } from "./api/postEvents";
-import session from "express-session";
 import cookieParser from "cookie-parser";
 import { messageRouter } from "./api/message";
 import { messageIoConection } from "./Services/MessageService/messageIo";
 import { MessageService } from "./Services/MessageService/messageService";
 import { UserData } from "./mongoose/schemas/userSchema";
 import type { User } from "./types/types";
-import UserService from "./Services/UserService/userService";
+import { webRtcIoConnection } from "./webRTC";
+import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
   app.use(
     cors({
-      origin: "http://localhost:3000", // Adjust this to your frontend origin
+      origin: "http://localhost:3000", 
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
@@ -37,13 +36,6 @@ async function init() {
   app.use(cookieParser());
   app.use(express.json());
   app.use(
-    session({
-      secret: "your-session-secret",
-      resave: false,
-      saveUninitialized: true,
-    })
-  );
-  app.use(
     "/graphql",
     checkTokenValidity,
     expressMiddleware(await createGraphqlServer())
@@ -53,7 +45,7 @@ async function init() {
   app.use("/auth", authRouter);
   app.use("/feed", feedRouter);
   app.use("/uploads", checkTokenValidity, uploadRouter);
-  app.use("/post-events", checkTokenValidity,postEventsRouter);
+  app.use("/post-events", checkTokenValidity, postEventsRouter);
   app.use("/message", checkTokenValidity, messageRouter);
   app.get("/health", (req, res) => {
     res.cookie("token", "this is token as coojkie ");
@@ -64,16 +56,21 @@ async function init() {
     connectMongo();
 
     io.on("connection", (socket) => {
-      // socketioConnection(socket);
+      //  webrtc socket io activation 
+      webRtcIoConnection(socket);
       //mesages socket io activation
       messageIoConection(socket);
-
+       //notification io 
+       notificationIO(socket)
       socket.on("newUserConnected", async (user: User) => {
         console.log("user connnedted", user.name);
         await MessageService.updateSocketId(user.id, socket.id, true);
 
         socket.on("disconnect", async () => {
-          console.log("disconnection with user comming from the client ",socket.id);
+          console.log(
+            "disconnection with user comming from the client ",
+            socket.id
+          );
           try {
             await UserData.findOneAndUpdate(
               { socketID: socket.id },

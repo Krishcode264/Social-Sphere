@@ -1,3 +1,4 @@
+
 import { userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
 import type { PhotoType } from "@/types/types";
 import axios from "axios";
@@ -8,49 +9,94 @@ import Image from "next/image";
 import PostView from "../profile/postView";
 import { userInfoState } from "@/store/selectors/user-selector";
 import Cookies from "js-cookie";
-
+import { InfoTemplate, InfoTemplateWithIntrests } from "./Ui";
+import { boolean } from "zod";
+import { Photo } from "@mui/icons-material";
+export type CreatePostType={
+  caption:string;
+  tags:string[]|[];
+  photo:any
+}
 export const UploadPhoto = () => {
+
   const addPhotoRef = useRef<null | HTMLInputElement>(null);
   const [uploading, setIsUploading] = useState<boolean>(false);
-  const setPhoto = useSetRecoilState(UserPhotosState);
-
+  const [post,setPost]=useState<CreatePostType>({caption:"",photo:null,tags:[]})
+   const  setPhoto = useSetRecoilState(UserPhotosState);
+   const [fileBlob,setFileBlob]=useState<string|null>(null)
   const handleAddIconClick = () => {
     if (addPhotoRef.current) {
       addPhotoRef?.current?.click();
     }
   };
+const updatetags=(id:string,value:string,remove:boolean|undefined)=>{
+  if(remove){
+    setPost((prev)=>({...prev , tags:prev.tags.filter((t)=> t !== value)}))
+    return
+  }
+ setPost((prev) => ({ ...prev, tags:[...prev.tags,value]}));
+}
 
-  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+const handleSetPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+const files: any = e.target.files;
+if(files[0]){
+     setPost((prev)=>({...prev , photo:files[0]}))
+  
+}
+
+};
+
+useEffect(()=>{
+  console.log("use effect running")
+ if(post.photo){
+  const blobUrl=URL.createObjectURL(post.photo);
+  console.log(blobUrl,"blob url")
+  setFileBlob(blobUrl)
+ }
+
+ return (()=>{
+  URL.revokeObjectURL(post.photo)
+ })
+},[post.photo])
+
+  const handleUploadPhoto = async () => {
     try {
-      setIsUploading(true);
-      const token =window.sessionStorage.getItem("token")  // if user logged in as credential methode 
-      const userToken=Cookies.get("token")  //if user logged in with google auth
-      const files: any = e.target.files;
-      if (files[0]) {
+    
+      if (post.photo) {
+          setIsUploading(true);
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/getPresignedUrl`,
           {
-            params: { fileName: files[0].name, type: files[0].type },
+            params: { fileName: post.photo.name, type:post.photo.type },
 
             withCredentials: true,
           }
         );
         const { url, key } = res.data;
        // console.log(url, key, "key and url from server");
-        const sendTos3 = await axios.put(url, files[0]);
-       // console.log(sendTos3);
-        const isSave = await axios.get(
+        const sendTos3 = await axios.put(url, post.photo);
+        console.log(sendTos3,"send to s3 response");
+        const isSave = await axios.post(
           `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/success`,
           {
-            params: { key },
-            withCredentials: true,
-          }
+            key,
+            caption:post.caption,
+            tags:post.tags,
+      
+          },{withCredentials:true}
         );
         if (isSave.data.photo) {
-          setPhoto((prev) => [...prev, isSave.data.photo]);
+          console.log(isSave.data.photo)
+          setPhoto((prev) => [
+            ...prev,
+            { ...isSave.data.photo, id: isSave.data.photo._id},
+          ]);
         }
 
         setIsUploading(false);
+        setPost({photo:null,caption:"",tags:[]})
+        setFileBlob(null)
       }
     } catch (err) {
       console.log("image upload failed", err);
@@ -58,52 +104,99 @@ export const UploadPhoto = () => {
     }
   };
   return (
-    <div className="w-[240px] h-[240px] md:w-[300px] md:h-[300px]">
-      <button className="w-full h-full flex justify-center items-center flex-col shadow-lg bg-slate-200 rounded-xl hover:text-green-700 ">
-        {uploading ? (
-          <>
-            <div
-              className="animate-spin inline-block size-8 border-[3px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
-              role="status"
-              aria-label="loading"
-            ></div>
-           <p className="mt-3">Uploading</p>
-          </>
-        ) : (
-          <>
+    <div className="w-full    p-4  text-slate-300  font-mono bg-slate-800 ">
+      <span className="text-slate-200 py-1 px-1 text-xl bg-orange-600 rounded-sm  ">
+        Create New Post
+      </span>
+
+      <div className="min-w-[300px]  p-3 gap-2 min-h-[350px] flex-col mx-auto my-4 rounded-sm  bg-slate-700 flex items-center justify-center">
+       
+        {fileBlob && (
+          <Image
+            src={fileBlob}
+            width={5}
+            height={5}
+            alt="post image"
+            className="w-[400px] h-[300px]  bg-contain "
+          />
+        )}
+
+        <>
+          <button className=" border border-blue-200 p-1 flex justify-center items-center flex-col   rounded-md    "
+          disabled={uploading}
+          >
             <AddIcon
               onClick={handleAddIconClick}
               className="hover:cursor-pointer hover:scale-110 "
               sx={{ fontSize: "50px" }}
             />
-            <p className="font-semibold text-xl">Add photo</p>
-          </>
-        )}
-      </button>
-      <input
-        onChange={(e) => handleUploadPhoto(e)}
-        ref={addPhotoRef}
-        type="file"
-        name=""
-        id=""
-        className="w-full h-full  hover:cursor-pointer hidden"
+            <p className="font-semibold text-md ">Add photo</p>
+            <p className="text-center font-thin text-sm text-blue-300">
+              you can drag and drop the photo here
+            </p>
+          </button>
+          <input
+            onChange={(e) => handleSetPhoto(e)}
+            ref={addPhotoRef}
+            type="file"
+            name=""
+            id=""
+            className="w-full h-full  hover:cursor-pointer hidden"
+          />
+        </>
+      </div>
+      <h5 className=" m-0 p-0">Add Tags</h5>
+
+      <InfoTemplateWithIntrests
+        intrests={post.tags}
+        editable={true}
+        id="tags"
+        updater={updatetags}
+        color="rgb(51 65 85)"
       />
+
+      <h4 className="">Add caption </h4>
+      <input
+      disabled={uploading}
+        type="text"
+        onChange={(e) => {
+          setPost((prev) => ({ ...prev, caption: e.target.value }));
+        }}
+        placeholder="add caption "
+        className="py-1 mt-1 ml-2 px-1 rounded-lg    bg-slate-700 text-xl  w-full sm:w-[80%] "
+      />
+
+      <button onClick={handleUploadPhoto} disabled={uploading || !post.photo}  className="bg-blue-500 px-1.5 py-1.5 rounded-md m-2 w-full">
+      
+        {uploading ? (
+          <div className="flex items-center gap-2 justify-center">
+            <div
+              className="animate-spin inline-block size-8 border-[3px] border-current border-t-transparent text-slate-200 rounded-full"
+             
+            ></div>
+            <p className=" text-xl">Uploading...</p>
+          </div>
+        ) : (
+          <p className=" align-center text-slate-200"> Upload Post</p>) }
+      </button>
     </div>
   );
 };
 
 export  const  ImageGallary = () => {
   const [photos, setphotos] = useRecoilState(UserPhotosState);
+  const {id}=useRecoilValue(userInfoState)
   async function getPhotos() {
     console.log("getPhotos running ");
-    const token=Cookies.get("token")
+    // const token=Cookies.get("token")
     const photos = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
-      {  headers: {
-              Authorization: `Bearer ${token}`,
-            },
+      { 
+        params:{id},
+        withCredentials:true
           }
     );
+    console.log(photos,"phtoos from image gallary at the user profile page ")
     setphotos(photos.data);
   }
   useEffect(() => {
@@ -120,12 +213,8 @@ export  const  ImageGallary = () => {
     });
   }
   return (
-    // <div className="flex flex-wrap w-full justify-around gap-2  p-2 bg-slate-900 rounded-lg">
-    //   {photos.length > 0 && renderPhotos(photos)}
-    //   <UploadPhoto />
-    // </div>
     <>
-      {photos.length > 0 ? renderPhotos(photos) : <h1>dont have any posts </h1> }
+      {photos.length > 0 && renderPhotos(photos) }
       
     </>
   );

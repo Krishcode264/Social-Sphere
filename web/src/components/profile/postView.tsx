@@ -8,6 +8,7 @@ import { ShareRounded } from "@mui/icons-material";
 import CommentBar from "./commentBar";
 import {  CommentButton, LikedButton } from "./clientUi";
 import CommentBox from "./commentBar";
+import { InfoTemplateWithIntrests } from "../my-profile/Ui";
 
 
 const PostView = ({photo,userId}:{photo:PhotoType,userId?:string}) => {
@@ -17,13 +18,20 @@ const PostView = ({photo,userId}:{photo:PhotoType,userId?:string}) => {
 function closeCommentBox(){
   setShowCommentBox(false)
 }
-  const Caption = () => {
+  const Caption = ({caption}:{caption:string}) => {
     return (
-      <div className="caption p-2 font-mono text-xl  w-full ">
-        <p className=" text-slate-400"> how is my latest photo guys ?</p>
-      </div>
+    
+        <p className=" text-slate-400 text-lg  "> {caption}</p>
+      
     );
   };
+  const renderTags=(tags:string[])=>{
+    return tags.map((tag)=>{
+      return (
+        <span key={tag} className="text-blue-500 text-l mx-1  ">#{tag.toLowerCase().split(" ").join("_")}</span>
+      )
+    })
+  }
   return (
     <div
       className="postView   w-full  p-4   bg-slate-900 rounded-xl mb-4 relative "
@@ -35,10 +43,11 @@ function closeCommentBox(){
         height={200}
         alt="user profile"
         unoptimized={true}
-        className=" w-[400px] h-[400px]  bg-contain bg-center mx-auto rounded-sm "
+        className=" w-full h-[400px]  bg-contain bg-center mx-auto rounded-sm "
       />
-      <Caption />
-      <div className="postinfo   flex gap-3 text-slate-600">
+      {photo.tags && photo.tags.length>0 && renderTags(photo.tags)}
+   {photo.caption && <Caption caption={photo.caption}/>}
+      <div className="postinfo   flex gap-3 text-slate-600   " style={{marginTop:photo.caption && photo.caption.length>0 ? "0px" : "4px"}}>
         <span>
           <LikedButton photoId={photo.id} />
           <span> 1.2k</span>

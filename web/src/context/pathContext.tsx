@@ -9,11 +9,10 @@ import React, {
   useRef,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useSetRecoilState } from "recoil";
+import { MessageNotificationState } from "@/store/atoms/notificationState";
 
-// Define the type for the context value
-interface PathContextType {
-  currentPath: string|undefined;
-}
+
 
 const PathContext = createContext<string | undefined>(undefined);
 
@@ -25,12 +24,18 @@ interface PathProviderProps {
 export const PathProvider: React.FC<PathProviderProps> = ({ children }) => {
   const path = usePathname();
   const [currentPath,setCurrentPath] = useState(path);
+const setConvoState=useSetRecoilState(MessageNotificationState)
+
 
   useEffect(() => {
-    // console.log("path is chnaging ", path);
-    // console.log(path)
+//console.log("path chnaged we are in use path ",path)
+if(path.startsWith('/messages')){
+    setConvoState((prev)=> {
+      return {...prev,totalUnreadCount:0}
+    })
+}
    setCurrentPath(()=>path)
-
+  
     
   }, [path]);
 

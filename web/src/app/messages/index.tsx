@@ -1,7 +1,6 @@
 "use client"
 import Loading from "@/components/basic/loading";
 import MessageContainer, { type MessageType } from "@/components/messageView/MessageContainer";
-import MessageTopBar from "@/components/messageView/MessageTopBar";
 import ProfilePic from "@/components/profile/profile_photo";
 import p1 from "@/images/duf.webp";
 import { fetchMessageHistory, getUserConvos } from "@/utils/fechers";
@@ -15,8 +14,7 @@ import type { ConvoType } from "@/types/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useRecoilValue } from "recoil";
-import { MessageNotificationState, newMessagesCountSelector } from "@/store/atoms/notificationState";
-import { ChatHead } from "@/components/messageView/ChatHead";
+
 import { userInfoState } from "@/store/selectors/user-selector";
 
 // export const ChatHead:React.FC<ChatHeadProps> = ({convo}) => {
@@ -46,20 +44,7 @@ import { userInfoState } from "@/store/selectors/user-selector";
 //   );
 // };
 
-export const ChatHeadContainer = async() => {
-  const convos=await getUserConvos()
-  //  if(convos.length>0 ) redirect(`/messages/${convos[0].guestId}`)
-  return (
-    <Suspense fallback={<Loading/>}>
-      <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[30%] items-center md:items-start  ">
-        {convos.length > 0 &&
-          convos.map((convo: ConvoType) => {
-            return <ChatHead convo={convo} key={convo.convoId} />;
-          })}
-      </div>
-    </Suspense>
-  );
-};
+
 
 export const MessageTemplate = ({m,profile,name,status}:{m:MessageType,profile:string|StaticImageData,name?:string,status:string}) => {
   const {id}=useRecoilValue(userInfoState)
@@ -109,22 +94,4 @@ export type MessageHistoryResponse = {
   messages: MessageType[];
 };
 
-export const DetailedChatView = async ({ id }: { id: string }) => {
-  // const {data,isError,isLoading,isSuccess}=useQuery({  // not able to use tanstak query for async server compoennt
-  //   queryKey:["user",id],
-  //   queryFn:getUserChatHistory
-  // })
-   const data = await fetchMessageHistory(id);
-  
-  return (
-    <Suspense fallback={<Loading />}>
-      <div className=" flex flex-col gap-2 h-full overflow-y-scroll ">
-        {data?.guestInfo && (
-          <MessageTopBar guestInfo={data.guestInfo} id={id} />
-        )}
-        <MessageContainer guestId={id} guestProfile={data?.guestInfo.profile} guestName={data?.guestInfo.name} messages={data?.messages || []}/>
-   
-      </div>
-    </Suspense>
-  )
-}
+

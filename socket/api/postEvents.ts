@@ -2,8 +2,10 @@ import { Router } from "express";
 import { Response, Request } from "express";
 import { PhotoService } from "../Services/PhotoService/photoService";
 import { CommentData } from "../mongoose/schemas/commentSchema";
+import { NotificationData } from "../mongoose/schemas/notificationSchema";
+import { NotificationService } from "../Services/NotificationService/NotificationService";
+import { UserData } from "../mongoose/schemas/userSchema";
 import { PhotosData } from "../mongoose/schemas/photoSchema";
-import checkTokenValidity from "../middlewares/authenticate_jwt";
 export const postEventsRouter = Router();
 
 const handlePostLikeDislike = async (req: Request, res: Response) => {
@@ -51,18 +53,36 @@ const getPostComments = async (req: Request, res: Response) => {
 };
 
 const handlePostComment = async (req: Request, res: Response) => {
-  console.log(req, "req.body here ");
+  //console.log(req, "req.body here ");
   const { userId, photoId, content, profile, name } = req.body;
 
   try {
-    console.log("handle post coment runnign");
+   // console.log("handle post coment runnign");
     const createComment = await new CommentData({
       commenter: { id: userId, profile, name },
       photo: photoId,
       content,
     }).save();
 
-    console.log(createComment);
+    const post=await PhotosData.findById(photoId).select("_id uploader").lean() 
+    console.log(post,"post ")  
+    if(post && post.uploader){
+      console.log("running create notification")
+   await NotificationService.createNotification({
+     type: "commented",
+     target: {
+       userId: post.uploader.toString(),
+       mediaId: photoId,
+     },
+     notifier: {
+       profile,
+       name,
+       id: userId,
+     },
+   });
+    }       
+  
+  //  console.log(createComment);
     res
       .status(200)
       .send({
@@ -75,7 +95,21 @@ const handlePostComment = async (req: Request, res: Response) => {
     res.status(500).send("soemthing went wrong in posting the comment ");
   }
 };
+export const getUserNotifications=async (req:Request,res:Response)=>{
+    const {id}=req.body.user
+try{
+
+  const data=await NotificationData.find({'target.userId':id}).sort({ createdAt: -1 }).limit(20).lean()
+    // console.log(data,id,"data and user id ")
+  res.send(data)
+}
+catch(err){
+  res.status(501).send("soemthing went wrong in fetching user notifications ");
+console.log("err fetching notifications",err)
+}
+}
 
 postEventsRouter.use("/liked", handlePostLikeDislike);
 postEventsRouter.get("/getComments", getPostComments);
 postEventsRouter.post("/postComment", handlePostComment);
+postEventsRouter.get("/notification", getUserNotifications);

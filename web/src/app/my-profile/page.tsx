@@ -28,8 +28,8 @@ const Page = () => {
         </div>
 
         <div className=" overflow-y-scroll flex-col items-center  lg:w-[55%] bg-slate-900  ">
-          <ImageGallary />
           <UploadPhoto />
+          <ImageGallary />
         </div>
       </div>
       {/* // ) : (

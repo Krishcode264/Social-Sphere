@@ -3,7 +3,7 @@ import type { Schema } from "zod";
 export type User = {
   name: string;
   id: string;
-  profile?:"string"
+  profile?:string
 };
 
 export type Offer = {
@@ -14,11 +14,11 @@ export type Offer = {
   requestedUser?: User;
   receivedUser?: User;
 };
+export type OfferType = { sdp?: string; type: "offer" };
 export type Candidate = {
-  candidate: RTCIceCandidate;
-  persontoHandshake: User;
-
-  user: User;
+  iceCandidateBuffer: RTCIceCandidate[];
+  guest: User;
+  offerer: User;
 };
 
 export type UserSchemaType = {
@@ -33,6 +33,7 @@ export type UserSchemaType = {
   age?: number;
   gender?: string;
   profile?: string;
+  intro?:string;
   places_want_to_visit:string[];
   languages_learning_or_speak?: string[];
 };
@@ -40,7 +41,9 @@ export type PhotoType = {
   imageUrl: string;
   uploadedAt?: Date;
   likes?: [string];
-  id:string
+  id:string;
+  caption?:string;
+  tags?:string[];
 };
  export  interface FeedUserType {
     name: string;
@@ -60,3 +63,8 @@ export type PhotoType = {
     guestProfile:string,
     guestId:string,
   }
+  export interface OfferSdp {
+    sdp?: string;
+    type: "offer";
+  }
+  export type ConnectedUsers = User[] | [];

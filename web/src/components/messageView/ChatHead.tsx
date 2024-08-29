@@ -1,5 +1,5 @@
 "use client"
-import { newMessagesCountSelector } from "@/store/atoms/notificationState";
+import { TotalUnreadMessageCountSelector, UnViwedConvoSelector } from "@/store/atoms/notificationState";
 import type { ConvoType } from "@/types/types";
 import { Badge } from "@mui/material";
 import { useRecoilValue } from "recoil";
@@ -12,7 +12,7 @@ interface ChatHeadProps {
 
 export const ChatHead: React.FC<ChatHeadProps> = ({ convo }) => {
   const { lastMsg, count } = useRecoilValue(
-    newMessagesCountSelector(convo.guestId)
+    UnViwedConvoSelector(convo.guestId)
   );
  
   return (
@@ -35,8 +35,8 @@ export const ChatHead: React.FC<ChatHeadProps> = ({ convo }) => {
         <p className="font-semibold  text-slate-400 text-[21px] sm:text-[14px] m-0 p-0">
         {convo.guestName}
         </p>
-        <p className="overflow-hidden font-semibold  text-slate-400 text-[13px] sm:text-[12px] md:text-[14] m-0 p-0">
-          {lastMsg} ewfewfewfewf
+        <p className="   overflow-ellipsis font-semibold  text-blue-300 text-[13px] sm:text-[12px] md:text-[14] m-0 p-0">
+          { lastMsg && lastMsg.slice(0,15).concat("...") } 
         </p>
       </div>
     </Link>

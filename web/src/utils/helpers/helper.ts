@@ -7,6 +7,9 @@
 //         if (typeof data === "string") {
 //           const base64String = data.split(",")[1];
 
+import { MessageNotificationState } from "@/store/atoms/notificationState";
+import { useRecoilState } from "recoil";
+
 //           resolve(base64String);
 //         } else {
 //           reject(null);
@@ -22,3 +25,4 @@
 export const generateRoomId = (userId1: string, userId2: string) => {
   return [userId1, userId2].sort().join("-");
 };
+

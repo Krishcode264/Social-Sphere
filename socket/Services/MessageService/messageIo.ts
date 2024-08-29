@@ -33,10 +33,8 @@ export const messageIoConection = (socket: Socket) => {
         const guestSocketId = await UserService.getUserSocketIdById(
           recipient.toString()
         );
-        // console.log(
-        //   "emitting new Messgage direcvtly without room message should send to  ",
-        //   guestSocketId
-        // );
+      
+        
         io.to(data.roomId).emit(`newMessage_${data.roomId}`, {
           id: _id,
           sender,
@@ -49,9 +47,10 @@ export const messageIoConection = (socket: Socket) => {
 
         io.to(guestSocketId as string).emit("message_Notify", {
           roomId: data.roomId,
-          content: content?.slice(0, 10),
+          content: content,
           sender,
           conversationId,
+          timestamp
         });
         //  io.to(data.roomId).emit("newMessage", {
         //    id: _id,

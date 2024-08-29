@@ -25,7 +25,7 @@ const CommentBox = ({
   const [input, setInput] = useState("");
   const queryClient = useQueryClient();
 
-
+  //console.log(photoId,"photoid in comment box ")
   // fetching comments for the post
   const {
     isPending,
@@ -48,8 +48,7 @@ const CommentBox = ({
      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
      {
        ...data,
-       withCredentials: true,
-       //  Cookie:t
+  
      },
      {
        withCredentials: true,

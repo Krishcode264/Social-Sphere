@@ -12,7 +12,11 @@ import type { MessageType } from "./MessageContainer";
 import { randomUUID } from "crypto";
 import { v4 } from "uuid";
 import { generateRoomId } from "@/utils/helpers/helper";
-export const ChatBar = ({ guestId }: { guestId: string }) => {
+
+export type ChatBarProps={
+guestId:string
+}
+export const ChatBar = ({ guestId }: ChatBarProps) => {
   return (
     <div className="bg-slate-800  rounded-md  gap-2 shadow-sm sm:w-[80%] mr-auto w-full flex items-center px-2 py-1.5  absolute bottom-0 left-0 z-30">
       <SearchBox receiver={guestId} />

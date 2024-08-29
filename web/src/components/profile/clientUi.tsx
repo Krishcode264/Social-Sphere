@@ -73,10 +73,11 @@ export const CommentButton = ({
 
 export const ContactButtons = ({ guestId }: { guestId: string }) => {
   const { id } = useRecoilValue(userInfoState);
+    const router = useRouter();
   if (id === guestId) {
     return null;
   }
-  const router = useRouter();
+
   return (
     <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
       <button

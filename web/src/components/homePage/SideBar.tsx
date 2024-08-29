@@ -19,7 +19,7 @@ import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-name
 import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificationsRounded";
 import { userInfoState } from "@/store/selectors/user-selector";
 import i2 from "@/images/duf.webp";
-import { MessageNotificationState, unreadMessageCount, type MessageNotificationType } from "@/store/atoms/notificationState";
+import { MessageNotificationState, NotificationState, TotalUnreadMessageCountSelector, type MessageNotificationType } from "@/store/atoms/notificationState";
 import { usePath } from "@/context/pathContext";
 
 export type SideBarOptionType = {
@@ -82,15 +82,27 @@ const Sidebarheader = () => {
 //we have to show message badge so to avoid unnecessary rendering we are bwriting separate messagesideoption components 
 const MessageSideBarOption=()=>{
     const path=usePath()
-   const msgs = useRecoilValue(unreadMessageCount)  ;
+  const msgs = useRecoilValue(TotalUnreadMessageCountSelector);  ;
         
-   console.log("current path is chnaging from message ",path.startsWith("/messages"))
+  //  console.log("current path is chnaging from message ",path.startsWith("/messages"))
 
   return (
     <SideBarOption name={"Messages"} badge={path.startsWith("/messages/") ? 0 : msgs} icon={<ChatIcon />} />
   );
 }
   
+
+const NotificationsSideBarOption=()=>{
+  const path=usePath()
+  const notifications=useRecoilValue(NotificationState)
+    return (
+      <SideBarOption
+        name={"Notification"}
+        badge={path.startsWith("/notification") ? 0 : notifications.length}
+        icon={<CircleNotificationsRoundedIcon />}
+      />
+    );
+}
 
 const SideBar = () => {
 
@@ -102,7 +114,7 @@ const SideBar = () => {
       { name: "My Profile", icon: <AccountCircleIcon /> },
       { name: "Settings", icon: <SettingsIcon /> },
 
-      { name: "Notification", icon: <CircleNotificationsRoundedIcon /> },
+      // { name: "Notification", icon: <CircleNotificationsRoundedIcon /> },
       { name: "demo", icon: <SettingsIcon /> },
     ],
     []
@@ -114,6 +126,7 @@ const SideBar = () => {
       <div className="flex flex-col gap-2 text-center  text-l mt-12  w-full  mx-auto">
         <MessageSideBarOption />
         {generateSideBarOptions(icons)}
+        <NotificationsSideBarOption/>
       </div>
     </div>
   );

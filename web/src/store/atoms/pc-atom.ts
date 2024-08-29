@@ -13,13 +13,11 @@ export const pcState=atom<PCState>({
     }
 });
 
-interface OfferState {
-  offer: RTCSessionDescriptionInit|null|undefined;
-}
+type OfferState = RTCSessionDescriptionInit|null|undefined;
+
 
 export const offerState= atom<OfferState>({
   key: "offer-state",
-  default: {
-   offer:null,
-  },
+  default: null,
+  
 });

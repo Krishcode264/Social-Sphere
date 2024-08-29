@@ -3,6 +3,7 @@ import type {  Types } from "mongoose";
 export type User = {
   name: string;
   id: string;
+  profile?:string
 };
 
 export type Offer = {
@@ -14,9 +15,9 @@ export type Offer = {
   receivedUser?: User;
 };
 export type Candidate = {
-  candidate: RTCIceCandidate;
-  persontoHandshake: User;
-  user: User;
+  iceCandidateBuffer: RTCIceCandidate[];
+  guest: User;
+  offerer: User;
 };
 type ObjectId = Types.ObjectId;
 export type UserSchemaType = {
@@ -41,8 +42,21 @@ export type UserSchemaType = {
 export type photoSchematype = {
   key: string;
   imageUrl: string;
+  caption?:string;
+  tags?:string[];
   uploader: ObjectId;
   uploadedAt?: Date;
   urlExpirationTime: Date;
   likes?: [ObjectId];
+};
+export type UserType={
+  name:string;
+  profile:string;
+  id:string
+}
+export type HandShakeDataType = {
+  guest: UserType;
+  offerer: UserType;
+  offer?: { sdp?: string; type: "offer" };
+  answer?: { sdp?: string; type: "answer" };
 };

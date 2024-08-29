@@ -14,18 +14,17 @@ const LoginSchema = z.object({
   password: z.string().min(8),
 });
 import Image from "next/image";
-import { userInfo } from "os";
 import { userInfoState } from "@/store/selectors/user-selector";
 
-export const handleLoginWithGoogle = () => {
-  const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
-  window.location.href = path;
-};
+
 type FormFields = z.infer<typeof LoginSchema>;
 
 const Login = () => {
   const Router = useRouter();
-
+const handleLoginWithGoogle = () => {
+  const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
+  window.location.href = path;
+};
   const setUser = useSetRecoilState(userBasicInfoState);
   const {id}=useRecoilValue(userInfoState)
   const {
@@ -50,7 +49,9 @@ const Login = () => {
           ...user
         }));
 
-      //  Router.replace("/");
+     
+            Router.replace("/");
+          
       }
       if (res.data.status === "error") {
         setError("root", { message: res.data.message });
@@ -100,11 +101,11 @@ const Login = () => {
             )}
           </button>
           <button
-             type="button"
-             disabled={isSubmitting}
+            type="button"
+            disabled={isSubmitting}
             data-onsuccess="onSignIn"
             onClick={handleLoginWithGoogle}
-             className="g-signin2 p-2 hover:bg-slate-700 rounded-xl text-xl bg-slate-800 text-slate-400 font-medium flex items-center justify-center gap-2"
+            className="g-signin2 p-2 hover:bg-slate-700 rounded-xl text-xl bg-slate-800 text-slate-400 font-medium flex items-center justify-center gap-2"
           >
             <p>Login with </p>
             <Image src={googlePic} className="w-24 mt-2" alt="google" />

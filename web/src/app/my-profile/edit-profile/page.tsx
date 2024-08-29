@@ -74,15 +74,15 @@ const Page = () => {
     });
   };
   return (
-    <div className="p-4 relative h-full overflow-y-scroll text-slate-400 font-mono bg-gradient-to-br from-slate-950 to-slate-700">
+    <div className="p-4 relative h-full overflow-y-scroll text-slate-300 font-mono bg-slate-900">
       <div>
         <h2 className="text-2xl relative font-semibold">Edit Profile </h2>
       </div>
-      <span className="absolute bg-slate-700 top-0 right-0  py-1.5 m-2   rounded-md flex px-3 text-orange-500 cursor-pointer">
+      <span className="absolute bg-blue-600 top-0 right-0  py-1.5 m-2   rounded-md flex px-3 text-slate-100 cursor-pointer hover:bg-blue-700">
         {updating && <RotateLeftRoundedIcon className="animate-spin" />}
         <button
           onClick={handleUserUpdate}
-          className=" h-full   rounded-md  hover:cursor-pointer  font-bold hover:text-orange-700"
+          className=" h-full   rounded-md  hover:cursor-pointer  font-bold"
         >
           {updating ? "Upating profile" : " Update changes"}
         </button>

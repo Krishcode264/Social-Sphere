@@ -2,7 +2,7 @@
 import { buttonBaseClasses } from "@mui/material";
 import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
-
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 export type Updater = (
   property: string,
   value: string,
@@ -23,7 +23,7 @@ export const InfoTemplate = ({
     <div className="p-2  w-full md:w-[50%]">
       <h1 className="m-0 text-slate-300 my-1 font-semibold">{property}</h1>
       <input
-        className="py-1.5 px-2 rounded-md  bg-slate-800 text-slate-500"
+        className="py-1.5 px-2 rounded-md  bg-slate-800 text-slate-400"
         type="text"
         value={value}
         onChange={(e) => updater(id, e.target.value)}
@@ -61,7 +61,7 @@ export const InfoTemplateWithOptions = ({
         {options.map((option, index) => (
           <option
             key={index}
-            className="p-4  bg-slate-900 text-slate-600"
+            className="p-4  bg-slate-900 text-slate-300"
             value={option}
           >
             {option}
@@ -81,7 +81,7 @@ export const generateSinglet = (
     return (
       <span
         key={intrest}
-        className=" flex group relative font-mono  text-slate-400 rounded-lg   bg-slate-600  "
+        className="  group relative font-mono  text-slate-300 rounded-lg block  bg-blue-600  "
       >
         {editable && (
           <button
@@ -90,12 +90,13 @@ export const generateSinglet = (
                 updater(id, intrest, true);
               }
             }}
-            className="group/btn  hidden absolute bottom-6 right-0 group-hover:block  "
+            className="group/btn  hidden absolute bottom-5 right-0  group-hover:block  "
           >
-            <ClearIcon className="group-hover/btn:text-red-500 text-3xl text-white" />
+            <ClearIcon className="group-hover/btn:text-orange-600 text-2xl text-white" />
+
           </button>
         )}
-        <p className="p-1 m-1 text-l"> {intrest}</p>
+        <p className="px-1 py-1   text-l"> {intrest}</p>
       </span>
     );
   });
@@ -106,11 +107,13 @@ export const InfoTemplateWithIntrests = ({
   editable,
   id,
   updater,
+  color
 }: {
   intrests: string[];
   editable?: boolean;
   id?: string;
   updater?: Updater;
+  color?:string
 }) => {
   const ref = useRef<HTMLInputElement>(null);
 
@@ -119,12 +122,13 @@ export const InfoTemplateWithIntrests = ({
       { intrests && intrests?.length>0 && generateSinglet(intrests, editable, id, updater)}
 
       {editable && (
-        <span className=" p-2 rounded-xl bg-slate-800 font-semibold font-mono">
+        <span className=" p-1 rounded-xl bg-slate-800 font-semibold font-mono hover:border border-slate-100 block">
           <input
             ref={ref}
             type="text"
             placeholder="Add New"
-            className="text-l rounded-md py-1.5 px-2 mr-2 bg-slate-800 "
+            style={{backgroundColor:color}}
+            className="text-l rounded-md py-1.5 px-2 mr-2 bg-slate-800   "
           />
           <button
             onClick={(e) => {
@@ -136,7 +140,7 @@ export const InfoTemplateWithIntrests = ({
                 ref.current.value = "";
               }
             }}
-            className="bg-orange-600 rounded-xl text-l hover:text-slate-100 px-4 py-1.5 text-slate-300 "
+            className="bg-orange-600 rounded-md text-l hover:text-slate-100 px-4 py-1.5 text-slate-300 "
           >
             Add
           </button>

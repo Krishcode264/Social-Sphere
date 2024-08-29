@@ -52,7 +52,7 @@ export const getUser = cache(
 );
 
 export const getUserPhotos = cache(async (id: string) => {
-
+     console.log("token at get user phtoso",await token())
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,

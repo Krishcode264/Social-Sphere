@@ -11,54 +11,30 @@ import { useContext } from "react";
 import { showComponentState } from "@/store/atoms/show-component";
 import { useSocket } from "@/context/socketContext";
 import { usePC } from "@/context/peerConnectionContext";
-import { PC } from "@/utils/PC";
+import { callState } from "@/store/atoms/calling-state";
 const Call = () => {
   
-  const [{ persontoHandshake }, setPersontoHandshake] = useRecoilState(guestState);
-  const peerConnection = usePC()
-    const pc: PC | null = peerConnection ? new PC(peerConnection) : null;
-  const [{offer}, setOffer] = useRecoilState(offerState);
+  const [persontoHandshake , setPersontoHandshake] = useRecoilState(guestState);
+  const {createAnswer}= usePC()
+
+  const [offer, setOffer] = useRecoilState(offerState);
 const socket=useSocket()
   const setShowComponent=useSetRecoilState(showComponentState)
-
+  const [callstate,setCall]=useRecoilState(callState)
     
 
 
   const handleAccept = async (): Promise<void> => {
-    setShowComponent((prev)=>({...prev,showCall:false}))
-    if (offer) {
-      await new Promise<void>((resolve, reject) => {
-        peerConnection
-          ?.setRemoteDescription(offer)
-          .then(async () => {
-            const answer = await pc?.createAnswer();
-          //  console.log(answer,"answer from handle accesspt")
-            socket?.emit("getCreateAnswerFromRequestedUser", {
-              answer,
-              receivedUser: persontoHandshake,
-            });
-
-            resolve(); 
-          })
-          .catch((error) => {
-            reject(error); 
-          });
-      });
-
-      try {
-        peerConnection?.setRemoteDescription(offer);
-        const answer = await pc?.createAnswer();
-        socket?.emit("getCreateAnswerFromRequestedUser", {
-          answer,
-          receivedUser: persontoHandshake,
-        });
-        console.log(
-          "created  and sent sdp answer after getting offer  , both local and remote : done "
-        );
-      } catch (err) {
-        console.log(err, "error in accepting call");
-      }
-    }
+if(callstate.status === "default" && callstate.action==="default"){
+     setCall((prev) => ({ status: "default", action: "receiver" }));
+     setShowComponent((prev) => ({
+       ...prev,
+       showCall: false,
+       showCallWindow: true,
+     }));
+}
+    
+            
   };
 
   const handleAcceptClick = () => {
@@ -68,12 +44,12 @@ const socket=useSocket()
   };
   const handleReject = (): void => {
     setShowComponent((prev) => ({ ...prev, showCall: false }));
-    setPersontoHandshake({ persontoHandshake: { name: "", id: "" } });
-    setOffer({ offer: null });
+    setPersontoHandshake({ name: "", id: "" });
+    setOffer( null );
   };
 
   return (
-    <div className="text-white p-5 absolute  bg-black rounded-lg flex flex-col">
+    <div className="text-white p-5 absolute  bg-black rounded-lg flex flex-col top-0 right-0 z-50">
       <div className="mb-6">
         <h1 className="text-xl">
           {persontoHandshake?.name &&

@@ -8,10 +8,10 @@ export const handleScrollDown = (ref: HTMLDivElement | null) => {
   }
 };
 
-export class playSound {
-  static audio = new Audio(s1);
-  static play() {
-    this.audio.volume=0.5
-    this.audio.play();
-  }
+export function playSound(){
+if(typeof window ==="undefined") return 
+const audio=new Audio(s1)
+ audio.volume = 0.5;
+ audio.play();
 }
+

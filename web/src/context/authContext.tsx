@@ -17,15 +17,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isValid, setIsValid] = useState({ status: false, message: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useRecoilState(userBasicInfoState);
-  const setPhotos = useSetRecoilState(UserPhotosState);
-
   useEffect(() => {
     const validate = async () => {
 
       try {
-    
+
     const token = Cookies.get("token");
-      console.log(token,"token at auth context")
+     // console.log(token,"token at auth context")
+    //     if(user.id){
+    // setIsValid({ status: true, message: "success in fetching user" });
+
+    //     }
+        if(token && user.id){
+          console.log("toke and userid both present",token , user.id)
+           setIsValid({ status: true, message: "success in fetching user" });
+        }
+
+        if(!token && !user.id){
+             console.log("toke and userid both absent", token, user.id);
+             setIsValid({ status: false, message: "you need to Authenticate.." });
+        }
+
         if (token && !user.id ) {
           console.log("request is goinh ")
           const res = await axios.get(
@@ -37,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (res.data?.user) {
             console.log(res.data.user,"user ")
             setUser((prev) => ({ ...prev, ...res.data.user }));
-            setPhotos((prev) => [...res.data.photos]);
+        
             setIsValid({ status: true, message: "success in fetching user" });
           } 
         } 
@@ -54,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     validate();
-  },[]);
+  },[user]);
 
   return (
     <AuthContext.Provider value={{ isValid, isLoading }}>

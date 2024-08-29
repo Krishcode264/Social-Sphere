@@ -3,6 +3,8 @@ import { AwsHandler } from "../../aws";
 import { PhotosData } from "../../mongoose/schemas/photoSchema";
 import { UserData } from "../../mongoose/schemas/userSchema";
 import type { photoSchematype } from "../../types/types";
+import { emitNotificationtotarget, notificationIO } from "../NotificationService/notificationIo";
+import { NotificationService } from "../NotificationService/NotificationService";
 
 export class PhotoService {
   static async savePhoto(data: photoSchematype) {
@@ -42,6 +44,8 @@ export class PhotoService {
                 likes: photo.likes,
                 uploadedAt: photo.uploadedAt,
                 imageUrl: url,
+                tags:photo.tags,
+                caption:photo.caption,
               };
             }
          //  console.log(" we did not updated url its alredy valid ");
@@ -50,24 +54,43 @@ export class PhotoService {
               likes: photo.likes,
               uploadedAt: photo.uploadedAt,
               imageUrl: photo.imageUrl,
+              tags: photo.tags,
+              caption: photo.caption,
             };
           })
         );
       }
     } catch (err) {
       console.log(err, "err in updating image url from aws s3  ");
-      throw Error;
+     
     }
   }
 
   static handlePostLiked = async (photoId: string, userId: string) => {
     try {
-      await PhotosData.findByIdAndUpdate(photoId, {
+     const data= await PhotosData.findByIdAndUpdate(photoId, {
         $addToSet: { likes: userId },
-      });
-      await UserData.findByIdAndUpdate(userId, {
+      },{new:true}).lean().select("uploader _id  ")
+     const notifier= await UserData.findByIdAndUpdate(userId, {
         $addToSet: { likedPhotos: photoId },
-      });
+      },{new:true}).lean().select("profile _id name");
+      if(data && data?.uploader && notifier && notifier._id){
+
+         await  NotificationService.createNotification({
+            type: "photo-liked",
+            target: {
+              userId: data.uploader.toString(),
+              mediaId: data._id.toString(),
+            },
+            notifier: {
+              profile: notifier?.profile,
+              name: notifier.name,
+              id: notifier._id.toString(),
+            },
+          });
+      }
+  
+      
     } catch (err) {
       console.log("error in mehtode handlelikedPost", err);
     }

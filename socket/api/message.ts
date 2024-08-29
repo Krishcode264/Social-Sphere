@@ -6,7 +6,7 @@ import { Schema } from "mongoose";
 export const messageRouter = express.Router();
 
 const getMessageHistory = async (req: Request, res: Response) => {
-  const { guestId } = req.query;
+  const { guestId ,skip} = req.query;
   const { id } = req.body.user;
   const guestInfo = await UserData.findById(guestId)
     .select("profile name ")
@@ -18,6 +18,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
   if (convoData) {
     const messages = await MessageData.find({ conversationId: convoData._id })
       .sort({ timestamp: 1 })
+      .limit(20)
       .lean();
     return res.send({ guestInfo, messages, convoId: convoData._id });
   }

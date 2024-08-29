@@ -12,7 +12,11 @@ import googleLogo from '../images/google.png'
 import Image from "next/image";
 import googlePic from "@/images/google.png";
 import { useEffect } from "react";
-import { handleLoginWithGoogle } from "../login/page";
+
+
+
+
+
 const SignUpSchema = z.object({
   name: z.string().min(4),
   email: z.string().email(),
@@ -23,6 +27,11 @@ const Signup = () => {
   const Router = useRouter();
   const setUser = useSetRecoilState(userBasicInfoState);
   const setPhotos=useSetRecoilState(UserPhotosState)
+
+  const handleLoginWithGoogle = () => {
+    const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
+    window.location.href = path;
+  };
   const {
     register,
     handleSubmit,
@@ -40,24 +49,14 @@ const Signup = () => {
         data,{withCredentials:true}
       );
       if (res.data.status === "success") {
-        // Set token in local storage with time limit
-        const {  name, id } = res.data.user;
-        // console.log( name, id);
-        setUser((prevUser) => ({
-          ...prevUser,
-          name: name,
-          id: id,
-        }));
+  
+        setUser((prevUser) => ({ ...prevUser, ...res.data.user }));
       //  setPhotos((prev)=>([...prev]))
 
   
-        const preViousRoute=sessionStorage.getItem("privousRoute")
-      if(preViousRoute){
-
-        Router.replace(preViousRoute)
-      }  else{
+   
         Router.replace("/")
-      }
+      
       }
       
       if (res.data.status === "error") {
