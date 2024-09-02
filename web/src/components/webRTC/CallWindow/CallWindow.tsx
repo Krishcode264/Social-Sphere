@@ -49,15 +49,15 @@ const CallWindow = () => {
         const maxX = window.innerWidth - popupWidth-165;
         const maxY = window.innerHeight - popupHeight-18;
 
-        console.log(popupWidth, "width popup", popupHeight, "popup  height");
-         console.log(maxX,"max x ",maxY,"max y")
-         console.log(newX,"new x ",newY,"ney y")
-        console.log(
-          window.innerWidth,
-          "w-innerwidth",
-          window.innerHeight,
-          "w inner height"
-        );
+        // console.log(popupWidth, "width popup", popupHeight, "popup  height");
+        //  console.log(maxX,"max x ",maxY,"max y")
+        //  console.log(newX,"new x ",newY,"ney y")
+        // console.log(
+        //   window.innerWidth,
+        //   "w-innerwidth",
+        //   window.innerHeight,
+        //   "w inner height"
+        // );
         setPosition({
           x: Math.min(maxX,newX),
           y: Math.min(maxY,newY)
