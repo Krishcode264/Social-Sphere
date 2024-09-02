@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { usePathname } from "next/navigation";
 import { useSetRecoilState } from "recoil";
-import { MessageNotificationState } from "@/store/atoms/notificationState";
+import { MessageNotificationState, NotificationState } from "@/store/atoms/notificationState";
 
 
 
@@ -25,10 +25,15 @@ export const PathProvider: React.FC<PathProviderProps> = ({ children }) => {
   const path = usePathname();
   const [currentPath,setCurrentPath] = useState(path);
 const setConvoState=useSetRecoilState(MessageNotificationState)
-
+   const setNotification=useSetRecoilState(NotificationState)
 
   useEffect(() => {
 //console.log("path chnaged we are in use path ",path)
+
+
+if(path.startsWith("/notification")){
+  setNotification([])
+}
 if(path.startsWith('/messages')){
     setConvoState((prev)=> {
       return {...prev,totalUnreadCount:0}

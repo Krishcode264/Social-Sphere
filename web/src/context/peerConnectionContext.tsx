@@ -12,7 +12,7 @@ import { callState } from "@/store/atoms/calling-state";
 import { offerState } from "@/store/atoms/pc-atom";
 import { showComponentState } from "@/store/atoms/show-component";
 import { mediaState } from "@/store/selectors/media-state-selector";
-import { mediaStreamState } from "@/store/atoms/media-stream-atom";
+import { mediaStreamState, remoteStreamState } from "@/store/atoms/media-stream-atom";
 
 export type PCContextType = {
   PC: RTCPeerConnection | null;
@@ -32,7 +32,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   const [callStates, setCallState] = useRecoilState(callState);
   const setShowComponent = useSetRecoilState(showComponentState);
   const [offer, setOffer] = useRecoilState(offerState);
-  const setStream = useSetRecoilState(mediaStreamState);
+  const setStream = useSetRecoilState(remoteStreamState);
   const iceCandidateBuffer: RTCIceCandidate[] = [];
 
   const [PC] = useState<RTCPeerConnection | null>(() => {
@@ -82,13 +82,27 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
       };
 
       PC.ontrack = (e: RTCTrackEvent) => {
-        console.log("getting remote streams ", e.streams);
+        console.log("getting remote streams e.streams ", e.streams);
+       console.log("tracks on remote stream",e.streams[0].getTracks())
+        const kind = e.streams[0].getTracks()[0].kind;
+      if(e.streams && e.streams[0]){
+         const kind = e.streams[0].getTracks()[0].kind;
 
-        const rm = e.streams[0];
-        if (rm) {
-          console.log("setting up remote stream");
-          setStream((prev) => ({ ...prev, remoteStream: rm }));
-        }
+  if (kind === "audio") {
+    console.log("setting up audio remote stream");
+    setStream((prev) => ({ ...prev, audio: e.streams[0] }));
+  }
+  if(kind==="video"){
+      console.log("setting up video remote stream");
+      setStream((prev) => ({ ...prev, video: e.streams[0] }));
+  }
+    if (kind === "screen") {
+      console.log("setting up screen  remote stream");
+      setStream((prev) => ({ ...prev, screen: e.streams[0] }));
+    }
+
+      }
+      
       };
     
  

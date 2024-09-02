@@ -23,22 +23,22 @@ export const mediaState = selector<
   },
 });
 
-export const remoteStreamState = selector<DefaultValue | MediaStream | null>({
-  key: "remote-stream-selector",
-  get: ({ get }) => {
-    const { remoteStream } = get(mediaStreamState);
-    return remoteStream;
-  },
-  set: ({ set }, newRemoteStreat) => {
-    if (newRemoteStreat instanceof DefaultValue) {
-      return;
-    }
+// export const remoteStreamState = selector<DefaultValue | MediaStream | null>({
+//   key: "remote-stream-selector",
+//   get: ({ get }) => {
+//     const { remoteStream } = get(mediaStreamState);
+//     return remoteStream;
+//   },
+//   set: ({ set }, newRemoteStreat) => {
+//     if (newRemoteStreat instanceof DefaultValue) {
+//       return;
+//     }
 
-    set(mediaStreamState, (prev) => ({
-      ...prev,
-      remoteStream: newRemoteStreat,
-    }));
-  },
-});
+//     set(mediaStreamState, (prev) => ({
+//       ...prev,
+//       remoteStream: newRemoteStreat,
+//     }));
+//   },
+// });
 
 

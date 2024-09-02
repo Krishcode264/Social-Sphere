@@ -20,14 +20,16 @@ async function checkTokenValidity(
   const user = await tokenIsValid(token );
 
   if (user) {
+  //  console.log(user,"user at check token validity ")
     // if (req.path == "/validateToken") {
     //   res.send(user);
     //   console.log("valid token");
     // } else {
-    console.log("token is here eeheh",token , "requested path",req.path)
-      req.body.user = user;
-      next();
-  //  }
+    // console.log("token is here eeheh",token , "requested path",req.path)
+    //updating socket id console.log("token is here eeheh",token , "requested path",req.path)
+    req.body.user = user;
+    next();
+    //  }
   } else {
     res.status(401).json({
       message: "Session has expired. Please login again.",

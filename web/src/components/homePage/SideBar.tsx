@@ -93,12 +93,13 @@ const MessageSideBarOption=()=>{
   
 
 const NotificationsSideBarOption=()=>{
-  const path=usePath()
+ 
   const notifications=useRecoilValue(NotificationState)
+
     return (
       <SideBarOption
         name={"Notification"}
-        badge={path.startsWith("/notification") ? 0 : notifications.length}
+        badge={ notifications.length}
         icon={<CircleNotificationsRoundedIcon />}
       />
     );

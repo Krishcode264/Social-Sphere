@@ -176,6 +176,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
       const token = generateToken({
         name: user.name,
         id: user._id,
+        profile:user.profile
       });
       // console.log("user alredy exist");
       res.cookie("token", token);

@@ -1,10 +1,14 @@
 import { useEffect } from "react";
 import RecordVoiceOverIcon from "@mui/icons-material/RecordVoiceOver";
 import { useRef } from "react";
+import Image from "next/image";
+import { useRecoilState, useRecoilValue } from "recoil";
+import type { User } from "@/types/types";
 
 interface MediaProps {
   media: MediaStream;
-  target:string
+  target:string;
+  u:User
 }
 
 export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
@@ -29,14 +33,22 @@ export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
     }
   }, [videoref, media]);
   return (
-    <video ref={videoref} className="h-full " muted={true} autoPlay={true}>
-      <track kind="captions"></track>
-    </video>
+    <div className="w-full h-full bg-slate-700  rounded-md   ">
+      <video
+        ref={videoref}
+        className=" defaultvideo popupvideo rounded-sm  h-full w-full bg-cover "
+        muted={true}
+        autoPlay={true}
+      >
+        <track kind="captions"></track>
+      </video>
+    </div>
   );
 };
 
-export const AudioComponent: React.FC<MediaProps> = ({ media }) => {
+export const AudioComponent: React.FC<MediaProps> = ({ media ,target,u}) => {
   const audioref = useRef<HTMLAudioElement>(null);
+         console.log(u)
   useEffect(() => {
     if (audioref.current) {
       audioref.current.srcObject = media;
@@ -49,11 +61,14 @@ export const AudioComponent: React.FC<MediaProps> = ({ media }) => {
     }
   }, []);
   return (
-    <div className="audio_container">
-      <RecordVoiceOverIcon sx={{ fontSize: 85, color: "white" }} />
-      <audio ref={audioref}>
-        <track kind="captions"></track>
-      </audio>
-    </div>
+   
+
+     
+        <audio ref={audioref} className="">
+          <track kind="captions"></track>
+        </audio>
+      
+
+  
   );
 };

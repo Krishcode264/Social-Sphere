@@ -72,8 +72,26 @@ const conversationSchema = new Schema({
     required: false,
   },
 });
+
+
+
+
+const FriendsSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  friends: [{ type: Schema.Types.ObjectId, ref: "User",}],
+  friendRequests: [
+    { type: Schema.Types.ObjectId, ref: "User", createdAt: {type : Date , default:Date.now()}},
+  ],
+  sentRequests: [
+    { type: Schema.Types.ObjectId, ref: "User",createdAt: {type : Date , default:Date.now()}},
+  ],
+});
 export const MessageData = mongoose.model("Messages", messageSchema);
 export const ConversationData = mongoose.model(
   "Conversation",
   conversationSchema
+);
+export const FriendsData = mongoose.model(
+  "Friends",
+  FriendsSchema
 );

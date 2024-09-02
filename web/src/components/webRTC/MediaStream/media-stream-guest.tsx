@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { VideoComponent, AudioComponent } from "./media-stream-component";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { mediaStreamState } from "../../../store/atoms/media-stream-atom";
+import { mediaStreamState, remoteStreamState } from "../../../store/atoms/media-stream-atom";
 import { ToggleButtons } from "./media-stream";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import VideocamOffIcon from "@mui/icons-material/VideocamOff";
@@ -10,20 +10,33 @@ import MicOffIcon from "@mui/icons-material/MicOff";
 import MicIcon from "@mui/icons-material/Mic";
 import { callState } from "@/store/atoms/calling-state";
 import { usePC } from "@/context/peerConnectionContext";
-import { remoteStreamState } from "@/store/selectors/media-state-selector";
-
+import { guestState } from "@/store/atoms/guest-atom";
+import Image from "next/image";
+import i2 from '@/images/duf.webp'
+import { CallWindowAtomState } from "@/store/atoms/callWindowStates";
 const MediaStreamGuest:React.FC = () => {
-  const {remoteStream}=useRecoilValue(mediaStreamState)
-    
-
-
+  const {audio ,video,screen}=useRecoilValue(remoteStreamState)
+      const guest = useRecoilValue(guestState);
+      const {screenSize}=useRecoilValue(CallWindowAtomState)
   return (
-    <div className="flex flex-colitems-center mx-auto  h-34 md:h-full  ">
-      <div className=" h-full border w-full">
-        {remoteStream && <VideoComponent media={remoteStream} target="remote"/>   }
-     
-      </div>
-    
+    <div className={`${screenSize==="popout"? "popupremotestream": "defaultremotestream"} rounded-md `}>
+      {video && <VideoComponent media={video} target="remote" u={guest} />}
+      {audio && <AudioComponent media={audio} target="remote" u={guest} />}
+      {screen && <VideoComponent media={screen} target="remote" u={guest} />}
+      {!video && !audio && !screen && (
+        <>
+          <div className=" bg-slate-700 flex items-center justify-center w-full h-full rounded-md">
+            <Image
+              alt="guest image m-2"
+              unoptimized={true}
+              width={5}
+              height={5}
+              src={guest.profile || i2}
+              className="w-24 h-24  rounded-full "
+            ></Image>
+          </div>
+        </>
+      )}
     </div>
   );
 };

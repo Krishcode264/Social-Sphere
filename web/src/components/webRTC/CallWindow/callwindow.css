@@ -1,0 +1,101 @@
+.popup{
+    width: 25%;
+    height: 40%;
+    
+}
+.popup:hover{
+    cursor: pointer;
+}
+.popuplocalstream{
+
+display: none;
+}
+.popupremotestream{
+flex: 1;
+height: 100%;
+
+
+}
+.popupmediastream{
+
+display: flex;
+flex-direction: column;
+height: 100%;
+padding: 4px;
+
+}
+.popupvideocontainer{
+height: 85%;
+
+
+}
+.popupbottombuttons{
+
+      display: flex;
+      gap: 10px;
+      /* padding: 0px 14px; */
+} 
+ 
+
+
+.default {
+  width: 85%;
+  height: 80%;
+}
+.defaultlocalstream {
+flex: 1;
+align-items: center;
+justify-content: center;
+
+}
+
+.defaultremotestream {
+flex: 1;
+
+}
+.defaultmediastream {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  height: 100%;
+
+}
+.defaultvideocontainer {
+  height: 85%;
+  display: flex;
+  gap: 10px;
+
+}
+.defaultbottombuttons {
+ display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.defaultvideo{
+    object-fit: fill;
+}
+@media only screen and (max-width: 800px) {
+   .popup{
+    width:45% ;
+    height: 30%;
+   }
+    .defaultvideocontainer{
+        display: flex;
+        flex-direction: column;
+    }
+    .defaultremotestream{
+        height: 50%;
+    }
+      .defaultlocalstream{
+        height: 50%;
+      
+
+    }
+}
+@media only screen and (max-width: 500px) {
+   .popup{
+    width:65% ;
+    height: 30%;
+   }
+}

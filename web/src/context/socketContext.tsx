@@ -54,12 +54,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (socketRef.current) {
 
 
-    socketRef.current.on("notification", (data: NotificationType) => {
-      console.log("we are getting notification");
-      setNewNotification((prev) => [...prev, data]);
-      playSound();
-    });
-
 
 
 
@@ -130,10 +124,32 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       return () => {
         socketRef.current?.removeListener("message_Notify");
+        socketRef.current?.removeListener("notification");
       };
     }
   }, [path,socketRef.current]);
 
+
+
+  useEffect(()=>{
+    console.log(socketRef.current,"notificayion evevmt socket ")
+if(socketRef.current){
+  console.log("attaching notification evevnt ")
+   socketRef.current.on("notification", (data: NotificationType) => {
+     console.log("we are getting notification");
+     setNewNotification((prev) => [...prev, data]);
+     playSound();
+   });
+}
+ 
+
+
+   return () => {
+console.log("removing notification evevnt ")
+     socketRef.current?.removeListener("notification");
+   };
+
+  },[path,socketRef.current])
   useEffect(() => {
     if (!socketRef.current && id) {
       const uri =

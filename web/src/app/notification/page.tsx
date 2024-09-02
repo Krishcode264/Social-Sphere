@@ -48,11 +48,15 @@ return (
 }
 
 export type NotifyType = {
-  id: string;
-  type: "photo-liked"|"commented"|"friend-request" | "viewed-profile";
-  notifier: { name: string; profile: string; id: string };
-  target:string;
-  createdAt:string;
+  _id: string;
+  type: "photo-liked" | "commented" | "friend-request" | "viewed-profile";
+  notifier: {
+    id: string;
+    name: string;
+    profile: string;
+  };
+
+  createdAt: string;
 };
 const Page =  () => {
 
@@ -62,14 +66,9 @@ const fetchNotification=async ()=>{
       withCredentials:true
     }
   );
-    console.log(notificationData.data);
   return notificationData.data
 
 }
-const setnotifics=useSetRecoilState(NotificationState)
-         useEffect(()=>{
-          setnotifics([])
-         },[])
   const {
     isPending,
     error,
@@ -86,7 +85,7 @@ const setnotifics=useSetRecoilState(NotificationState)
 const renderNotifications=()=>{
 return(
   notifications.map((n:NotifyType)=>{
-    return <NotifyTemplate n={n} key={n.id} />;
+    return <NotifyTemplate n={n} key={n._id} />;
   })
 )
 }

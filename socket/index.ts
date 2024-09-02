@@ -63,12 +63,12 @@ async function init() {
        //notification io 
        notificationIO(socket)
       socket.on("newUserConnected", async (user: User) => {
-        console.log("user connnedted", user.name);
+     //   console.log("user connnedted", user.name);
         await MessageService.updateSocketId(user.id, socket.id, true);
 
         socket.on("disconnect", async () => {
           console.log(
-            "disconnection with user comming from the client ",
+            //"disconnection with user comming from the client ",
             socket.id
           );
           try {
@@ -76,7 +76,7 @@ async function init() {
               { socketID: socket.id },
               { socketID: "", isConnected: false }
             );
-            console.log("user socket id removed success");
+         //   console.log("user socket id removed success");
           } catch (err) {
             console.log("err removing useres socket id after disconnection");
           }

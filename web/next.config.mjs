@@ -4,10 +4,11 @@ const nextConfig = {
     trustedHosts: ["localhost", "127.0.0.1"],
   },
   images: {
+  
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com/a",
+        hostname: "lh3.googleusercontent.com",
       },
       {
         protocol: "https",

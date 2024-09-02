@@ -82,12 +82,8 @@ export class PhotoService {
               userId: data.uploader.toString(),
               mediaId: data._id.toString(),
             },
-            notifier: {
-              profile: notifier?.profile,
-              name: notifier.name,
-              id: notifier._id.toString(),
-            },
-          });
+            notifier:notifier._id.toString(),
+       } );
       }
   
       

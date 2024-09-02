@@ -64,19 +64,19 @@ export const messageIoConection = (socket: Socket) => {
     }
   );
   socket.on("startConvo", async (data) => {
-    console.log("got start convo from user ", data.userId);
+    //console.log("got start convo from user ", data.userId);
     const roomId = generateRoomId(data.userId, data.guestId);
-    console.log(roomId, "here is room id user connected ", data.userId);
+  //  console.log(roomId, "here is room id user connected ", data.userId);
 
     // cheacking users socket 
     if (!socket.rooms.has(roomId)) {
-      console.log("joining user in the room ")
+    //  console.log("joining user in the room ")
       socket.join(roomId);
     }
 
     // Fetch the guest's socket ID
     const guestSocketId = await UserService.getUserSocketIdById(data.guestId);
-    console.log("here is guest socket id ", guestSocketId);
+  //  console.log("here is guest socket id ", guestSocketId);
 
     if (guestSocketId) {
       const guestSocket = io.sockets.sockets.get(guestSocketId);
@@ -84,7 +84,7 @@ export const messageIoConection = (socket: Socket) => {
       if (guestSocket) {
         // Check if the guest's socket is already in the room
         if (!guestSocket.rooms.has(roomId)) {
-          console.log("guest joined room ");
+      //    console.log("guest joined room ");
           guestSocket.join(roomId);
           socket
             .to(guestSocketId)

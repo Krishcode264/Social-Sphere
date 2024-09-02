@@ -46,7 +46,7 @@ export class MessageService {
         {socketID,isConnected},
     
       );
-     console.log("updating socket id",socketID,"user is connected",isConnected);
+    // console.log("updating socket id",socketID,"user is connected",isConnected);
       return true
     } catch (err) {
       console.log("update user failed");

@@ -17,6 +17,15 @@ import { callState } from "@/store/atoms/calling-state";
 import { guestState } from "@/store/atoms/guest-atom";
 import { userInfoState } from "@/store/selectors/user-selector";
 import { useSocket } from "@/context/socketContext";
+import Image from "next/image";
+import i2 from "@/images/duf.webp";
+import MediaStreamGuest from "./media-stream-guest";
+import CloseFullscreenRoundedIcon from "@mui/icons-material/CloseFullscreenRounded";
+import ZoomInMapOutlinedIcon from "@mui/icons-material/ZoomInMapOutlined";
+import ZoomOutMapOutlinedIcon from "@mui/icons-material/ZoomOutMapOutlined";
+import { Tooltip } from "@mui/material";
+import { CallWindowAtomState } from "@/store/atoms/callWindowStates";
+
 interface ToggleButtonsProps {
   state: boolean;
   Icon: React.FC;
@@ -51,12 +60,12 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
   const [userCallState, setcallstate] = useRecoilState(callState);
-  const [{ mediaStream, remoteStream }, setMedia] =
+  const [{ audioStream, videoStream }, setMedia] =
     useRecoilState(mediaStreamState);
   const setShowCompennts = useSetRecoilState(showComponentState);
   const [guest, setGuest] = useRecoilState(guestState);
-  const offerer=useRecoilValue(userInfoState)
-  const socket=useSocket()
+  const offerer = useRecoilValue(userInfoState);
+  const socket = useSocket();
   const toggleTracks = (type: string) => {
     console.log("senders0", PC?.getSenders());
     if (
@@ -90,12 +99,12 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
       userCallState.status === "calling" ||
       userCallState.status === "incall"
     ) {
-      socket?.emit("end-call",{guest, offerer})
+      socket?.emit("end-call", { guest, offerer });
       setAudio(false);
       setVideo(false);
-      mediaStream?.getTracks().forEach((track) => track.stop());
-      remoteStream?.getTracks().forEach((track) => track.stop());
-    
+      videoStream?.getTracks().forEach((track) => track.stop());
+      audioStream?.getTracks().forEach((track) => track.stop());
+
       // if (PC) {
       //   PC.onicecandidate = null;
       //   PC.ontrack = null;
@@ -103,34 +112,83 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
       //   PC.ondatachannel = null;
       // }
 
-   
       setMedia((prev) => ({
-        mediaStream: null,
-        remoteStream: null,
-        tracksAdded: false,
+        audioStream: null,
+        videoStream: null,
         video: false,
         audio: false,
       }));
 
       setGuest((prev) => ({ name: "", id: "", profile: "" }));
       setcallstate(() => ({ action: "default", status: "default" }));
-      setShowCompennts((prev)=>({...prev ,showCallWindow:false }))
+      setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
     }
   };
-
+  const u = useRecoilValue(userInfoState);
+  const [{ screenSize }, setScreenSize] = useRecoilState(CallWindowAtomState);
   return (
-    <div className="flex flex-col  border  items-center  mx-auto gap-3 h-64  md:h-full">
-      <div className="h-full border">
-        {mediaStream && <VideoComponent media={mediaStream} target="local" />}
+    <div
+      className={` ${
+        screenSize === "default" ? "defaultmediastream" : "popupmediastream"
+      } justify-between `}
+    >
+      <div
+        className={`${
+          screenSize === "default"
+            ? "defaultvideocontainer"
+            : "popupvideocontainer"
+        } `}
+      >
+        {/* w-full h-full mb:h-[50%] sm:h-full */}
+        <div
+          className={`${
+            screenSize === "default"
+              ? "defaultlocalstream "
+              : " popuplocalstream "
+          } bg-slate-700 rounded-md}`}
+        >
+          {videoStream && video && (
+            <VideoComponent media={videoStream} target="local" u={u} />
+          )}
+          {!video && (
+            <div className="  w-full h-full  bg-slate-700  rounded-md flex items-center justify-center">
+              <Image
+                alt="guest image m-2"
+                unoptimized={true}
+                width={5}
+                height={5}
+                src={u.profile || i2}
+                className="w-24 h-24  rounded-full "
+              ></Image>
+            </div>
+          )}
+          {audioStream && (
+            <AudioComponent media={audioStream} target="local" u={u} />
+          )}
+        </div>
+
+        {/* {screen && <VideoComponent media={screen} target="local" />} */}
+        {/* {videoStream && video && (
+            <VideoComponent media={videoStream} target="local" u={u} />
+          )} */}
+        <MediaStreamGuest />
       </div>
 
-      <div className="p-1 flex gap-3   ">
+      <div
+        className={`
+          ${
+            screenSize === "default"
+              ? " defaultbottombuttons "
+              : "popupbottombuttons"
+          }  `}
+      >
+        {/* <div className=" flex w-[50%] gap-3 border justify-end "> */}
         <div
           style={{
             backgroundColor: video ? "white" : "black",
             color: video ? "#334155" : "white",
           }}
-          className="w-12 h-12 p-4 rounded-full  flex items-center justify-center"
+          className="w-10  h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full  flex items-center justify-center ml-auto"
         >
           <button
             onClick={() => {
@@ -146,7 +204,7 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
             backgroundColor: audio ? "white" : "black",
             color: audio ? "black" : "white",
           }}
-          className="w-12 h-12 p-4 rounded-full  flex items-center justify-center"
+          className="w-10  h-10 p-2 xl:w-14 xl:h-14 xl:p-4  rounded-full  flex items-center justify-center"
         >
           <button
             onClick={() => {
@@ -158,7 +216,7 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
           </button>
         </div>
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center "
+          className="w-10  h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full flex items-center justify-center "
           style={{
             backgroundColor:
               userCallState.status === "calling" ||
@@ -180,6 +238,34 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
               <CallOutlined />
             )}
           </button>
+          {/* </div> */}
+        </div>
+        <div className=" text-orange-700  hover:cursor-pointer  flex   gap-2    justify-end ml-auto">
+          {screenSize === "default" ? (
+            <button
+              className="hover:text-orange-500"
+              onClick={() => {
+                setScreenSize((prev) => ({ ...prev, screenSize: "popout" }));
+              }}
+            >
+              <Tooltip
+                title="pop out call window"
+                translate="yes"
+                enterTouchDelay={1}
+              >
+                <CloseFullscreenRoundedIcon className="text-2xl " />
+              </Tooltip>
+            </button>
+          ) : (
+            <button
+              className="hover:text-orange-500"
+              onClick={() => {
+                setScreenSize((prev) => ({ ...prev, screenSize: "default" }));
+              }}
+            >
+              <ZoomOutMapOutlinedIcon className="text-2xl " />
+            </button>
+          )}
         </div>
       </div>
     </div>

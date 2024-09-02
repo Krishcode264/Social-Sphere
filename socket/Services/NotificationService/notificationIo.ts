@@ -2,11 +2,7 @@ import type { Socket } from "socket.io";
 import UserService from "../UserService/userService";
 export type NotificationType = {
   type: string;
-  notifier: {
-    id: string;
-    name: string;
-    profile?: string | null;
-  };
+  notifier:string;
   target: { userId: string; mediaId?: string };
   createdAt?: string;
 };

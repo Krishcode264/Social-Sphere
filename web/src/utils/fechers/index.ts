@@ -42,8 +42,8 @@ export const getUser = cache(
           withCredentials: true,
         }
       );
-      // console.log(res.data, "res .data in getuser");
-      return res.data.user;
+      console.log(res.data, "res .data in getuser");
+      return res.data;
     } catch (err) {
       console.log("something went wron gin getuser actiom to feed/getUser");
       return null;

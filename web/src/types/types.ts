@@ -20,7 +20,7 @@ export type Candidate = {
   guest: User;
   offerer: User;
 };
-
+export type FriendStatusType="new" |"requested"|"friends"|"sentRequest"
 export type UserSchemaType = {
   name: string;
   createdAt: Date;
@@ -33,9 +33,10 @@ export type UserSchemaType = {
   age?: number;
   gender?: string;
   profile?: string;
-  intro?:string;
-  places_want_to_visit:string[];
+  intro?: string;
+  places_want_to_visit: string[];
   languages_learning_or_speak?: string[];
+  friendStatus:FriendStatusType
 };
 export type PhotoType = {
   imageUrl: string;
