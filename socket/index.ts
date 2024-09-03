@@ -25,7 +25,7 @@ export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
   app.use(
     cors({
-      origin: "http://localhost:3000", 
+      origin: process.env.WEB_CLIENT_URL, 
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
@@ -48,11 +48,12 @@ async function init() {
   app.use("/post-events", checkTokenValidity, postEventsRouter);
   app.use("/message", checkTokenValidity, messageRouter);
   app.get("/health", (req, res) => {
+    console.log("req is comming on health")
     res.cookie("token", "this is token as coojkie ");
     res.send("running :)");
   });
   httpServer.listen(process.env.PORT || 8080, () => {
-    console.log("server is listening on port 8080");
+    console.log("server is listening on port ", process.env.PORT);
     connectMongo();
 
     io.on("connection", (socket) => {

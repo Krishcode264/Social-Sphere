@@ -148,7 +148,7 @@ let state;
 
   useEffect(() => {
  
-    if(friendState) return 
+    // if(friendState) return 
     setFriendState(friendStatus);
   }, []);
   return (

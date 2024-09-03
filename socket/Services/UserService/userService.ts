@@ -6,6 +6,7 @@ import { UserData } from "../../mongoose/schemas/userSchema";
 import { PhotosData } from "../../mongoose/schemas/photoSchema";
 import { AwsHandler } from "../../aws";
 import { FriendsData } from "../../mongoose/schemas/chatSchema";
+import { getObjectId } from "../../lib/helpers";
 
 export default class UserService {
   static saveUserData = async (
@@ -41,7 +42,7 @@ export default class UserService {
 
   static getUserSocketIdById = async (id: string): Promise<string | false> => {
     try {
-      const targetUser: UserSchemaType | null = await UserData.findById(id);
+      const targetUser: UserSchemaType | null = await UserData.findById(getObjectId(id));
 
       if (!targetUser?.socketID) {
         return false; // Return null when user is not found

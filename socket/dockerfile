@@ -1,6 +1,6 @@
-FROM node:alpine
+FROM node:latest
 
-WORKDIR /
+WORKDIR /app
 
 COPY package.json .
 
@@ -19,5 +19,6 @@ COPY . .
 RUN tsc
 
 EXPOSE 8080
+
 
 CMD ["pm2-runtime", "start", "build/index.js"]
