@@ -146,11 +146,11 @@ let state;
   }
 
 
-  useEffect(() => {
+  // useEffect(() => {
  
-    // if(friendState) return 
-    setFriendState(friendStatus);
-  }, []);
+  //   // if(friendState) return 
+  //   setFriendState(friendStatus);
+  // }, []);
   return (
     <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
       <button
@@ -158,7 +158,7 @@ let state;
         className="text-slate-400 flex-grow bg-slate-800 px-2 py-1.5 rounded-md hover:text-slate-200 "
         onClick={handleFriendRequest}
       >
-        {friendState}
+        {friendStatus}
         
       </button>
       <button
