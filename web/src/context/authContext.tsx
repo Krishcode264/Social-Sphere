@@ -21,24 +21,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const validate = async () => {
 
       try {
-
-    const token = Cookies.get("token");
-     // console.log(token,"token at auth context")
-    //     if(user.id){
+    console.log("context is running")
+    // const token = Cookies.get("token");   //not available in production
+    //  console.log(token,"token at auth context")
+    //     if(user.id){ 
     // setIsValid({ status: true, message: "success in fetching user" });
 
     //     }
-        if(token && user.id){
-          console.log("toke and userid both present",token , user.id)
+        if( user.id){
+          console.log("toke and userid both present", user.id)
            setIsValid({ status: true, message: "success in fetching user" });
         }
 
-        if(!token && !user.id){
-             console.log("toke and userid both absent", token, user.id);
-             setIsValid({ status: false, message: "you need to Authenticate.." });
-        }
+        // if(!token && !user.id){
+        //      console.log("toke and userid both absent", token, user.id);
+        //      setIsValid({ status: false, message: "you need to Authenticate.." });
+        // }
 
-        if (token && !user.id ) {
+        if (!user.id ) {
           console.log("request is goinh ")
           const res = await axios.get(
             `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,

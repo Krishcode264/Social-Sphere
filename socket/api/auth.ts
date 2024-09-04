@@ -47,8 +47,8 @@ const handleUserSignup = async (req: Request, res: Response) => {
         });
         res.cookie("token", token, {
           httpOnly: true,
-          secure: false,
-          sameSite: "none",
+          secure: true,
+          sameSite: "lax",
         });
         res.send({
           status: "success",
@@ -88,7 +88,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
       });
       // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
       res.cookie("token", token, {
-        httpOnly: false,
+        httpOnly: true,
         secure: true,
         sameSite: "lax",
       }); //for developement
@@ -166,7 +166,11 @@ async function handleGoogleCallback(req: Request, res: Response) {
           profile: createdUser.profile,
         });
 
-        res.cookie("token", token);
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+        });
         // res.send({user:createdUser})
         res.redirect(WEB_CLIENT_URL);
       }
@@ -188,8 +192,19 @@ async function handleGoogleCallback(req: Request, res: Response) {
   }
 }
 
+
+const handleUserLogout=(req:Request,res:Response)=>{
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+  });
+  res.status(200).send("Logged out successfully");
+}
+
 authRouter.post("/signup", handleUserSignup);
 authRouter.post("/login", handleUserLogin);
+authRouter.post("/logout", handleUserLogout);
 authRouter.get("/google", googleLogin);
 authRouter.get("/callback/google", handleGoogleCallback);
 authRouter.get("/health", (req, res) => {

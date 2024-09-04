@@ -25,7 +25,7 @@ export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
   app.use(
     cors({
-      origin: process.env.WEB_CLIENT_URL, 
+      origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000"], 
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
