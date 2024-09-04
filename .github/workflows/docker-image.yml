@@ -1,0 +1,26 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'socket/**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Login Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USER_NAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_USER_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      
+    - name: Build the Docker image
+      run: docker build -t krishcode264/social-sphere-server ./socket  
+    - name: Push to Dockerhub
+      run: docker push krishcode264/social-sphere-server:latest
