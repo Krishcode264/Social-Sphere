@@ -8,7 +8,7 @@ const GuestImageGallary = async ({ guestId }: { guestId: string }) => {
   const photos  = await getUserPhotos(guestId);
   return (
     <Suspense fallback={<Loading/>}>
-      { photos.map((photo: PhotoType) => {
+      { photos.length>0 && photos.map((photo: PhotoType) => {
         return <PostView photo={photo} key={photo.id} />;
       })}
     </Suspense>

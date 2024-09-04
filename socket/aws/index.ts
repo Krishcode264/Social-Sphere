@@ -8,12 +8,16 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { fromEnv } from "@aws-sdk/credential-providers";
 
 export class AwsHandler {
-static  s3Client = new S3Client({
+  static s3Client = new S3Client({
     region: "ap-south-1",
-    credentials: fromEnv(),
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.S3_SECREAT_ACCESS_KEY || "",
+    },
   });
 
   static async getPresignedUrlForS3(key: string, type: any) {
+  
     const Command = new PutObjectCommand({
       Bucket: "krish-b264",
       Key: key,

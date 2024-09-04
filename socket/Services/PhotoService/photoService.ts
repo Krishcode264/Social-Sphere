@@ -35,10 +35,19 @@ export class PhotoService {
     
         return await Promise.all(
           photos.map(async (photo) => {
+            console.log(
+              new Date() > new Date(photo.urlExpirationTime.toISOString()) ,"here is comparism"
+            );
+            console.log(
+              "current time ",
+              new Date(),
+              "photo expiration time",
+              new Date(photo.urlExpirationTime.toISOString())
+            );
             if (new Date() > new Date(photo.urlExpirationTime.toISOString())) {
               const url = await AwsHandler.getObjectUrl(photo.key, 604800);//7 days of expiry
               await this.updatePhotoUrl(url, photo._id);
-             console.log("updated image url of user ");
+             console.log("updated image url of user ",photo._id);
               return {
                 id: photo._id,
                 likes: photo.likes,
