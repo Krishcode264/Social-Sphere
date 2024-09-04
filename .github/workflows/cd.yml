@@ -1,0 +1,32 @@
+name: CD pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI pipeline"]
+    types:
+      - completed
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - name: Pull Docker image
+      run: sudo docker pull krishcode264/social-sphere-server:latest
+    - name: Delete Old docker container
+      run: sudo docker rm -f krishcode264/social-sphere-server || true
+    - name: Run Docker Container
+      run: sudo docker run -d -p 8080:8080 \
+            -e MONGO_URL=${{ secrets.MONGO_URL }} \
+            -e NEXT_PUBLIC_SOCKET_SERVER_URL=${{ secrets.NEXT_PUBLIC_SOCKET_SERVER_URL }} \
+            -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            -e PORT=${{ secrets.PORT }} \
+            -e S3_ACCESSKEYID=${{ secrets.S3_ACCESSKEYID }} \
+            -e S3_SECREAT_ACCESSKEY=${{ secrets.S3_SECREAT_ACCESSKEY }} \
+            -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+            -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            -e WEB_CLIENT_URL=${{ secrets.WEB_CLIENT_URL }} \
+            --name krishcode264/social-sphere-server \
+            krishcode264/social-sphere-server
