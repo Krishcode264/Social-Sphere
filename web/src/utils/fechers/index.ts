@@ -45,7 +45,7 @@ export const getUser = cache(
       console.log(res.data, "res .data in getuser");
       return res.data;
     } catch (err) {
-      console.log("something went wron gin getuser actiom to feed/getUser");
+      console.log("something went wron gin getuser actiom to feed/getUser",err);
       return null;
     }
   }
@@ -68,7 +68,7 @@ export const getUserPhotos = cache(async (id: string) => {
 
     return res.data;
   } catch (err) {
-    console.log("err in get user photos ");
+    console.log("err in get user photos ",err);
     return [];
   }
 });
