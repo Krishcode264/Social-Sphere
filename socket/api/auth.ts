@@ -49,6 +49,7 @@ const handleUserSignup = async (req: Request, res: Response) => {
           httpOnly: true,
           secure: true,
           sameSite: "lax",
+          domain: ".krishcode264.shop",
         });
         res.send({
           status: "success",
@@ -91,6 +92,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
+        domain: ".krishcode264.shop",
       }); //for developement
       //only sending token
       return res.send({
@@ -170,6 +172,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
           httpOnly: true,
           secure: true,
           sameSite: "lax",
+          domain: ".krishcode264.shop",
         });
         // res.send({user:createdUser})
         res.redirect(WEB_CLIENT_URL);
@@ -183,7 +186,12 @@ async function handleGoogleCallback(req: Request, res: Response) {
         profile:user.profile
       });
       // console.log("user alredy exist");
-      res.cookie("token", token);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        domain:".krishcode264.shop"
+      });
       res.redirect(WEB_CLIENT_URL);
     }
   } catch (error) {
@@ -198,9 +206,11 @@ const handleUserLogout=(req:Request,res:Response)=>{
     httpOnly: true,
     secure: true,
     sameSite: "lax",
+    domain:".krishcode264.shop",
   });
   res.status(200).send("Logged out successfully");
 }
+
 
 authRouter.post("/signup", handleUserSignup);
 authRouter.post("/login", handleUserLogin);

@@ -79,9 +79,9 @@ export const getUserByToken = cache(async () => {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
       {
-        // headers: {
-        //   Cookie: await token(), // Set the token in the Cookie header
-        // },
+        headers: {
+          Cookie: await token(), // Set the token in the Cookie header
+        },
         withCredentials: true,
       }
     );
@@ -153,7 +153,7 @@ export const fetchCommentsForPost = async (photoId: string) => {
         // headers: {
         //   Cookie: await  token(), // Set the token in the Cookie header
         // },
-        withCredentials: true,
+        // withCredentials: true,
       }
     );
     return res.data;
@@ -204,4 +204,6 @@ try {
   return [];
 }
 }
+
+
 

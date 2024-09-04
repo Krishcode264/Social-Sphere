@@ -18,10 +18,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useRecoilState(userBasicInfoState);
   useEffect(() => {
+
+
+ 
     const validate = async () => {
 
       try {
     console.log("context is running")
+  
     // const token = Cookies.get("token");   //not available in production
     //  console.log(token,"token at auth context")
     //     if(user.id){ 
