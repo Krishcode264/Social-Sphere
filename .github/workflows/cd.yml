@@ -16,6 +16,6 @@ jobs:
     - name: Pull Docker image
       run: sudo docker pull krishcode264/social-sphere-server:latest
     - name: Delete Old docker container
-      run: sudo docker rm -f krishcode264/social-sphere-server || true
+      run: sudo docker rm -f cicd-pipeline-container || true
     - name: Run Docker Container
-      run:  sudo docker run -d -p 8080:8080 -e MONGO_URL=${{ secrets.MONGO_URL }} -e PORT=${{ secrets.PORT }}  --name krishcode264/social-sphere-server krishcode264/social-sphere-server:latest
+      run:  sudo docker run -d -p 8080:8080 -e MONGO_URL=${{ secrets.MONGO_URL }} -e PORT=${{ secrets.PORT }}  --name cicd-pipeline-container krishcode264/social-sphere-server:latest
