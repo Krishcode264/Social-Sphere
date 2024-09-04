@@ -17,7 +17,11 @@ jobs:
       run: sudo docker pull krishcode264/social-sphere-server:latest
     - name: Delete Old docker container
       run: sudo docker rm -f cicd-pipeline-container || true
+    - name: Delete Dangling Docker Images
+      run: sudo docker images -f "dangling=true" -q | xargs -r sudo docker rmi
+
     - name: Run Docker Container
+  
       env:
         PORT: ${{secrets.PORT}}
         MONGO_URL: ${{secrets.MONGO_URL}}
