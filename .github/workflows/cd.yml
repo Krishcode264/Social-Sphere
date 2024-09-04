@@ -18,7 +18,8 @@ jobs:
     - name: Delete Old docker container
       run: sudo docker rm -f krishcode264/social-sphere-server || true
     - name: Run Docker Container
-      run: sudo docker run -d -p 8080:8080 \
+      run: |
+          sudo docker run -d -p 8080:8080 \
             -e MONGO_URL=${{ secrets.MONGO_URL }} \
             -e NEXT_PUBLIC_SOCKET_SERVER_URL=${{ secrets.NEXT_PUBLIC_SOCKET_SERVER_URL }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
