@@ -6,7 +6,7 @@ import { z } from "zod";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
 import axios from "axios";
 import { redirect, useRouter } from "next/navigation";
-import { userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
+import { UserAuthState, userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
 import { useSetRecoilState } from "recoil";
 import googleLogo from '../images/google.png'
 import Image from "next/image";
@@ -26,8 +26,7 @@ type FormFields = z.infer<typeof SignUpSchema>;
 const Signup = () => {
   const Router = useRouter();
   const setUser = useSetRecoilState(userBasicInfoState);
-  const setPhotos=useSetRecoilState(UserPhotosState)
-
+  const setIsAuthenticated = useSetRecoilState(UserAuthState);
   const handleLoginWithGoogle = () => {
     const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
     window.location.href = path;
@@ -51,6 +50,7 @@ const Signup = () => {
       if (res.data.status === "success") {
   
         setUser((prevUser) => ({ ...prevUser, ...res.data.user }));
+         setIsAuthenticated({ isAuthenticated: true });
       //  setPhotos((prev)=>([...prev]))
 
   

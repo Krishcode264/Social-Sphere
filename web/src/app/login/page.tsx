@@ -5,7 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { z } from "zod";
 import axios from "axios";
-import { userBasicInfoState } from "@/store/atoms/user-atom";
+import { UserAuthState, userBasicInfoState } from "@/store/atoms/user-atom";
 import Link from "next/link";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
 import googlePic from "@/images/google.png";
@@ -21,6 +21,7 @@ type FormFields = z.infer<typeof LoginSchema>;
 
 const Login = () => {
   const Router = useRouter();
+  const setIsAuthenticated=useSetRecoilState(UserAuthState)
 const handleLoginWithGoogle = () => {
   const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
   window.location.href = path;
@@ -48,7 +49,7 @@ const handleLoginWithGoogle = () => {
           ...prevUser,
           ...user
         }));
-
+ setIsAuthenticated({isAuthenticated:true})
      
             Router.replace("/");
           

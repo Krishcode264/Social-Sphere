@@ -17,6 +17,7 @@ const Page = () => {
     window.sessionStorage.removeItem("token");
          await axios.post(`${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/logout`,{},{withCredentials:true});
         resetAllState();
+        
     router.replace("/")
   };
 

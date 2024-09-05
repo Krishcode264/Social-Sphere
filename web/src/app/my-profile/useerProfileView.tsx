@@ -38,9 +38,7 @@ const user=useRecoilValue(userBasicInfoState)
           Introduction
         </span>
         <div className="bg-slate-700 rounded-xl p-2 text-slate-200 ">
-          <span className="mt-2 font-mono ">
-            Hello , i am krish from india, here to make new friends
-          </span>
+          <span className="mt-2 font-mono ">{user.intro || ""}</span>
         </div>
         <span className="bg-slate-800 py-1 px-2 inline-block rounded-lg mb-3 text-slate-300 mt-4">
           Intrests

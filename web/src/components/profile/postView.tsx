@@ -43,7 +43,7 @@ function closeCommentBox(){
         height={200}
         alt="user profile"
         unoptimized={true}
-        className=" w-full h-[400px]  bg-contain bg-center mx-auto rounded-sm "
+        className=" w-full h-[300px] sm:h-[400px] bg-contain bg-center mx-auto rounded-sm "
       />
       {photo.tags && photo.tags.length>0 && renderTags(photo.tags)}
    {photo.caption && <Caption caption={photo.caption}/>}

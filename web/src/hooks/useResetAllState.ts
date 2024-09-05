@@ -1,5 +1,6 @@
-import { useResetRecoilState } from "recoil";
+import { useResetRecoilState, useSetRecoilState } from "recoil";
 import {
+  UserAuthState,
   userBasicInfoState,
   userConnectivityState,
   userPreferencesState,
@@ -23,7 +24,7 @@ const useResetAllState = () => {
   const resetMediaStreamState = useResetRecoilState(mediaStreamState);
   const resetGuestState = useResetRecoilState(guestState);
   const resetCallState = useResetRecoilState(callState);
-
+    const resetIsAuthenticated = useResetRecoilState(UserAuthState);
   const resetAll = () => {
     resetUserBasicInfo();
     resetUserConnectivity();
@@ -36,6 +37,7 @@ const useResetAllState = () => {
     resetMediaStreamState();
     resetGuestState();
     resetCallState();
+    resetIsAuthenticated();
   };
 
   return resetAll;

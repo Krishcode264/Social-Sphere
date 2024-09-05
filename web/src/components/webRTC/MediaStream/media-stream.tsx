@@ -188,6 +188,7 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
             backgroundColor: video ? "white" : "black",
             color: video ? "#334155" : "white",
           }}
+        
           className="w-10  h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full  flex items-center justify-center ml-auto"
         >
           <button

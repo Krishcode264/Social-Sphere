@@ -16,6 +16,7 @@ export interface UserBasicInfo {
   country: string;
   intrests: string[];
   pronouns: string;
+  intro:string;
   sexuality: string;
   likedPhotos:string[];
   languages_learning_or_speak: string[];
@@ -35,6 +36,7 @@ export const userBasicInfoState = atom<UserBasicInfo>({
     profile: "",
     userName: "",
     country: "",
+    intro:"",
     intrests: [],
     pronouns: "",
     sexuality: "",
@@ -71,4 +73,12 @@ export const userPreferencesState = atom({
 export const UserPhotosState=atom<PhotoType[]|[]>({
   key:"user-photos-state",
   default:[]
+})
+
+
+export const UserAuthState=atom({
+  key:"user-auth-state",
+  default:{
+    isAuthenticated:false
+  }
 })
