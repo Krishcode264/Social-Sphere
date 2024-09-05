@@ -13,8 +13,8 @@ const Page = () => {
 
   return (
     <div className="h-[600px] overflow-y-scroll bg-slate-900">
-      <button className="bg-red-500 p-2 rounded-xl" >
-      demo page 
+      <button className="bg-red-500 p-2 rounded-xl text-slate-200" >
+      demo page  for practice purpose 
       </button>
    
     </div>

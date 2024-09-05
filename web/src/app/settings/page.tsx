@@ -5,9 +5,12 @@ import useResetAllState from "@/hooks/useResetAllState";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useRecoilValue } from "recoil";
+import { userInfoState } from "@/store/selectors/user-selector";
 const Page = () => {
   const resetAllState = useResetAllState();
   const router=useRouter()
+  const {id}=useRecoilValue(userInfoState)
   const handleSignOut = async() => {
   
 
@@ -17,12 +20,18 @@ const Page = () => {
     router.replace("/")
   };
 
+
   return (
-    <div>
-      settings page
-     
-        <button onClick={handleSignOut} className="p-2 bg-red-500 text-slate-300">sign out</button>
-    
+    <div className="text-slate-300">
+      settings page under dev...
+      {id && (
+        <button
+          onClick={handleSignOut}
+          className="p-2 bg-orange-500 text-slate-300"
+        >
+          sign out
+        </button>
+      )}
     </div>
   );
 };

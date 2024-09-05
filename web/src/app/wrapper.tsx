@@ -14,7 +14,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { isLoading, isValid } = useAuthContext();
    const {showCallWindow,showCall}=useRecoilValue(showComponentState)
 const path=usePathname()
-  const publicRoutes = ["/login", "/logout","/signup","/","/settings","/notification","/demo"];
+  const publicRoutes = ["/login", "/logout","/signup","/","/settings","/demo"];
   if (isLoading) {
     return <Loading />;
   }

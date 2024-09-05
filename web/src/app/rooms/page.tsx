@@ -9,7 +9,7 @@ const Page = () => {
 
   return(
     <>
-<h1>meet </h1>
+<h1 className="text-slate-200">voice rooms are under dev... </h1>
     </>
   )
 };
