@@ -1,8 +1,12 @@
-"use client"
+"use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import axios from "axios";
-import { UserAuthState, userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import {
+  UserAuthState,
+  userBasicInfoState,
+  UserPhotosState,
+} from "@/store/atoms/user-atom";
 import Cookies from "js-cookie";
 interface AuthContextProps {
   isValid: { status: boolean; message: string };
@@ -17,62 +21,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isValid, setIsValid] = useState({ status: false, message: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useRecoilState(userBasicInfoState);
-  const [userAuthState,setIsAuthenticated]=useRecoilState(UserAuthState)
+  const [userAuthState, setIsAuthenticated] = useRecoilState(UserAuthState);
   useEffect(() => {
-
-
- 
     const validate = async () => {
-
       try {
-    console.log("context is running")
-  
-    // const token = Cookies.get("token");   //not available in production
-    //  console.log(token,"token at auth context")
-    //     if(user.id){ 
-    // setIsValid({ status: true, message: "success in fetching user" });
-
-    //     }
         if (user.id && userAuthState.isAuthenticated) {
           console.log("toke and userid both present", user.id);
           setIsValid({ status: true, message: "success in fetching user" });
         }
 
-        // if(!token && !user.id){
-        //      console.log("toke and userid both absent", token, user.id);
-        //      setIsValid({ status: false, message: "you need to Authenticate.." });
-        // }
-
-        if (!user.id  && userAuthState.isAuthenticated===false) {
-          console.log("request is goinh ")
+        if (!user.id && userAuthState.isAuthenticated === false) {
+          console.log("request is goinh ");
           const res = await axios.get(
             `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
-           {withCredentials:true}
-    
+            { withCredentials: true }
           );
 
           if (res.data?.user) {
-            console.log(res.data.user,"user ")
+            console.log(res.data.user, "user ");
             setUser((prev) => ({ ...prev, ...res.data.user }));
-              
+
             setIsValid({ status: true, message: "success in fetching user" });
-            setIsAuthenticated({isAuthenticated:true})
-          } 
-        } 
-      } catch (error) {
-     
-        setIsValid({
-          status: false,
-          message: "Session has expired. Please login again.",
-        });
-      
+            setIsAuthenticated({ isAuthenticated: true });
+          }
+        }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response) {
+            setIsValid({
+              status: false,
+              message:
+                error.response.data.message || "You need to Authenticate",
+            });
+          }
+        }
       } finally {
         setIsLoading(false);
       }
     };
-
     validate();
-  },[userAuthState.isAuthenticated]);
+  }, [userAuthState.isAuthenticated]);
 
   return (
     <AuthContext.Provider value={{ isValid, isLoading }}>

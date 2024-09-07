@@ -13,7 +13,7 @@ async function checkTokenValidity(
 // console.log(token,"toekn at validate token",req.cookies,"here are the cookies " )
   if (!token) {
     return res.status(401).json({
-      message: "Token is missing. Please log in again.",
+      message: "You Need to Authenticate",
       redirect: "/login",
     });
   }
