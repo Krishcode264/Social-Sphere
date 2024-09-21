@@ -18,6 +18,7 @@ export type PCContextType = {
   PC: RTCPeerConnection | null;
   createOffer: () => Promise<RTCSessionDescriptionInit | undefined>;
   createAnswer: () => void;
+  createPeerConnection: () => RTCPeerConnection;
 };
 const PcContext = createContext<PCContextType | null>(null);
 
@@ -35,13 +36,19 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   const setStream = useSetRecoilState(remoteStreamState);
   const iceCandidateBuffer: RTCIceCandidate[] = [];
 
-  const [PC] = useState<RTCPeerConnection | null>(() => {
+  const [PC, setPeerConnection] = useState<RTCPeerConnection | null>(() => {
     if (typeof window !== "undefined") {
       return new RTCPeerConnection(configForPeerconnection);
     }
     return null;
   });
 
+ const createPeerConnection = () => {
+   const newPeerConnection = new RTCPeerConnection(configForPeerconnection);;
+   setPeerConnection(newPeerConnection);
+   return newPeerConnection;
+ };
+  
   const createOffer = async (): Promise<
     RTCSessionDescriptionInit | undefined
   > => {
@@ -74,7 +81,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (PC && socket) {
+    if ( PC && socket) {
       PC.onicecandidate = (event) => {
         if (event.candidate) {
           iceCandidateBuffer.push(event.candidate);
@@ -170,7 +177,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   }, [PC, socket, guest]);
 
   return (
-    <PcContext.Provider value={{ PC, createOffer, createAnswer }}>
+    <PcContext.Provider value={{ PC, createOffer, createAnswer ,createPeerConnection}}>
       {children}
     </PcContext.Provider>
   );

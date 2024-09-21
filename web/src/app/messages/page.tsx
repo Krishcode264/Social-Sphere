@@ -96,7 +96,7 @@ const renderUserList = () => {
                   : "end",
             }}
           >
-            <div className="w-full flex gap-2 justify-between  px-2 text-slate-300">
+            <div className="w-full flex gap-2 justify-between  px-2 text-slate-300 ">
               <button onClick={(e) => setCurrentList("friends")}>
                 Friends
               </button>
@@ -114,7 +114,7 @@ const renderUserList = () => {
             ></div> */}
             <div
               className="border w-44 border-orange-500 transition-all duration-300  "
-              style={{ width: `${currentList.length * 10}px` }}
+              style={{ width: `${currentList.length * 9}px` }}
             ></div>
           </div>
           <div className="w-full h-[90%]  mt-4 overflow-y-scroll">

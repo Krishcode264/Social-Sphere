@@ -18,3 +18,11 @@ get:({get})=> {
   const currentGuestId=messages.length>0 ? messages[0].sender : ""
   return currentGuestId}
 })
+
+export const conversationIdSelector=selector({
+  key:"convoid selector",
+  get:({get})=>{
+    const msg = get(currentMessagesState)[0];
+    return msg?.conversationId
+  }
+})

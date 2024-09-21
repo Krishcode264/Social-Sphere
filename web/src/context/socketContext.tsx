@@ -57,6 +57,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
        console.log("we are getting notification");
        setNewNotification((prev) => [...prev, data]);
        playSound();
+       console.log("sound notification")
      });
 
 
@@ -123,6 +124,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             }
           );
           playSound()
+          console.log("message notification sound")
         }
       );
 

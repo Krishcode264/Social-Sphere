@@ -20,3 +20,11 @@ export const showComponentState = atom({
     showmediaPermission:false
   },
 });
+
+
+export const showMsgMediaLargeView=atom(
+  {
+    key:"msg-media-large-view",
+    default:{isShow:false}
+  }
+)

@@ -14,3 +14,11 @@
     opacity: 1; /* End visible */
     }
 }
+/* .FullMessageMediaView{
+    border: 2px solid red;
+    display: absolute;
+    width: 100px;
+    height: auto;
+    top: 0;
+    background-size: contain;
+} */

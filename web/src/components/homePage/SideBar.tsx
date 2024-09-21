@@ -116,7 +116,7 @@ const SideBar = () => {
       { name: "Settings", icon: <SettingsIcon /> },
 
       // { name: "Notification", icon: <CircleNotificationsRoundedIcon /> },
-      { name: "demo", icon: <SettingsIcon /> },
+      // { name: "demo", icon: <SettingsIcon /> },
     ],
     []
   );

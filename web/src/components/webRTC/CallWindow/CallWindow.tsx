@@ -14,6 +14,7 @@ import CloseFullscreenRoundedIcon from "@mui/icons-material/CloseFullscreenRound
 import ZoomInMapOutlinedIcon from "@mui/icons-material/ZoomInMapOutlined";
 import ZoomOutMapOutlinedIcon from "@mui/icons-material/ZoomOutMapOutlined";
 import "./callwindow.css"
+
 const CallWindow = () => {
   const setShowCompennts = useSetRecoilState(showComponentState);
   const { screenSize } = useRecoilValue(CallWindowAtomState);
@@ -24,7 +25,7 @@ const CallWindow = () => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const popupRef = useRef<null | HTMLDivElement>(null);
-
+   const {createPeerConnection}=usePC()
   const startDragging = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (screenSize === "default") return;
     setIsDragging(true);
@@ -99,6 +100,8 @@ useEffect(()=>{
   setPosition(()=>({x:0,y:0}))
 },[screenSize])
 
+
+
   return (
     <div
       ref={popupRef}
@@ -109,6 +112,7 @@ useEffect(()=>{
       } " w-full  h-full md:h-[90%] absolute bg-slate-900  border  z-50   rounded-xl  inset-0 `}
     >
       <WebrtcConnection />
+
     </div>
   );
 };

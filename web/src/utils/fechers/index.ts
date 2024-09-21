@@ -42,7 +42,7 @@ export const getUser = cache(
           withCredentials: true,
         }
       );
-      console.log(res.data, "res .data in getuser");
+   //   console.log(res.data, "res .data in getuser");
       return res.data;
     } catch (err) {
       console.log("something went wron gin getuser actiom to feed/getUser",err);
@@ -169,7 +169,7 @@ export const fetchMessageHistory = async (
   id: string
 ): Promise<MessageHistoryResponse | null> => {
   try {
-   // console.log(id)
+   console.log("fetch message history running")
     const messageHistoryResponse = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getMessageHistory`,
       {
