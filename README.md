@@ -3,7 +3,7 @@
 Social Sphere is a full-featured social media platform where users can connect with friends, share posts,
 send messages, make audio and video calls, and receive notifications for important interactions. The app is
 built using a modern web development stack with a focus on real-time communication, responsive design, and scalability.
-[Watch the Demo Video]([https://link-to-your-video.com](https://youtu.be/JfLvUZNR1N4?si=etmFEfb3rMAYxwQ3)])
+[Watch the Demo Video](https://youtu.be/JfLvUZNR1N4?si=etmFEfb3rMAYxwQ3)
 
 ## Features
 
