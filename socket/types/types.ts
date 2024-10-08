@@ -5,6 +5,12 @@ export type User = {
   id: string;
   profile?:string
 };
+export type MsgAttachment={
+  key:string,
+  url:string,
+  name:string,
+  size:number
+}
 
 export type Offer = {
   user: User;

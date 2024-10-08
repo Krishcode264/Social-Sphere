@@ -76,7 +76,7 @@ export const DetailedChatView = async ({ id }: { id: string }) => {
   //   queryFn:getUserChatHistory
   // })
   const data = await fetchMessageHistory(id);
-
+//console.log(data?.messages,data?.guestInfo,"data at fetch messaage history")
   return (
     <Suspense fallback={<Loading />}>
       <div className=" flex flex-col gap-2 h-full overflow-y-scroll ">
@@ -87,7 +87,7 @@ export const DetailedChatView = async ({ id }: { id: string }) => {
           guestId={id}
           guestProfile={data?.guestInfo.profile}
           guestName={data?.guestInfo.name}
-          messages={data?.messages || []}
+     
         />
       </div>
     </Suspense>

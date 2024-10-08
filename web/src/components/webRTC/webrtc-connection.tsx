@@ -10,71 +10,61 @@ import { showComponentState } from "@/store/atoms/show-component";
 import { userPermissionState } from "@/store/atoms/user-permissions_atom";
 import { CallWindowAtomState } from "@/store/atoms/callWindowStates";
 
- 
-       const WebrtcConnection = () => {
-         const [{ showmediaPermission }, setShowMedia] =
-           useRecoilState(showComponentState);
-         const setShowCompennts = useSetRecoilState(showComponentState);
-         const { video, audio } = useRecoilValue(userPermissionState);
-         const [{ audioStream, videoStream }, setMediaStreamAll] =
-           useRecoilState(mediaStreamState);
+const WebrtcConnection = () => {
+  const [{ showmediaPermission }, setShowMedia] =
+    useRecoilState(showComponentState);
+  const setShowCompennts = useSetRecoilState(showComponentState);
+  const { video, audio } = useRecoilValue(userPermissionState);
+  const [{ audioStream, videoStream }, setMediaStreamAll] =
+    useRecoilState(mediaStreamState);
 
-         const { PC } = usePC();
-         // const { mode } = useRecoilValue(CallWindowAtomState);
+  const { PC } = usePC();
+  // const { mode } = useRecoilValue(CallWindowAtomState);
 
-         const addTracksToExistingStream = (
-           newStream: MediaStream,
-           mode: string
-         ) => {
-           if (mode === "audio") {
-             setMediaStreamAll((prev) => ({
-               ...prev,
+  const addTracksToExistingStream = (newStream: MediaStream, mode: string) => {
+    if (mode === "audio") {
+      setMediaStreamAll((prev) => ({
+        ...prev,
 
-               audioStream: newStream,
-             }));
-             return;
-           }
-           if (mode === "video") {
-             setMediaStreamAll((prev) => ({
-               ...prev,
-               videoStream: newStream,
-             }));
-           }
-         };
+        audioStream: newStream,
+      }));
+      return;
+    }
+    if (mode === "video") {
+      setMediaStreamAll((prev) => ({
+        ...prev,
+        videoStream: newStream,
+      }));
+    }
+  };
 
-         const addtrackTOPC = (stream: MediaStream, mode: string) => {
-           const senders = PC?.getSenders();
+  const addtrackTOPC = (stream: MediaStream, mode: string) => {
+    const senders = PC?.getSenders();
 
-           stream.getTracks().forEach((track) => {
-             const trackAlreadyExists = senders?.some(
-               (sender) => sender.track === track
-             );
+    stream.getTracks().forEach((track) => {
+      const trackAlreadyExists = senders?.some(
+        (sender) => sender.track === track
+      );
 
-             if (!trackAlreadyExists) {
-               PC?.addTrack(track, stream);
-               console.log("Track added to peer connection:", track);
-             } else {
-               console.log("Track already exists in peer connection:", track);
-             }
-           });
-           console.log(stream.getTracks(), "tracks of the stream");
+      if (!trackAlreadyExists) {
+        PC?.addTrack(track, stream);
+        console.log("Track added to peer connection:", track);
+      } else {
+        console.log("Track already exists in peer connection:", track);
+      }
+    });
+    console.log(stream.getTracks(), "tracks of the stream");
 
-           addTracksToExistingStream(stream, mode);
-         };
+    addTracksToExistingStream(stream, mode);
+  };
 
-         const getMedia = async (mode: string) => {
-           const params = mode === "audio" ? { audio: true } : { video: true };
-           const mediaStream = await navigator.mediaDevices.getUserMedia(
-             params
-           );
-           addtrackTOPC(mediaStream, mode);
-         };
+  const getMedia = async (mode: string) => {
+    const params = mode === "audio" ? { audio: true } : { video: true };
+    const mediaStream = await navigator.mediaDevices.getUserMedia(params);
+    addtrackTOPC(mediaStream, mode);
+  };
 
-         return (
-          
-             <MediaStream getMedia={getMedia} />
-         
-         );
-       };
+  return <MediaStream getMedia={getMedia} />;
+};
 
 export default WebrtcConnection;

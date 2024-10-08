@@ -14,10 +14,10 @@ export class AwsHandler {
       accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
       secretAccessKey: process.env.S3_SECREAT_ACCESS_KEY || "",
     },
+  
   });
 
   static async getPresignedUrlForS3(key: string, type: any) {
-  
     const Command = new PutObjectCommand({
       Bucket: "krish-b264",
       Key: key,
@@ -31,6 +31,7 @@ export class AwsHandler {
     const command = new GetObjectCommand({
       Bucket: "krish-b264",
       Key: key,
+      ResponseContentDisposition:"inline"
     });
 
     return await getSignedUrl(this.s3Client, command, { expiresIn });

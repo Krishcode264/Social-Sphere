@@ -2,7 +2,7 @@
 import { ChatHeadContainer } from "@/components/messageView/Message-Server";
 
 
-
+import './message.css'
 
 export default function MessageComponentLayout({children}:{children:React.ReactNode}){
 

@@ -4,7 +4,7 @@ import {
   InfoTemplateWithIntrests,
   InfoTemplateWithOptions,
 } from "@/components/my-profile/Ui";
-import { userBasicInfoState } from "@/store/atoms/user-atom";
+import { userBasicInfoState, type UserBasicInfo } from "@/store/atoms/user-atom";
 import React, { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { array } from "zod";
@@ -25,7 +25,7 @@ export type UserInfoState = {
   [key: string]: string | number | string[] | undefined; // Index signature
 };
 const Page = () => {
-  const userInfo = useRecoilValue(userBasicInfoState);
+  const [userInfo,setUserInfo] = useRecoilState(userBasicInfoState);
   //  console.log(userInfo,"user info at the edit profile page ")
   const [userInfoState, setUserInfoState] = useState<UserInfoState>(userInfo);
   const [updating, setUpdating] = useState(false);
@@ -41,6 +41,10 @@ const Page = () => {
         }
       );
       // console.log(res.data);
+     //  console.log(userInfo,1);
+     //  console.log(userInfoState,"updated state")
+      setUserInfo((prev)=> ({...prev ,...userInfoState as UserBasicInfo}))
+    //  console.log(userInfo,2)
       setUpdating(false);
     } catch (err) {
       console.log(err, "something went wrong");

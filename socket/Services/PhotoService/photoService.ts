@@ -7,6 +7,7 @@ import { emitNotificationtotarget, notificationIO } from "../NotificationService
 import { NotificationService } from "../NotificationService/NotificationService";
 
 export class PhotoService {
+  
   static async savePhoto(data: photoSchematype) {
     return await new PhotosData({ ...data }).save();
   }

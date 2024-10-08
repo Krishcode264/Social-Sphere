@@ -4,9 +4,9 @@ import VideocamOffIcon from "@mui/icons-material/VideocamOff";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import MicIcon from "@mui/icons-material/Mic";
 import { AudioComponent, VideoComponent } from "./media-stream-component";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from "recoil";
 import { peerConnectionState } from "../../../store/selectors/pc-selector";
-import { mediaStreamState } from "../../../store/atoms/media-stream-atom";
+import { mediaStreamState, remoteStreamState } from "../../../store/atoms/media-stream-atom";
 import { usePC } from "@/context/peerConnectionContext";
 import MicRoundedIcon from "@mui/icons-material/MicRounded";
 import MicOffRoundedIcon from "@mui/icons-material/MicOffRounded";
@@ -25,7 +25,7 @@ import ZoomInMapOutlinedIcon from "@mui/icons-material/ZoomInMapOutlined";
 import ZoomOutMapOutlinedIcon from "@mui/icons-material/ZoomOutMapOutlined";
 import { Tooltip } from "@mui/material";
 import { CallWindowAtomState } from "@/store/atoms/callWindowStates";
-
+import CloseIcon from "@mui/icons-material/Close";
 interface ToggleButtonsProps {
   state: boolean;
   Icon: React.FC;
@@ -56,7 +56,7 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
   );
 };
 const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
-  const { PC, createOffer, createAnswer } = usePC();
+  const { PC, createOffer, createAnswer ,createPeerConnection} = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
   const [userCallState, setcallstate] = useRecoilState(callState);
@@ -64,8 +64,10 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
     useRecoilState(mediaStreamState);
   const setShowCompennts = useSetRecoilState(showComponentState);
   const [guest, setGuest] = useRecoilState(guestState);
+    
   const offerer = useRecoilValue(userInfoState);
   const socket = useSocket();
+  console.log(userCallState,"user call state")
   const toggleTracks = (type: string) => {
     console.log("senders0", PC?.getSenders());
     if (
@@ -86,6 +88,16 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
     type === "audio" ? setAudio((prev) => !prev) : setVideo((prev) => !prev);
   };
 
+
+
+const  handleCallWindowClose=async ()=>{
+   setGuest((prev) => ({ name: "", id: "", profile: "" }));
+   setcallstate(() => ({ action: "default", status: "default" }));
+   setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
+   createPeerConnection()
+  // await  navigator.mediaDevices.getUserMedia({audio:false,video:false})
+}
+const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
   const startCall = async () => {
     if (userCallState.action === "default") {
       await createOffer();
@@ -99,18 +111,22 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
       userCallState.status === "calling" ||
       userCallState.status === "incall"
     ) {
+      setGuest((prev) => ({ name: "", id: "", profile: "" }));
       socket?.emit("end-call", { guest, offerer });
-      setAudio(false);
-      setVideo(false);
+
       videoStream?.getTracks().forEach((track) => track.stop());
       audioStream?.getTracks().forEach((track) => track.stop());
-
-      // if (PC) {
-      //   PC.onicecandidate = null;
-      //   PC.ontrack = null;
-      //   PC.oniceconnectionstatechange = null;
-      //   PC.ondatachannel = null;
-      // }
+      setAudio(false);
+      setVideo(false);
+      resetRemoteStreamState()
+      if (PC) {
+        //pc hoga hi
+        PC.onicecandidate = null;
+        PC.ontrack = null;
+        PC.oniceconnectionstatechange = null;
+        PC.ondatachannel = null;
+        PC.close();
+      }
 
       setMedia((prev) => ({
         audioStream: null,
@@ -119,9 +135,9 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
         audio: false,
       }));
 
-      setGuest((prev) => ({ name: "", id: "", profile: "" }));
       setcallstate(() => ({ action: "default", status: "default" }));
       setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
+    createPeerConnection();
     }
   };
   const u = useRecoilValue(userInfoState);
@@ -183,12 +199,25 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
           }  `}
       >
         {/* <div className=" flex w-[50%] gap-3 border justify-end "> */}
+
+        {userCallState.status === "default" ||
+          userCallState.status === "rejected" ? (
+            <div className="flex items-center justify-center">
+              <Tooltip title="close the call window">
+                <CloseIcon
+                  className="  text-orange-600  text-2xl cursor-pointer"
+                  sx={{ color: "orange" }}
+                  onClick={handleCallWindowClose}
+                />
+              </Tooltip>
+            </div>
+          ) : null }
+
         <div
           style={{
             backgroundColor: video ? "white" : "black",
             color: video ? "#334155" : "white",
           }}
-        
           className="w-10  h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full  flex items-center justify-center ml-auto"
         >
           <button

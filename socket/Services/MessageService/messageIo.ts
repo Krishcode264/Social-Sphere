@@ -2,10 +2,16 @@ import type { Socket } from "socket.io";
 import { MessageService } from "./messageService";
 import UserService from "../UserService/userService";
 import { io } from "../..";
+import type { MsgAttachment } from "../../types/types";
 
-const generateRoomId = (userId1: string, userId2: string) => {
+export const generateRoomId = (userId1: string, userId2: string) => {
   return [userId1, userId2].sort().join("-");
 };
+export type ReplyMessageType={
+   _id:string;
+    timestamp:string;
+    content:string;
+}
 export const messageIoConection = (socket: Socket) => {
   socket.on(
     "newMessage",
@@ -14,53 +20,59 @@ export const messageIoConection = (socket: Socket) => {
       receiver: string;
       message: string;
       roomId: string;
-      conformationId:string;
+      conformationId: string;
+      repliedTo:string|null;
+      attachmwnt?:MsgAttachment[]
+      repliedToMessage:ReplyMessageType|null
     }) => {
-      const savedmsg = await MessageService.saveMessage(data);
-      console.log("got the evevnt => message ");
-      if (savedmsg) {
-        const {
-          _id,
-          content,
-          sender,
-          recipient,
-          timestamp,
-          status,
-          conversationId,
-          ...message
-        } = savedmsg;
-        console.log("emititng message to  guest client => newMessage");
-        const guestSocketId = await UserService.getUserSocketIdById(
-          recipient.toString()
-        );
-      
-        
-        io.to(data.roomId).emit(`newMessage_${data.roomId}`, {
-          id: _id,
-          sender,
-          content,
-          recipient,
-          timestamp,
-          status,
-          confirmationId:data.conformationId
-        });
+    console.log(data,"new mag at socket ")
 
-        io.to(guestSocketId as string).emit("message_Notify", {
-          roomId: data.roomId,
-          content: content,
-          sender,
-          conversationId,
-          timestamp
-        });
-        //  io.to(data.roomId).emit("newMessage", {
-        //    id: _id,
-        //    sender,
-        //    content,
-        //    recipient,
-        //    timestamp,
-        //    status
-        //  });
-      }
+
+    
+       const savedmsg = await MessageService.saveMessage(data);
+       console.log("got the evevnt => message ");
+       if (savedmsg) {
+         const {
+           _id,
+           content,
+           sender,
+           recipient,
+           timestamp,
+           status,
+           conversationId,
+           repliedTo,
+           attachment,
+           ...message
+         } = savedmsg;
+         console.log("emititng message to  guest client => newMessage");
+         const guestSocketId = await UserService.getUserSocketIdById(
+           recipient?.toString() as string
+         );
+
+         io.to(data.roomId).emit(`newMessage_${data.roomId}`, {
+           _id,
+           sender,
+           content,
+           recipient,
+           timestamp,
+           status,
+           repliedTo,
+           confirmationId: data.conformationId,
+           repliedToMessage: data.repliedToMessage,
+           attachment
+         });
+
+         io.to(guestSocketId as string).emit("message_Notify", {
+           roomId: data.roomId,
+           content: content,
+           sender,
+           conversationId,
+           timestamp,
+         });
+       }
+    
+  
+     
     }
   );
   socket.on("startConvo", async (data) => {

@@ -29,21 +29,23 @@ const messageSchema = new Schema({
     enum: ["sent", "delivered", "read"],
     default: "sent",
   },
-  attachment: {
-    fileUrl: {
+ repliedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Messages', default: null } ,
+  attachment: [{
+    url: {
       type: String,
       required: false,
     },
-    fileType: {
+    key:{type:String},
+    type: {
       type: String,
-      enum: ["photo", "audio", "video"],
       required: false,
     },
-    fileSize: {
+    size: {
       type: Number,
       required: false,
     },
-  },
+    urlExpirationTime:{type:Date}
+  }],
 });
 
 const conversationSchema = new Schema({

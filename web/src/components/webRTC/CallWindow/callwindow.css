@@ -85,10 +85,11 @@ flex: 1;
   height: 3rem;
   border-radius: 50%;
 }
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 900px) {
    .popup{
     width:45% ;
-    height: 30%;
+    height: 40%;
+    border: 2px solid red;
    }
     .defaultvideocontainer{
         display: flex;

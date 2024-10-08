@@ -9,12 +9,16 @@ import UserService from "../Services/UserService/userService";
 import type { UserSchemaType } from "../types/types";
 import type { ObjectId } from "mongoose";
 import mongoose from "mongoose";
+import { generateRoomId } from "../Services/MessageService/messageIo";
 
 export async function createPresignedUrl(req: Request, res: Response) {
-  const { fileName, type } = req.query;
+  const { fileName, type, conversationId } = req.query;
   const { id } = req.body.user;
   console.log(req.body.user, "user from token ");
-  const key = `users/${id}/${Date.now()}_${fileName}`;
+  let key = `users/${id}/${Date.now()}_${fileName}`;
+  if (conversationId) {   //means files are of messages 
+      key = `convos/${conversationId}/${Date.now()}_${fileName}`;
+  }
   try {
     const url = await AwsHandler.getPresignedUrlForS3(key, type);
     res.json({ url, key });
@@ -64,8 +68,23 @@ const handleUpdateUserProfile = async (req: Request, res: Response) => {
     }
   }
 };
-
+const handleFileUploadMessageSuccess=async (req:Request,res:Response)=>{
+  const { key } = req.body;
+  const { id } = req.body.user;
+  console.log(key,"key of file")
+   try {
+    if (typeof key == "string" && typeof id == "string") {
+      console.log(id, "id at handle file uplaod ");
+      const url = await AwsHandler.getObjectUrl(key, 604800); //7 days od expiry
+       res.send({url})
+    }
+  }
+    catch(err){
+res.status(501).send("errr in confirming urls")
+    }
+}
 uploadRouter.use("/getPresignedUrl", createPresignedUrl);
 uploadRouter.post("/success", handleFileUploadSuccess);
+uploadRouter.post("/message/success", handleFileUploadMessageSuccess);
 uploadRouter.post("/update-profile", handleUpdateUserProfile);
 export default uploadRouter;

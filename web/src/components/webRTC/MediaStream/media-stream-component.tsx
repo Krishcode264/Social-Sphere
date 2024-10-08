@@ -38,6 +38,7 @@ export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
         ref={videoref}
         className=" defaultvideo popupvideo rounded-sm  h-full w-full bg-cover "
         muted={true}
+        
         autoPlay={true}
       >
         <track kind="captions"></track>
@@ -64,7 +65,7 @@ export const AudioComponent: React.FC<MediaProps> = ({ media ,target,u}) => {
    
 
      
-        <audio ref={audioref} className="">
+        <audio ref={audioref} className="" muted={target==="local"? true : false}>
           <track kind="captions"></track>
         </audio>
       
