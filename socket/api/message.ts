@@ -12,9 +12,9 @@ export const messageRouter = express.Router();
 
 const getMessageHistory = async (req: Request, res: Response) => {
   const { guestId, skip, limit } = req.query;
- // console.log(req.query, "req .query at server ");
+  // console.log(req.query, "req .query at server ");
   const { id } = req.body.user;
- // console.log(Number(skip as string));
+  // console.log(Number(skip as string));
   //we have to send guest profile and name
   // latest 20 messages btween them
   // message can have repliedto field we have to send that
@@ -30,14 +30,14 @@ const getMessageHistory = async (req: Request, res: Response) => {
           $all: [getObjectId(id), getObjectId(guestId as string)],
         },
       },
-    },
+    },       //finding conversation data betn participanients
     {
       $lookup: {
         from: "users",
         localField: "participants",
         foreignField: "_id",
         as: "userInfo",
-      },
+      },             //finding both users data from users document 
     },
     {
       $project: {
@@ -59,7 +59,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
         "guestInfo.name": 1, // Include guest's name
         "guestInfo.profile": 1, // Include guest's profile (assuming profile is a field)
       },
-    },
+    },     
     {
       $lookup: {
         from: "messages",
@@ -147,7 +147,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
   //   participants: { $all: [id, guestId] },
   // });
   //console.log(completeMessagePagePayload)
-  if (completeMessagePagePayload.length>0) {
+  if (completeMessagePagePayload.length > 0) {
     // const messages = await MessageData.find({ conversationId: convoData._id })
     //   .sort({ timestamp: -1 })
     //   .limit(20)

@@ -35,13 +35,12 @@ export type ReplyMessageType = {
   content: string;
 };
 
-
-  export type FileAttachment={
-    url:string,
-    type:"photo"| "audio"| "video"|"file"|string,  //lets see after 
-    size:number,
-    key:string
-  }
+export type FileAttachment = {
+  url: string;
+  type: "photo" | "audio" | "video" | "file" | string; //lets see after
+  size: number;
+  key: string;
+};
 export type MessageType = {
   _id: string;
   sender: string;
@@ -58,7 +57,7 @@ export type MessageType = {
 };
 export interface MessageContainerProps {
   guestId: string;
-  messages: MessageType[];
+  messages?: MessageType[];
   guestProfile?: string;
   guestName?: string;
 }
@@ -94,7 +93,6 @@ export const RepliedMessageAttach = ({
 };
 
 export default function MessageContainer({
-  messages,
   guestProfile,
   guestId,
   guestName,
@@ -130,7 +128,7 @@ export default function MessageContainer({
     isSuccess: fetchingSuccess,
     refetch,
   } = useQuery({
-    queryKey: ["messages", skipLimit,guestId],
+    queryKey: ["messages", skipLimit, guestId],
     queryFn: async () =>
       await CommonFetcher("message/getMessageHistory", {
         ...stableSkipLimit,
@@ -140,6 +138,7 @@ export default function MessageContainer({
 
   useEffect(() => {
     if (newMessages?.messages) {
+      console.log(newMessages,"new messages here ")
       setMessages((prev) => {
         return [...newMessages.messages, ...prev];
       });
@@ -191,7 +190,7 @@ export default function MessageContainer({
             } else {
               if (!prev.find((m) => m._id === newMsg._id)) {
                 playSound();
-                console.log("sound")
+                console.log("sound");
                 return [...prev, newMsg];
               }
             }
@@ -215,17 +214,14 @@ export default function MessageContainer({
   }, [socket]);
 
   useEffect(() => {
- 
-
     ResetChatBoxAttachments();
   }, []);
 
   useEffect(() => {
-    if(skipLimit.skip===0){
-  handleScrollDown(messageContainerRef.current);
+    if (skipLimit.skip === 0) {
+      handleScrollDown(messageContainerRef.current);
     }
-  
-  }, [messageContainerRef, chatAttach,msgs]);
+  }, [messageContainerRef, chatAttach, msgs]);
   useEffect(() => {
     // Refetch messages when stableSkipLimit or stableGuestId changes
     refetch();
@@ -240,7 +236,7 @@ export default function MessageContainer({
       ) {
         setSkipLimit((prev) => ({ ...prev, skip: prev.skip + 20 }));
       }
-    }, 400); // Debounce the scroll event by 400ms 
+    }, 400); // Debounce the scroll event by 400ms
 
     const container = messageContainerRef.current;
     container?.addEventListener("scroll", handleScroll);
@@ -251,7 +247,6 @@ export default function MessageContainer({
   }, [isFetching, isPending, refetch, messageContainerRef, skipLimit]);
 
   const renderMessages = () => {
-
     return msgs.map((m: MessageType) => {
       return (
         <div className="hover:bg-slate-00  " key={m._id}>

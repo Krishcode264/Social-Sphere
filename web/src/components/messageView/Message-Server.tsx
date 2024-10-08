@@ -87,7 +87,7 @@ export const DetailedChatView = async ({ id }: { id: string }) => {
           guestId={id}
           guestProfile={data?.guestInfo.profile}
           guestName={data?.guestInfo.name}
-          messages={data?.messages || []}
+     
         />
       </div>
     </Suspense>

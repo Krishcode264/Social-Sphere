@@ -7,11 +7,11 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Image from "next/image";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
- import defaultUserProfile from "@/images/user-profile.png";
-import {  useRecoilValue } from "recoil";
+import defaultUserProfile from "@/images/user-profile.png";
+import { useRecoilValue } from "recoil";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
 import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-namespace";
-import CircleNotificationsRoundedIcon from '@mui/icons-material/CircleNotificationsRounded';
+import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificationsRounded";
 const generateSideBarOptions = (
   options: { name: string; icon: ReactJSXElement }[]
 ) => {
@@ -56,26 +56,16 @@ const Sidebarheader = () => {
 };
 
 const Page = () => {
-  // const icons = useMemo(
-  //   () => [
-  //     { name: "Messages", icon: <ChatIcon className="text-orange-500 text-[100px] bg-orange-500"/> },
-  //     { name: "Rooms", icon: <GroupsIcon /> },
-  //     { name: "My Profile", icon: <AccountCircleIcon /> },
-  //     { name: "Settings", icon: <SettingsIcon /> },
-  //     {name:"Notification",icon:<CircleNotificationsRoundedIcon/>}
-  //   ],
-  //   []
-  // );
   const icons = [
     {
       name: "Messages",
       icon: <ChatIcon className="text-orange-500 text-[100px] bg-orange-500" />,
     },
-        { name: "Rooms", icon: <GroupsIcon /> },
-        { name: "My Profile", icon: <AccountCircleIcon /> },
-        {name:"Friends",icon: <GroupsIcon />},
-        { name: "Settings", icon: <SettingsIcon /> },
-        {name:"Notification",icon:<CircleNotificationsRoundedIcon/>}
+    { name: "Rooms", icon: <GroupsIcon /> },
+    { name: "My Profile", icon: <AccountCircleIcon /> },
+    { name: "Friends", icon: <GroupsIcon /> },
+    { name: "Settings", icon: <SettingsIcon /> },
+    { name: "Notification", icon: <CircleNotificationsRoundedIcon /> },
   ];
 
   return (
