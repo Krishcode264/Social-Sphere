@@ -11,6 +11,7 @@ built using a modern web development stack with a focus on real-time communicati
     - **Google OAuth**
     - **Credential-based Signup/Login**
     - **Email Verification System**
+      
 2. **User Profile Management**
     - **Profile View Tracking**
     - **Friend Requests and Management**
@@ -50,7 +51,7 @@ built using a modern web development stack with a focus on real-time communicati
 
 ### 1. User Authentication
 **Google OAuth**  
-- Implemented using `passport-google-oauth20` in the backend (Node.js, Express.js).
+- Implemented by manual google  auth login  (Node.js, Express.js).
 - Tokens are stored as HTTP-only cookies to maintain secure sessions.
 - Technologies: Next.js, Node.js, Express.js, js-cookie for frontend cookie management.
 
