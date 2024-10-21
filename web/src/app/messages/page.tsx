@@ -7,8 +7,23 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/basic/loading";
 import type { User } from "@/types/types";
+import { clsx } from "clsx";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
+import CloseIcon from '@mui/icons-material/Close';
+
+const ActionIcons = {
+  friends: <MoreVertRoundedIcon />,
+  sentRequests: <MoreVertRoundedIcon />,
+  friendRequests: <MoreVertRoundedIcon />,
+};
+ export type currentListType = "friends" | "friendRequests" | "sentRequests";
+const FriendListItemAction=({type}:{type:currentListType})=>{
+  return(
+ActionIcons[type]
+
+  )
+}
 const FriendListItem = ({u}:{u:User}) => {
 
   return (
@@ -34,12 +49,21 @@ const FriendListItem = ({u}:{u:User}) => {
         </p>
       </div>
       <span className="ml-auto mr-2 text-orange-500 hover:cursor-pointer">
-        {" "}
-        <MoreVertRoundedIcon />
+        
+      
       </span>
     </div>
   );
 };
+
+const FriendListItemActionBar=()=>{
+  return(
+    <div className="border">
+           
+    </div>
+  )
+}
+
 const Page = () => {
 
   type FriendListItomType={
@@ -48,7 +72,7 @@ const Page = () => {
     id:string
   }
 
-  type currentListType="friends"|"friendRequests"|"sentRequests"
+
   const [currentList,setCurrentList]=useState<currentListType>("friends")
 
 const fetchList = async () => {
@@ -86,7 +110,7 @@ const renderUserList = () => {
       <div className=" w-full  bg-slate-900   gap-3  p-2  h-full  font-mono">
         <div className="w-full mx-auto  md:w-[70%] my-5">
           <div
-            className="w-full flex flex-col gap-2    "
+            className="w-full flex flex-col gap-2     "
             style={{
               alignItems:
                 currentList === "friends"
@@ -97,13 +121,34 @@ const renderUserList = () => {
             }}
           >
             <div className="w-full flex gap-2 justify-between  px-2 text-slate-300 ">
-              <button onClick={(e) => setCurrentList("friends")}>
+              <button
+                className={`${clsx(
+                  currentList === "friends"
+                    ? "active-list text-orange-500 "
+                    : ""
+                )}`}
+                onClick={(e) => setCurrentList("friends")}
+              >
                 Friends
               </button>
-              <button onClick={(e) => setCurrentList("friendRequests")}>
+              <button
+                className={`${clsx(
+                  currentList === "friendRequests"
+                    ? "active-list text-orange-500 "
+                    : ""
+                )}`}
+                onClick={(e) => setCurrentList("friendRequests")}
+              >
                 Incoming Requests
               </button>
-              <button onClick={(e) => setCurrentList("sentRequests")}>
+              <button
+                className={`${clsx(
+                  currentList === "sentRequests"
+                    ? "active-list text-orange-500 "
+                    : ""
+                )}`}
+                onClick={(e) => setCurrentList("sentRequests")}
+              >
                 Sent Requests
               </button>
             </div>
@@ -112,14 +157,18 @@ const renderUserList = () => {
               className="absolute bottom-0 h-[2px] bg-orange-500 transition-all duration-300"
               style={{ width: `${currentList.length * 10}px` }}
             ></div> */}
-            <div
+            {/* <div
               className="border w-44 border-orange-500 transition-all duration-300  "
               style={{ width: `${currentList.length * 9}px` }}
-            ></div>
+            ></div> */}
           </div>
           <div className="w-full h-[90%]  mt-4 overflow-y-scroll">
             {isFetching && <Loading />}
-            {fetchingSuccess && userList.length > 0 ?  renderUserList() : (<p className="text-slate-300"> dont have anyone </p>) }
+            {fetchingSuccess && userList.length > 0 ? (
+              renderUserList()
+            ) : (
+              <p className="text-slate-300"> dont have anyone </p>
+            )}
           </div>
         </div>
       </div>

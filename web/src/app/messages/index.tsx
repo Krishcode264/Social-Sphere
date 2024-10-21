@@ -174,8 +174,8 @@ export const MessageMedia = ({
       return <VideoItem src={a} key={a.key} />;
     }
     if (a.type.startsWith("audio")) {
-      return <AudioItem src={a} />;
-    } else return <DefaultItem src={a} />;
+      return <AudioItem src={a}  key={a.key}/>;
+    } else return <DefaultItem src={a} key={a.key}/>;
   });
 };
 

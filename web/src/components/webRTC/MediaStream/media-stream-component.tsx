@@ -37,7 +37,7 @@ export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
       <video
         ref={videoref}
         className=" defaultvideo popupvideo rounded-sm  h-full w-full bg-cover "
-        muted={true}
+         
         
         autoPlay={true}
       >

@@ -63,8 +63,8 @@ const handleLoginWithGoogle = () => {
 
 
   return (
-    <div className="flex justify-center items-center h-full w-full font-mono ">
-      <div className="rounded-lg  w-full mb:w-[90%] md:w-[50%] 2xl:w-[35%] xl:w-[30%] mx-auto mt-4 p-3 py-4  ">
+    <div className="flex  justify-center items-center h-full w-full font-mono ">
+      <div className="rounded-lg  w-full mb:w-[90%] sm:w-[50%] 2xl:w-[35%] xl:w-[30%] mx-auto mt-4 p-3 py-4  ">
         <h4 className="mx-auto text-center text-2xl text-slate-400 p-2">
           Sign in
         </h4>
