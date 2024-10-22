@@ -10,8 +10,8 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/callback/google`; //http://localhost:8080/auth/callback/google";
 const WEB_CLIENT_URL = process.env.WEB_CLIENT_URL as string;
-// const TOKEN_DOMAIN=process.env.TOKEN_DOMAIN;
-const TOKEN_DOMAIN=".krishcode264.shop";
+ const TOKEN_DOMAIN=process.env.TOKEN_DOMAIN;
+
 const sanitizeUserData = (user: any) => {
   const {
     password,
@@ -119,6 +119,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
 };
 
 async function googleLogin(req: Request, res: Response) {
+  
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(authUrl);
 }
