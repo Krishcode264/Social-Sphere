@@ -27,9 +27,9 @@ jobs:
         MONGO_URL: ${{secrets.MONGO_URL}}
         NEXT_PUBLIC_SOCKET_SERVER_URL: ${{secrets.NEXT_PUBLIC_SOCKET_SERVER_URL}}
         JWT_SECRET: ${{secrets.JWT_SECRET}}
-        S3_ACCESSKEYID: ${{secrets. S3_ACCESSKEYID}}
+        S3_ACCESSKEYID: ${{secrets.S3_ACCESSKEYID}}
         S3_SECREAT_ACCESSKEY: ${{secrets.S3_SECREAT_ACCESSKEY}}
-        GOOGLE_CLIENT_ID: ${{secrets. GOOGLE_CLIENT_ID}} 
+        GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}} 
         GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
         WEB_CLIENT_URL: ${{secrets.WEB_CLIENT_URL}}
         TOKEN_DOMAIN: ${{secrets.TOKEN_DOMAIN}}
