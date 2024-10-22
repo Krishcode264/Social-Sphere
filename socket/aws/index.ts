@@ -23,7 +23,11 @@ export class AwsHandler {
       Key: key,
       ContentType: type,
     });
-
+console.log(
+  process.env.S3_ACCESS_KEY_ID,
+  "access key id",
+  process.env.S3_SECREAT_ACCESS_KEY,"secret access key"
+);
     return await getSignedUrl(this.s3Client, Command);
   }
 
