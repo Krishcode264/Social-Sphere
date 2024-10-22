@@ -10,7 +10,7 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/callback/google`; //http://localhost:8080/auth/callback/google";
 const WEB_CLIENT_URL = process.env.WEB_CLIENT_URL as string;
- const TOKEN_DOMAIN=process.env.TOKEN_DOMAIN;
+const TOKEN_DOMAIN = process.env.TOKEN_DOMAIN;
 //     console.log(TOKEN_DOMAIN,"token domain")
 const sanitizeUserData = (user: any) => {
   const {
@@ -45,14 +45,13 @@ const handleUserSignup = async (req: Request, res: Response) => {
         const token = generateToken({
           name: createdUser.name,
           id: createdUser._id,
-          profile:createdUser.profile
+          profile: createdUser.profile,
         });
         res.cookie("token", token, {
           httpOnly: true,
           secure: true,
           sameSite: "lax",
-         domain:TOKEN_DOMAIN
-      
+          domain: TOKEN_DOMAIN,
         });
         res.send({
           status: "success",
@@ -95,7 +94,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        domain:TOKEN_DOMAIN
+        domain: TOKEN_DOMAIN,
       }); //for developement
       //only sending token
       return res.send({
@@ -103,8 +102,8 @@ const handleUserLogin = async (req: Request, res: Response) => {
         message: "successfully logged in",
         user: sanitizeUserData(userwithEmail),
       });
-    //  res.redirect(WEB_CLIENT_URL)
-     //return res.send({ status: "success", message: "successfully logged in" });
+      //  res.redirect(WEB_CLIENT_URL)
+      //return res.send({ status: "success", message: "successfully logged in" });
     } else {
       return res.send({
         status: "error",
@@ -120,13 +119,15 @@ const handleUserLogin = async (req: Request, res: Response) => {
 };
 
 async function googleLogin(req: Request, res: Response) {
-  
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(authUrl);
 }
+
 async function handleGoogleCallback(req: Request, res: Response) {
   const code = req.query.code;
+  console.log(code, "got the code at callback");
   try {
+    console.log(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, "here are all secrets");
     const response = await axios.post(
       "https://oauth2.googleapis.com/token",
       null,
@@ -142,6 +143,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
       }
     );
     const { access_token } = response.data;
+    console.log(access_token,"accesstoken in res.data ")
     const userInfo = await axios.get(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
@@ -149,6 +151,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
       }
     );
     const user = userInfo.data;
+    console.log(user,"got user from acess tokemn")
     //  console.log(user,"got user from gogole heyyyyyy")
     const alreadyExistedUserWithSameEmail =
       await UserService.checkUserAlreadyExist(user.email);
@@ -176,7 +179,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
           httpOnly: true,
           secure: true,
           sameSite: "lax",
-         domain: TOKEN_DOMAIN,
+          domain: TOKEN_DOMAIN,
         });
         // res.send({user:createdUser})
         res.redirect(WEB_CLIENT_URL);
@@ -187,25 +190,24 @@ async function handleGoogleCallback(req: Request, res: Response) {
       const token = generateToken({
         name: user.name,
         id: user._id,
-        profile:user.profile
+        profile: user.profile,
       });
       // console.log("user alredy exist");
       res.cookie("token", token, {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-       domain:TOKEN_DOMAIN,
+        domain: TOKEN_DOMAIN,
       });
       res.redirect(WEB_CLIENT_URL);
     }
   } catch (error) {
     res.redirect(`${WEB_CLIENT_URL}/login`);
-    console.error(error, "got eeror in gogole callback");
+    console.error( "got eeror in gogole callback");
   }
 }
 
-
-const handleUserLogout=(req:Request,res:Response)=>{
+const handleUserLogout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: true,
@@ -213,8 +215,7 @@ const handleUserLogout=(req:Request,res:Response)=>{
     domain: TOKEN_DOMAIN,
   });
   res.status(200).send("Logged out successfully");
-}
-
+};
 
 authRouter.post("/signup", handleUserSignup);
 authRouter.post("/login", handleUserLogin);
