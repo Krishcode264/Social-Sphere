@@ -23,6 +23,7 @@ import { webRtcIoConnection } from "./webRTC";
 import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
+  console.log("token domain",process.env.TOKEN_DOMAIN)
   app.use(
     cors({
       origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000","https://social-sphere-project.vercel.app"], 
