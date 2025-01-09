@@ -1,4 +1,4 @@
-import type { Socket } from "socket.io";
+import type { Server, Socket } from "socket.io";
 import UserService from "../UserService/userService";
 export type NotificationType = {
   type: string;
@@ -7,8 +7,8 @@ export type NotificationType = {
   createdAt?: string;
 };
 
-let IOInstance: Socket | null;
-export const notificationIO = (socket: Socket) => {
+let IOInstance: Server | null;
+export const notificationIO = (socket: Server) => {
   IOInstance = socket;
 };
 export const emitNotificationtotarget = async (data: NotificationType) => {

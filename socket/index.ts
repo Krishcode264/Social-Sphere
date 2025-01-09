@@ -25,7 +25,7 @@ export const io = new Server(httpServer, { path: "/socket" });
 async function init() {
   app.use(
     cors({
-      origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000"], 
+      origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000","https://social-sphere-project.vercel.app"], 
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
@@ -56,13 +56,22 @@ async function init() {
     console.log("server is listening on port ", process.env.PORT);
     connectMongo();
 
+
+
+ //mesages socket io activation
+
+ //notification io
+ notificationIO(io);
+
     io.on("connection", (socket) => {
+       webRtcIoConnection(socket);
+       messageIoConection(socket);
       //  webrtc socket io activation 
-      webRtcIoConnection(socket);
-      //mesages socket io activation
-      messageIoConection(socket);
-       //notification io 
-       notificationIO(socket)
+      // webRtcIoConnection(socket);
+      // //mesages socket io activation
+      // messageIoConection(socket);
+      //  //notification io 
+      //  notificationIO(socket)
       socket.on("newUserConnected", async (user: User) => {
      //   console.log("user connnedted", user.name);
         await MessageService.updateSocketId(user.id, socket.id, true);

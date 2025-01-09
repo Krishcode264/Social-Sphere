@@ -5,13 +5,13 @@ import {
   type HandShakeDataType,
   type UserSchemaType,
 } from "../types/types";
-import { Socket } from "socket.io";
+import { Socket, type Server } from "socket.io";
 import UserService from "../Services/UserService/userService";
 import { io } from "..";
 import { UserData } from "../mongoose/schemas/userSchema";
 import { getObjectId } from "../lib/helpers";
 
-export function webRtcIoConnection(socket: Socket) {
+export function webRtcIoConnection(socket:Socket) {
   //    console.log("user connected", socket.id);
   //   //  getting all active users, sending to newly connected user
   //     UserData.find(

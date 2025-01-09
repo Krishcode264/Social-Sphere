@@ -1,4 +1,4 @@
-import type { Socket } from "socket.io";
+import type { Server, Socket } from "socket.io";
 import { MessageService } from "./messageService";
 import UserService from "../UserService/userService";
 import { io } from "../..";
@@ -21,74 +21,75 @@ export const messageIoConection = (socket: Socket) => {
       message: string;
       roomId: string;
       conformationId: string;
-      repliedTo:string|null;
-      attachmwnt?:MsgAttachment[]
-      repliedToMessage:ReplyMessageType|null
+      repliedTo: string | null;
+      attachmwnt?: MsgAttachment[];
+      repliedToMessage: ReplyMessageType | null;
     }) => {
-    console.log(data,"new mag at socket ")
+      console.log(data, "new mag at socket ");
 
+      const savedmsg = await MessageService.saveMessage(data);
+      console.log("got the evevnt => message ");
+      if (savedmsg) {
+        const {
+          _id,
+          content,
+          sender,
+          recipient,
+          timestamp,
+          status,
+          conversationId,
+          repliedTo,
+          attachment,
+          ...message
+        } = savedmsg;
+        console.log("emititng message to  guest client => newMessage");
+        const guestSocketId = await UserService.getUserSocketIdById(
+          recipient?.toString() as string
+        );
 
-    
-       const savedmsg = await MessageService.saveMessage(data);
-       console.log("got the evevnt => message ");
-       if (savedmsg) {
-         const {
-           _id,
-           content,
-           sender,
-           recipient,
-           timestamp,
-           status,
-           conversationId,
-           repliedTo,
-           attachment,
-           ...message
-         } = savedmsg;
-         console.log("emititng message to  guest client => newMessage");
-         const guestSocketId = await UserService.getUserSocketIdById(
-           recipient?.toString() as string
-         );
+        io.to(data.roomId).emit(`newMessage_${data.roomId}`, {
+          _id,
+          sender,
+          content,
+          recipient,
+          timestamp,
+          status,
+          repliedTo,
+          confirmationId: data.conformationId,
+          repliedToMessage: data.repliedToMessage,
+          attachment,
+        });
 
-         io.to(data.roomId).emit(`newMessage_${data.roomId}`, {
-           _id,
-           sender,
-           content,
-           recipient,
-           timestamp,
-           status,
-           repliedTo,
-           confirmationId: data.conformationId,
-           repliedToMessage: data.repliedToMessage,
-           attachment
-         });
-
-         io.to(guestSocketId as string).emit("message_Notify", {
-           roomId: data.roomId,
-           content: content,
-           sender,
-           conversationId,
-           timestamp,
-         });
-       }
-    
-  
-     
+        io.to(guestSocketId as string).emit("message_Notify", {
+          roomId: data.roomId,
+          content: content,
+          sender,
+          conversationId,
+          timestamp,
+        });
+      }
     }
   );
   socket.on("startConvo", async (data) => {
     //console.log("got start convo from user ", data.userId);
     const roomId = generateRoomId(data.userId, data.guestId);
-  //  console.log(roomId, "here is room id user connected ", data.userId);
+    //  console.log(roomId, "here is room id user connected ", data.userId);
+ const userSocketId = await UserService.getUserSocketIdById(data.userId);
+ if(userSocketId){
+   const userSocket = io.sockets.sockets.get(userSocketId);
 
-    // cheacking users socket 
-    if (!socket.rooms.has(roomId)) {
-    //  console.log("joining user in the room ")
-      socket.join(roomId);
-    }
+   // cheacking users socket
+   if (!userSocket?.rooms.has(roomId)) {
+    userSocket?.join(roomId)
+     //  console.log("joining user in the room ")
+   }
+ }
+  
+    
 
     // Fetch the guest's socket ID
     const guestSocketId = await UserService.getUserSocketIdById(data.guestId);
-  //  console.log("here is guest socket id ", guestSocketId);
+    //  console.log("here is guest socket id ", guestSocketId);
 
     if (guestSocketId) {
       const guestSocket = io.sockets.sockets.get(guestSocketId);
@@ -96,7 +97,7 @@ export const messageIoConection = (socket: Socket) => {
       if (guestSocket) {
         // Check if the guest's socket is already in the room
         if (!guestSocket.rooms.has(roomId)) {
-      //    console.log("guest joined room ");
+          //    console.log("guest joined room ");
           guestSocket.join(roomId);
           socket
             .to(guestSocketId)
@@ -108,10 +109,9 @@ export const messageIoConection = (socket: Socket) => {
     }
   });
 
-
-//  socket.on("new-message",(data)=>{
-//  const roomId = generateRoomId(data.userId, data.guestId);
-//  console.log("got send evevnt on sopcket sending tot guest on room id",roomId)
-//  socket.to(roomId).emit("send",data.m)
-//   })
+  //  socket.on("new-message",(data)=>{
+  //  const roomId = generateRoomId(data.userId, data.guestId);
+  //  console.log("got send evevnt on sopcket sending tot guest on room id",roomId)
+  //  socket.to(roomId).emit("send",data.m)
+  //   })
 };

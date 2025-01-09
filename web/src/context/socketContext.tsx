@@ -183,7 +183,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
 
-      socketRef.current.on("newUserConnected", (newUserData) => {
+      socketRef.current.on("newUserConnected", (newUserData:User) => {
         setConnectedUsers(({ connectedUsers }) => ({
           connectedUsers: [...connectedUsers, newUserData],
         }));
@@ -217,8 +217,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
 
 
-      socketRef.current.on("joinedRoom", (data) => {
-        console.log("hey server automatiically kjoined in room ", data);
+      socketRef.current.on("joinedRoom", (data:any) => {
+        console.log("hey server automatiically joined you in room with stranger  ", data);
       });
     }
 

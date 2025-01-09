@@ -2,7 +2,7 @@
 import type { MessageHistoryResponse } from "@/app/messages";
 import type { ConvoType, User, UserSchemaType } from "@/types/types";
 import axios from "axios";
-import Cookies from "js-cookie";
+import Cookies from "node_modules/@types/js-cookie";
 import { cookies } from "next/headers";
 import { cache } from "react";
 

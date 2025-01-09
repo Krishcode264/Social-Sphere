@@ -30,14 +30,14 @@ const getMessageHistory = async (req: Request, res: Response) => {
           $all: [getObjectId(id), getObjectId(guestId as string)],
         },
       },
-    },       //finding conversation data betn participanients
+    },       
     {
       $lookup: {
         from: "users",
         localField: "participants",
         foreignField: "_id",
         as: "userInfo",
-      },             //finding both users data from users document 
+      },              
     },
     {
       $project: {
@@ -45,7 +45,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
           $filter: {
             input: "$userInfo",
             as: "user",
-            cond: { $ne: ["$$user._id", getObjectId(id)] }, // Exclude current user
+            cond: { $ne: ["$$user._id", getObjectId(id)] }, 
           },
         },
       },
@@ -55,9 +55,9 @@ const getMessageHistory = async (req: Request, res: Response) => {
     },
     {
       $project: {
-        "guestInfo._id": 1, // Include guest's _id
-        "guestInfo.name": 1, // Include guest's name
-        "guestInfo.profile": 1, // Include guest's profile (assuming profile is a field)
+        "guestInfo._id": 1, 
+        "guestInfo.name": 1, 
+        "guestInfo.profile": 1,
       },
     },     
     {

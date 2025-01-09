@@ -7,7 +7,7 @@ import {
   userBasicInfoState,
   UserPhotosState,
 } from "@/store/atoms/user-atom";
-import Cookies from "js-cookie";
+import Cookies from "node_modules/@types/js-cookie";
 interface AuthContextProps {
   isValid: { status: boolean; message: string };
   isLoading: boolean;

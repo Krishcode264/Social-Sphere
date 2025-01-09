@@ -9,7 +9,10 @@ import { PhotosData } from "../mongoose/schemas/photoSchema";
 import { getObjectId } from "../lib/helpers";
 export const postEventsRouter = Router();
 
-const handlePostLikeDislike = async (req: Request, res: Response):Promise<any> => {
+const handlePostLikeDislike = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
   const { photoId, action } = req.body;
   //console.log(req.body, "req.body at handle photto liked ");
   const { id: userId } = req.body.user;
@@ -96,19 +99,17 @@ const handlePostComment = async (req: Request, res: Response) => {
 export const getUserNotifications = async (req: Request, res: Response) => {
   const { id } = req.body.user;
   try {
-
-
-    
     const data = await NotificationData.aggregate([
+      {
+        $match: { "target.userId": getObjectId(id) }, //match
+      },
       {
         $sort: { createdAt: -1 },
       },
       {
         $limit: 15,
       },
-      {
-        $match: { "target.userId": getObjectId(id) },   //match
-      },
+
       {
         $lookup: {
           from: "users",
@@ -127,13 +128,12 @@ export const getUserNotifications = async (req: Request, res: Response) => {
             id: "$notifier._id",
             profile: "$notifier.profile",
           },
-          createdAt:1
+          createdAt: 1,
         },
       },
     ]);
-  
-    res.send(data);
 
+    res.send(data);
   } catch (err) {
     res
       .status(501)

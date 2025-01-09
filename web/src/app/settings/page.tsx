@@ -2,7 +2,7 @@
 
 import React from "react";
 import useResetAllState from "@/hooks/useResetAllState";
-import Cookies from "js-cookie";
+import Cookies from "node_modules/@types/js-cookie";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useRecoilValue } from "recoil";

@@ -8,7 +8,7 @@ import AddIcon from "@mui/icons-material/Add";
 import Image from "next/image";
 import PostView from "../profile/postView";
 import { userInfoState } from "@/store/selectors/user-selector";
-import Cookies from "js-cookie";
+import Cookies from "node_modules/@types/js-cookie";
 import { InfoTemplate, InfoTemplateWithIntrests } from "./Ui";
 import { boolean } from "zod";
 import { Photo } from "@mui/icons-material";
