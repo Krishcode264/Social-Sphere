@@ -11,7 +11,7 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/callback/google`; //http://localhost:8080/auth/callback/google";
 const WEB_CLIENT_URL = process.env.WEB_CLIENT_URL as string;
 const TOKEN_DOMAIN = process.env.TOKEN_DOMAIN;
-//     console.log(TOKEN_DOMAIN,"token domain")
+
 const sanitizeUserData = (user: any) => {
   const {
     password,
@@ -50,7 +50,7 @@ const handleUserSignup = async (req: Request, res: Response) => {
         res.cookie("token", token, {
           httpOnly: true,
           secure: true,
-          sameSite: "none",
+          sameSite:"lax",
           domain: TOKEN_DOMAIN,
         });
         res.send({
@@ -93,7 +93,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
       res.cookie("token", token, {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
+        sameSite: "lax",
         domain: TOKEN_DOMAIN,
       }); //for developement
       //only sending token
