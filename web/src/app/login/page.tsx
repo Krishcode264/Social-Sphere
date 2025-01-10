@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect, useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { z } from "zod";
+import {z}  from "zod";
 import axios from "axios";
 import { UserAuthState, userBasicInfoState } from "@/store/atoms/user-atom";
 import Link from "next/link";
