@@ -12,7 +12,7 @@ import { cache } from "react";
 export const token =() => {
   const cookieStore =  cookies();
   const token = cookieStore.get("token")?.value;
-  //  console.log(token,"here is token at token methode ")
+   console.log(token,"here is token at token methode at server action  ")
   return `token=${token}`;
 };
 //feed
