@@ -33,23 +33,23 @@ export const getUser = cache(
   async (id: string): Promise<UserSchemaType | null> => {
 
     try {
-      // const res = await axios.get(
-      //   `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
-      //   {
-      //     params: { id },
-      //     headers: {
-      //       Cookie:await token(), // Set the token in the Cookie header
-      //     },
-      //     withCredentials: true,
-      //   }
-      // );
-      const res = await API.get("/api/feed/getUser", {
-        params: { id },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
+        {
+          params: { id },
+          // headers: {
+          //   Cookie:await token(), // Set the token in the Cookie header
+          // },
+          withCredentials: true,
+        }
+      );
+      // const res = await API.get("/api/feed/getUser", {
+      //   params: { id },
+      // });
    //   console.log(res.data, "res .data in getuser");
       return res.data;
     } catch (err) {
-      console.log("something went wron gin getuser actiom to feed/getUser",err);
+      console.log("something went wron gin getuser actiom to feed/getUser server action");
       return null;
     }
   }
