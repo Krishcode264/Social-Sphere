@@ -3,7 +3,7 @@ import type { MessageHistoryResponse } from "@/app/messages";
 import type { ConvoType, User, UserSchemaType } from "@/types/types";
 import axios from "axios";
 import Cookies from "node_modules/@types/js-cookie";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { API } from "../axios";
 
@@ -31,15 +31,15 @@ export const getFeedUsers = cache(async () => {
 //profile
 export const getUser = cache(
   async (id: string): Promise<UserSchemaType | null> => {
-
+   console.log(headers().get("cookie"),"cookie headeres here at server action")
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
         {
           params: { id },
-          // headers: {
-          //   Cookie:await token(), // Set the token in the Cookie header
-          // },
+          headers: {
+            Cookie: headers().get("cookie") || "", // Set the token in the Cookie header
+          },
           withCredentials: true,
         }
       );
