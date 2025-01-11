@@ -22,14 +22,16 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>
-         
-          Social Sphere</title>
-         <link rel="icon" href='@/images/logo.jpg' type="image/jpg"></link>
+        <title>Social Sphere</title>
+        <link rel="icon" href="@/images/logo.jpg" type="image/jpg"></link>
         <meta name="referrer" content="no-referrer" />
       </head>
       <body className="  h-screen w-screen">
-        <div className="h-full w-full flex   bg-slate-900">
+        <div className="w-full stickey  h-[5%] m-0 p-2 text-center  bg-slate-900 text-bold text-white ">
+          The server might take some time to retrieve  data as the backend
+          is hosted on a free Render instance
+        </div>
+        <div className="h-[95%] w-full flex   bg-slate-900 relative">
           <RecoilRoot>
             <PathProvider>
               <AuthProvider>
@@ -37,8 +39,7 @@ export default async function RootLayout({
                   <PcProvider>
                     <QueryProvider>
                       <SideBar />
-                      <div className="relative    rounded-lg   flex-1 h-screen   shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
-
+                      <div className="relative p-1 overflow-y-auto   rounded-lg   flex-1 h-full   shadow-lg bg-gradient-to-br from-slate-900 to-slate-700 ">
                         <Wrapper>{children}</Wrapper>
                       </div>
                     </QueryProvider>

@@ -94,7 +94,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        domain: TOKEN_DOMAIN,
+        domain:TOKEN_DOMAIN,
       }); //for developement
       //only sending token
       return res.send({

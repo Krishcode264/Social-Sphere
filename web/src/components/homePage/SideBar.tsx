@@ -126,7 +126,7 @@ const SideBar = () => {
   },[])
 
   return (
-    <div className="rounded-lg h-[100%]  md:w-[8%] p-1 lg:w-[15%] sm:p-2 flex flex-col   justify-start font-mono text-l   bg-gradient-to-br from-slate-900 to-slate-800 ">
+    <div className="rounded-lg h-full  md:w-[8%] p-2 lg:w-[15%] sm:p-2 flex flex-col   justify-start font-mono text-l   bg-gradient-to-br from-slate-900 to-slate-800  ">
       <Sidebarheader />
       <div className="flex flex-col gap-2 text-center  text-l mt-12  w-full  mx-auto">
         <MessageSideBarOption />
