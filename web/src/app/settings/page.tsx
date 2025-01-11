@@ -28,7 +28,7 @@ const Page = () => {
       {id && (
         <button
           onClick={handleSignOut}
-          className="p-2 bg-orange-500 text-slate-300"
+          className="p-2 rounded-lg hover:bg-orange-500  bg-orange-600 text-white"
         >
           sign out
         </button>
