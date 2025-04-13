@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Curl Ping Render API
-        run: curl -m 10 -s -o /dev/null -w "%{http_code}" https://api.socialsphere.krishcode264.online
+        run: curl -m 30 -s -o /dev/null -w "%{http_code}" https://api.socialsphere.krishcode264.online
