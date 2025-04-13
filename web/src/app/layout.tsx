@@ -27,11 +27,11 @@ export default async function RootLayout({
         <meta name="referrer" content="no-referrer" />
       </head>
       <body className="  h-screen w-screen">
-        <div className="w-full stickey  h-[5%] m-0 p-2 text-center  bg-slate-900 text-bold text-white ">
+        {/* <div className="w-full stickey  h-[5%] m-0 p-2 text-center  bg-slate-900 text-bold text-white ">
           The server might take some time to retrieve  data as the backend
           is hosted on a free Render instance
-        </div>
-        <div className="h-[95%] w-full flex   bg-slate-900 relative">
+        </div> */}
+        <div className="h-full w-full flex   bg-slate-900 relative">
           <RecoilRoot>
             <PathProvider>
               <AuthProvider>
