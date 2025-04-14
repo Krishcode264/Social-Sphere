@@ -22,6 +22,20 @@ import type { User } from "./types/types";
 import { webRtcIoConnection } from "./webRTC";
 import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
+
+const sendInterval = () => {
+  setTimeout(async () => {
+   
+      console.log("sending req");
+      await fetch("https://bealive.onrender.com", {
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+        },
+      });
+    
+  }, 1000 * 60 *3);
+};
 async function init() {
   console.log("token domain",process.env.TOKEN_DOMAIN)
   app.use(
@@ -41,6 +55,11 @@ async function init() {
     checkTokenValidity,
     expressMiddleware(await createGraphqlServer())
   );
+  
+  app.get("/",(req,res)=>{
+    sendInterval();
+    res.send("hello")
+  })
   app.get("/socket", (req) => {});
   // app.post("/validateToken", checkTokenValidity);
   app.use("/auth", authRouter);
