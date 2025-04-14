@@ -23,18 +23,17 @@ import { webRtcIoConnection } from "./webRTC";
 import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
 
-const sendInterval = () => {
-  setTimeout(async () => {
-   
-      console.log("sending req");
-      await fetch("https://bealive.onrender.com", {
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-        },
-      });
-    
-  }, 1000 * 60 *3);
+let timer = null;
+
+const triggerAfterDelay = () => {
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(async () => {
+    console.log("⏱ Sending ping back to BLI");
+    await fetch("https://bealive.onrender.com", {
+      method: "GET",
+      headers: { "User-Agent": "Mozilla/5.0" },
+    }).catch(console.error);
+  }, 1000 * 60 * 5); // ⏳ After 5 minutes
 };
 async function init() {
   console.log("token domain",process.env.TOKEN_DOMAIN)
@@ -56,10 +55,10 @@ async function init() {
     expressMiddleware(await createGraphqlServer())
   );
   
-  app.get("/",(req,res)=>{
-    sendInterval();
-    res.send("hello")
-  })
+app.get("/", (req, res) => {
+  triggerAfterDelay(); // When pinged by BLI, respond after 5 mins
+  res.send("Hello from SocialSphere/BoldHug");
+});
   app.get("/socket", (req) => {});
   // app.post("/validateToken", checkTokenValidity);
   app.use("/auth", authRouter);
