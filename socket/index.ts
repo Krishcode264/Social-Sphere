@@ -23,7 +23,7 @@ import { webRtcIoConnection } from "./webRTC";
 import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
 
-let timer = null;
+let timer: string | number | NodeJS.Timeout | null | undefined = null;
 
 const triggerAfterDelay = () => {
   if (timer) clearTimeout(timer);
