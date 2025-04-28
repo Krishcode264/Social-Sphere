@@ -8,6 +8,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { fromEnv } from "@aws-sdk/credential-providers";
 
 export class AwsHandler {
+  console.log(
+  process.env.S3_ACCESS_KEY_ID,
+  "access key id now",
+  process.env.S3_SECREAT_ACCESS_KEY,"secret access key from top"
+);
   static s3Client = new S3Client({
     region: "ap-south-1",
     credentials: {
