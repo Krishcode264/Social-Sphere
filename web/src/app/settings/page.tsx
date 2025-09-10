@@ -24,14 +24,17 @@ const Page = () => {
 
   return (
     <div className="text-slate-300">
-      settings page under dev...
+      
       {id && (
-        <button
+        <div className=" w-[50%]  bg-slate-600 rounded-xl  h-[30vh] mx-auto   translate-y-[20vh]">
+   <button
           onClick={handleSignOut}
-          className="p-2 rounded-lg hover:bg-orange-500  bg-orange-600 text-white"
+          className="p-2 w-[70%] rounded-lg   block  text-center hover:bg-orange-600  bg-orange-500  text-white mx-auto translate-y-[15vh]"
         >
           sign out
         </button>
+        </div>
+     
       )}
     </div>
   );

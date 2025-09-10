@@ -27,6 +27,7 @@ import Image from "next/image";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Tooltip } from "@mui/material";
 import { handleFileUploadToS3 } from "./functions";
+import { RotateRight } from "@mui/icons-material";
 export type ChatBarProps = {
   guestId: string;
 };
@@ -139,6 +140,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
   const ResetChatBoxAttachments = useResetRecoilState(ChatAttachmentsState);
   const { id } = useRecoilValue(userInfoState);
   const conversationId = useRecoilValue(conversationIdSelector);
+  const [sending,setSending]=useState(false);
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -155,8 +157,10 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
   };
 
   const sendMessage = async () => {
+   
     if (value.trim().length > 0 || chatAttach.media.length > 0) {
       console.log("emiitng evevnt => message");
+       setSending(true)
       let files: { key: string; url: string; size: number,type:string }[] | null = null;
 
       if (chatAttach.media.length > 0 && conversationId) {
@@ -186,6 +190,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
             );
             console.log("new media after being sanitized ",newMedia)
           files = newMedia.length > 0 ? newMedia : null;
+         
         } else {
           return; //error have to manage it well
         }
@@ -224,6 +229,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
       setMessage((prev) => [...prev, msg]);
       setValue(() => "");
       ResetChatBoxAttachments();
+       setSending(false);
     }
   };
   const attachFileRef = useRef<HTMLInputElement | null>(null);
@@ -284,12 +290,14 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
         />
       </div>
       <button
-        disabled={!socket}
+        disabled={!socket || sending }
         style={{ color: socket ? "" : "green" }}
         className="text-green-600  hover:text-green-400 hover:cursor-pointer mt-3 "
         onClick={sendMessage}
       >
-        <SendIcon />
+     
+        {sending ? <RotateRight/> :   <SendIcon />}
+      
       </button>
     </div>
   );

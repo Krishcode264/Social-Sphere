@@ -91,6 +91,9 @@ export const MessageMedia = ({
   //const [msgMediaView,setmsgmediaView] = useRecoilState(showMsgMediaLargeView);
   // console.log("got message attachemnt", attachments);
 
+
+
+
   const ImageItem = ({ src }: { src: FileAttachment }) => {
     const [largeView, setLargeView] = useState(false);
     const onClose = () => {
@@ -105,17 +108,18 @@ export const MessageMedia = ({
       <div
         className={`${
           largeView ? "FullMessageMediaView" : ""
-        } w-[70%]  hover:cursor-pointer `}
+        } w-[70%] h-[90%] hover:cursor-pointer `}
         onClick={() => {
           if (!largeView) setLargeView((prev) => !prev);
         }}
       >
         <Image
           src={src.url}
+        
           alt={src.key.split("/")[2].slice(0, 10)}
           width={30}
           height={30}
-          className=" w-full h-full "
+          className=" w-full h-full     "
           unoptimized={true}
         />
       </div>

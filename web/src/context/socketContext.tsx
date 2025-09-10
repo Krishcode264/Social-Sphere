@@ -16,6 +16,7 @@ import { MessageNotificationState, NotificationState, type MessageNotificationTy
 import { playSound } from "@/utils/DomMutations/domMutations";
 import { currentGuestIdFromMessageState } from "@/store/atoms/messages-atom";
 import { usePath } from "./pathContext";
+import { toast } from "sonner";
 
 const SocketContext = createContext<Socket | null>(null);
 export type MessageNotifyType = {
@@ -158,6 +159,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 //   },[socketRef.current])
   useEffect(() => {
     if (!socketRef.current && id) {
+       toast('connecting to socket')
       const uri =
         process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:8080";
       socketRef.current = io(uri, {
@@ -166,6 +168,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
       socketRef.current.on("connect", () => {
         console.log("socket connection established");
+         toast('connected to socket',{style:{background:"green",color:"white", fontWeight:900}})
         socketRef.current?.emit("newUserConnected", { id, name });
         setShowComponent((prev) => ({
           ...prev,

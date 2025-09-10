@@ -6,7 +6,7 @@ import {
 } from "../mongoose/schemas/chatSchema";
 import { UserData } from "../mongoose/schemas/userSchema";
 import UserService from "../Services/UserService/userService";
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Mongoose, Schema } from "mongoose";
 import { getObjectId } from "../lib/helpers";
 export const messageRouter = express.Router();
 
@@ -154,6 +154,14 @@ const getMessageHistory = async (req: Request, res: Response) => {
     //   .lean();
 
     // also if eaach message have repliedTo id of another message we want to grab that message content and its timeframe from the current message and also how many messages will ve there between these two
+
+
+   // console.log(completeMessagePagePayload[0]);
+         
+
+
+      
+
     return res.send(completeMessagePagePayload[0]);
   } else {
     const guestInfo = await UserData.findById(guestId)

@@ -13,6 +13,8 @@ import { QueryProvider } from "@/context/queryContext";
 import { PcProvider } from "@/context/peerConnectionContext";
 import Image from "next/image";
 import logo from '@/images/logo.jpg'
+import { Toaster } from 'sonner';
+ 
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,7 @@ export default async function RootLayout({
           The server might take some time to retrieve  data as the backend
           is hosted on a free Render instance
         </div> */}
+      <Toaster toastOptions={{duration:1000, style:{background:"#111827",border:"none",color:"#ea580c"}}} />
         <div className="h-full w-full flex   bg-slate-900 relative">
           <RecoilRoot>
             <PathProvider>

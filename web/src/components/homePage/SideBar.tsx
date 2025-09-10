@@ -111,7 +111,7 @@ const SideBar = () => {
     () => [
       // { name: "Messages", icon: <ChatIcon /> },
       //  { name: "Feed", icon: <StreamIcon /> },
-      { name: "Rooms", icon: <GroupsIcon /> },
+      // { name: "Rooms", icon: <GroupsIcon /> },
       { name: "My Profile", icon: <AccountCircleIcon /> },
       { name: "Settings", icon: <SettingsIcon /> },
 

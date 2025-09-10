@@ -10,6 +10,7 @@ const DomPortal = ({onClose,component}:DomPortalProps) => {
 
   return ReactDOM.createPortal(
     <div 
+    className=''
       style={{
         position: 'fixed',
         top: 0,
