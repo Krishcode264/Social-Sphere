@@ -48,9 +48,10 @@ const handleUserSignup = async (req: Request, res: Response) => {
           profile: createdUser.profile,
         });
         res.cookie("token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite:"lax"
+           httpOnly: true,
+           secure: true,
+          sameSite: "none",
+          path: "/",
         });
         res.send({
           status: "success",
@@ -90,9 +91,10 @@ const handleUserLogin = async (req: Request, res: Response) => {
       });
       // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
       res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none"
+         httpOnly: true,
+         secure: true,
+         sameSite: "none",
+         path: "/",
       }); //for developement
       //only sending token
       return res.send({
@@ -174,9 +176,10 @@ async function handleGoogleCallback(req: Request, res: Response) {
         });
 
         res.cookie("token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none"
+           httpOnly: true,
+           secure: true,
+            sameSite: "none",
+            path: "/",
         });
         // res.send({user:createdUser})
         res.redirect(WEB_CLIENT_URL);
@@ -192,8 +195,9 @@ async function handleGoogleCallback(req: Request, res: Response) {
       // console.log("user alredy exist");
       res.cookie("token", token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none"
+  secure: true,
+  sameSite: "none",
+  path: "/",
       });
       res.redirect(WEB_CLIENT_URL);
     }
@@ -206,8 +210,9 @@ async function handleGoogleCallback(req: Request, res: Response) {
 const handleUserLogout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: true,
-    sameSite: "none"
+  secure: true,
+  sameSite: "none",
+  path: "/",
   });
   res.status(200).send("Logged out successfully");
 };
