@@ -39,7 +39,7 @@ async function init() {
   console.log("token domain",process.env.TOKEN_DOMAIN)
   app.use(
     cors({
-      origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000","https://social-sphere-project.vercel.app"], 
+      origin: [process.env.WEB_CLIENT_URL as string ,"http://localhost:3000","https://social-sphere-krishcode264s-projects.vercel.app"], 
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
