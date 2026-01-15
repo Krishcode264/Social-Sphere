@@ -10,19 +10,17 @@ export const useMediaPermissionAccess = () => {
   const [{ video, audio }, setMediaPermission] =
     useRecoilState(userPermissionState);
 
-    console.log(video,audio,"from hook")
+  console.log(video, audio, "from hook")
   useEffect(() => {
-    if (audio != "granted" || video != "granted") {
-      (async () => {
-        const { state: video } = await navigator.permissions.query({
-          name: "camera" as PermissionName,
-        });
-        const { state: audio } = await navigator.permissions.query({
-          name: "microphone" as PermissionName,
-        });
+    (async () => {
+      const { state: video } = await navigator.permissions.query({
+        name: "camera" as PermissionName,
+      });
+      const { state: audio } = await navigator.permissions.query({
+        name: "microphone" as PermissionName,
+      });
 
-        setMediaPermission((prev) => ({ ...prev, audio, video }));
-      })();
-    }
-  }, []);
+      setMediaPermission((prev) => ({ ...prev, audio, video }));
+    })();
+  }, [setMediaPermission]);
 };

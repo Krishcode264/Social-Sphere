@@ -140,7 +140,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
   const ResetChatBoxAttachments = useResetRecoilState(ChatAttachmentsState);
   const { id } = useRecoilValue(userInfoState);
   const conversationId = useRecoilValue(conversationIdSelector);
-  const [sending,setSending]=useState(false);
+  const [sending, setSending] = useState(false);
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -157,11 +157,11 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
   };
 
   const sendMessage = async () => {
-   
+
     if (value.trim().length > 0 || chatAttach.media.length > 0) {
       console.log("emiitng evevnt => message");
-       setSending(true)
-      let files: { key: string; url: string; size: number,type:string, urlExpirationTime?: string }[] | null = null;
+      setSending(true)
+      let files: { key: string; url: string; size: number, type: string, urlExpirationTime?: string }[] | null = null;
 
       if (chatAttach.media.length > 0 && conversationId) {
         const uploadedFiles = await handleFileUploadToS3(
@@ -170,7 +170,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
         );
         if (uploadedFiles) {
 
-          console.log("uploaded files",uploadedFiles)
+          console.log("uploaded files", uploadedFiles)
           const newMedia = chatAttach.media
             .map((m) => {
               const matched = uploadedFiles.find((d) => d.name === m.src.name);
@@ -179,19 +179,19 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
                   key: matched.key,
                   url: matched.url,
                   size: Number(m.src.size),
-                  type:m.src.type,
+                  type: m.src.type,
                   urlExpirationTime: matched.urlExpirationTime
                 };
               }
               return undefined;
             })
             .filter(
-              (media): media is { key: string; url: string; size: number,type:string, urlExpirationTime?: string } =>
+              (media): media is { key: string; url: string; size: number, type: string, urlExpirationTime: string } =>
                 media !== undefined // Filter out undefined values
             );
-            console.log("new media after being sanitized ",newMedia)
+          console.log("new media after being sanitized ", newMedia)
           files = newMedia.length > 0 ? newMedia : null;
-         
+
         } else {
           return; //error have to manage it well
         }
@@ -226,11 +226,11 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
           ? { _id: mId, content, timestamp }
           : null,
       });
-   
+
       setMessage((prev) => [...prev, msg]);
       setValue(() => "");
       ResetChatBoxAttachments();
-       setSending(false);
+      setSending(false);
     }
   };
   const attachFileRef = useRef<HTMLInputElement | null>(null);
@@ -291,14 +291,14 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
         />
       </div>
       <button
-        disabled={!socket || sending }
+        disabled={!socket || sending}
         style={{ color: socket ? "" : "green" }}
         className="text-green-600  hover:text-green-400 hover:cursor-pointer mt-3 "
         onClick={sendMessage}
       >
-     
-        {sending ? <RotateRight/> :   <SendIcon />}
-      
+
+        {sending ? <RotateRight /> : <SendIcon />}
+
       </button>
     </div>
   );
