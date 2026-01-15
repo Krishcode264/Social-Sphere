@@ -9,6 +9,7 @@ import UserService from "../Services/UserService/userService";
 import mongoose, { Mongoose, Schema } from "mongoose";
 import { getObjectId } from "../lib/helpers";
 import { AwsHandler } from "../aws";
+import { NotificationService } from "../Services/NotificationService/NotificationService";
 export const messageRouter = express.Router();
 
 const getMessageHistory = async (req: Request, res: Response) => {
@@ -31,14 +32,14 @@ const getMessageHistory = async (req: Request, res: Response) => {
           $all: [getObjectId(id), getObjectId(guestId as string)],
         },
       },
-    },       
+    },
     {
       $lookup: {
         from: "users",
         localField: "participants",
         foreignField: "_id",
         as: "userInfo",
-      },              
+      },
     },
     {
       $project: {
@@ -46,7 +47,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
           $filter: {
             input: "$userInfo",
             as: "user",
-            cond: { $ne: ["$$user._id", getObjectId(id)] }, 
+            cond: { $ne: ["$$user._id", getObjectId(id)] },
           },
         },
       },
@@ -56,11 +57,11 @@ const getMessageHistory = async (req: Request, res: Response) => {
     },
     {
       $project: {
-        "guestInfo._id": 1, 
-        "guestInfo.name": 1, 
+        "guestInfo._id": 1,
+        "guestInfo.name": 1,
         "guestInfo.profile": 1,
       },
-    },     
+    },
     {
       $lookup: {
         from: "messages",
@@ -169,17 +170,17 @@ const getMessageHistory = async (req: Request, res: Response) => {
           for (const attachment of message.attachment) {
             // Check if URL has expired or if expiration time is missing
             if (attachment.key) {
-              const needsRefresh = 
-                !attachment.urlExpirationTime || 
+              const needsRefresh =
+                !attachment.urlExpirationTime ||
                 (attachment.urlExpirationTime && new Date() > new Date(attachment.urlExpirationTime));
-              
+
               if (needsRefresh) {
                 try {
                   console.log(`Refreshing URL for attachment: ${attachment.key} (expired: ${!attachment.urlExpirationTime ? 'missing expiration' : 'expired'})`);
                   // Generate new presigned URL (7 days expiry)
                   const newUrl = await AwsHandler.getObjectUrl(attachment.key, 604800);
                   const newExpirationTime = new Date(new Date().getTime() + 604800 * 1000);
-                  
+
                   // Update the attachment in the database
                   await MessageData.updateOne(
                     { _id: message._id, "attachment.key": attachment.key },
@@ -190,7 +191,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
                       },
                     }
                   );
-                  
+
                   // Update the attachment in the response
                   attachment.url = newUrl;
                   attachment.urlExpirationTime = newExpirationTime;
@@ -204,7 +205,7 @@ const getMessageHistory = async (req: Request, res: Response) => {
         }
       }
     }
-    
+
     return res.send(payload);
   } else {
     const guestInfo = await UserData.findById(guestId)
@@ -251,18 +252,24 @@ const handleFriendRequests = async (req: Request, res: Response) => {
   const { targetUserId, type } = req.query; // target user
 
   try {
+
     switch (type) {
       case "send":
         await FriendsData.findOneAndUpdate(
           { user: targetUserId },
-          { $push: { friendRequests: id } },
+          { $addToSet: { friendRequests: id } }, // Use $addToSet to prevent duplicates
           { upsert: true }
         );
         await FriendsData.findOneAndUpdate(
           { user: id },
-          { $push: { sentRequests: targetUserId } },
+          { $addToSet: { sentRequests: targetUserId } }, // Use $addToSet to prevent duplicates
           { upsert: true }
         );
+        await NotificationService.createNotification({
+          type: "friend-request-received",
+          target: { userId: targetUserId as string },
+          notifier: id,
+        });
         res.send({ message: "Friend request sent successfully" }).status(200);
         break;
 
@@ -271,7 +278,7 @@ const handleFriendRequests = async (req: Request, res: Response) => {
           { user: id },
           {
             $pull: { friendRequests: targetUserId },
-            $push: { friends: targetUserId },
+            $addToSet: { friends: targetUserId }, // Use addToSet to assume uniqueness
           },
           { upsert: true }
         );
@@ -279,10 +286,15 @@ const handleFriendRequests = async (req: Request, res: Response) => {
           { user: targetUserId },
           {
             $pull: { sentRequests: id },
-            $push: { friends: id },
+            $addToSet: { friends: id }, // Use addToSet to assume uniqueness
           },
           { upsert: true }
         );
+        await NotificationService.createNotification({
+          type: "friend-request-accepted",
+          target: { userId: targetUserId as string },
+          notifier: id,
+        });
         res.send({ message: "Friend request approved" }).status(200);
         break;
 

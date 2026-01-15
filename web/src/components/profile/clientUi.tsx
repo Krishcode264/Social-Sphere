@@ -94,26 +94,30 @@ export const ContactButtons = ({
   guestId: string;
   friendStatus: FriendStatusType;
 }) => {
-  const [friendState, setFriendState] = useState("");
-let state;
+  const [friendState, setFriendState] = useState(friendStatus);
+
+  useEffect(() => {
+    setFriendState(friendStatus);
+  }, [friendStatus]);
+
   const relationStatus: RelationStatuses = {
     new: {
-      title: "Send Friend Request",
+      title: "Make Friend",
       icon: <Icon />,
       qureyType: "send",
-      optimisticType: "Requested",
+      optimisticType: "sentRequest", // Corrected from Requested to match key
     },
     requested: {
       title: "Approve Request",
       icon: <Icon />,
-      optimisticType: "Friends",
+      optimisticType: "friends",
       qureyType: "approve",
     },
-    friends: { title: "friends ", icon: <Icon />, qureyType: "" },
+    friends: { title: "Friends", icon: <Icon />, qureyType: "" },
     sentRequest: {
       title: "Requested",
       icon: <Icon />,
-      optimisticType: "send a friend Request",
+      optimisticType: "new",
       qureyType: "revoke",
     },
   };
@@ -122,32 +126,32 @@ let state;
   if (id === guestId) {
     return null;
   }
-  console.log(friendState);
   //send approve revoke discard
   const handleFriendRequest = async () => {
-    console.log(friendStatus);
-    if (friendStatus === "new" || friendState === "requested") {
-      try {
-        const res = await API.get(
-          `/message/friend-request?targetUserId=${guestId}&type=${relationStatus[friendStatus].qureyType}`
-        );
-        setFriendState(
-          relationStatus[friendState as keyof RelationStatuses]
-            .optimisticType as string
-        );
-          console.log(friendStatus,"after ");
-      } catch {
-        console.log("issue ");
-      }
+    const currentStatus = friendState as keyof RelationStatuses;
+    if (currentStatus === "friends") return; // Or handle unfriend here if we want
+
+    try {
+      const queryType = relationStatus[currentStatus]?.qureyType;
+      if (!queryType) return;
+
+      // If revoking (cancelling request), use the new cancel endpoint or keep logic
+      // The existing logic uses /message/friend-request?type=revoke
+      // The plan added /feed/cancel-request but we should probably support the existing route or update this to use the new one.
+      // For consistency with existing code here, let's stick to what works or update minimal.
+      // But the previous file content showed /message/friend-request...
+
+      await API.get(
+        `/message/friend-request?targetUserId=${guestId}&type=${queryType}`
+      );
+      setFriendState(
+        relationStatus[currentStatus].optimisticType as FriendStatusType
+      );
+    } catch (e) {
+      console.log("issue", e);
     }
   }
 
-
-  // useEffect(() => {
- 
-  //   // if(friendState) return 
-  //   setFriendState(friendStatus);
-  // }, []);
   return (
     <div className="flex gap-4 items-center w-full justify-center text-md my-4 ">
       <button
@@ -155,8 +159,7 @@ let state;
         className="text-slate-400 flex-grow bg-slate-800 px-2 py-1.5 rounded-md hover:text-slate-200 "
         onClick={handleFriendRequest}
       >
-        {friendStatus}
-        
+        {relationStatus[friendState as keyof RelationStatuses]?.title || friendState}
       </button>
       <button
         type="button"

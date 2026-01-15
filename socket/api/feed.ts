@@ -10,12 +10,13 @@ import checkTokenValidity from "../middlewares/authenticate_jwt";
 import { NotificationService } from "../Services/NotificationService/NotificationService";
 import { FriendsData } from "../mongoose/schemas/chatSchema";
 import { getObjectId } from "../lib/helpers";
+import { FriendService } from "../Services/FriendService/friendService";
 function isString(value: any): value is string {
   return typeof value === "string";
 }
 
 export async function getFeedUsers(req: Request, res: Response): Promise<void> {
- // console.log("get feed useres getting req ")
+  // console.log("get feed useres getting req ")
   try {
     const users = await UserData.find().select(
       "_id age name location gender profile"
@@ -44,13 +45,13 @@ export async function getUser(req: Request, res: Response) {
       const friendStatus = await UserService.checkUserInFriendLists(userId, id);
       console.log(friendStatus, "friend status at getuser ");
       res.send({ ...userProfile, friendStatus });
-    console.log("check", userProfile?._id?.toString()===userId)
+      console.log("check", userProfile?._id?.toString() === userId)
       if (
         userProfile &&
         userProfile._id &&
         userProfile?._id?.toString() !== userId
       ) {
-       // console.log("notification service running ");
+        // console.log("notification service running ");
         await NotificationService.createNotification({
           type: "viewed-profile",
           target: {
@@ -139,3 +140,43 @@ feedRouter.get("/myprofile", checkTokenValidity, getmyProfile);
 feedRouter.get("/getUserByToken", checkTokenValidity, getUserByToken);
 feedRouter.get("/getUserPhotos", checkTokenValidity, getUserPhotos);
 feedRouter.get("/relationlist", checkTokenValidity, handleFriendFetch);
+
+feedRouter.post("/accept-request", checkTokenValidity, async (req, res) => {
+  const { id } = req.body.user;
+  const { requesterId } = req.body;
+  if (await FriendService.acceptRequest(id, requesterId)) {
+    res.status(200).send({ message: "Friend request accepted" });
+  } else {
+    res.status(500).send({ message: "Error accepting friend request" });
+  }
+});
+
+feedRouter.post("/decline-request", checkTokenValidity, async (req, res) => {
+  const { id } = req.body.user;
+  const { requesterId } = req.body;
+  if (await FriendService.declineRequest(id, requesterId)) {
+    res.status(200).send({ message: "Friend request declined" });
+  } else {
+    res.status(500).send({ message: "Error declining friend request" });
+  }
+});
+
+feedRouter.post("/unfriend", checkTokenValidity, async (req, res) => {
+  const { id } = req.body.user;
+  const { friendId } = req.body;
+  if (await FriendService.unfriend(id, friendId)) {
+    res.status(200).send({ message: "Unfriended successfully" });
+  } else {
+    res.status(500).send({ message: "Error unfriending user" });
+  }
+});
+
+feedRouter.post("/cancel-request", checkTokenValidity, async (req, res) => {
+  const { id } = req.body.user;
+  const { targetId } = req.body;
+  if (await FriendService.cancelRequest(id, targetId)) {
+    res.status(200).send({ message: "Request cancelled successfully" });
+  } else {
+    res.status(500).send({ message: "Error cancelling request" });
+  }
+});
