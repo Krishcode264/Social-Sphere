@@ -6,9 +6,9 @@ import SendIcon from "@mui/icons-material/Send";
 import "../common.css";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { Comment, type CommentProps } from "./comment";
-import {  fetchCommentsForPost, token } from "@/utils/fechers";
+import {  fetchCommentsForPost } from "@/utils/fechers";
 import { userInfoState } from "@/store/selectors/user-selector";
-import axios from "axios";
+import { API } from "@/utils/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loading from "../basic/loading";
 import { debounce } from "lodash";
@@ -44,14 +44,10 @@ const CommentBox = ({
    // const t = await token();
    console.log("add comment ");
    console.log(data, " before psodting the comment ");
-   const res = await axios.post(
-     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/postComment`,
+   const res = await API.post(
+     `/post-events/postComment`,
      {
        ...data,
-  
-     },
-     {
-       withCredentials: true,
      }
    );
    console.log("res from add comment ");

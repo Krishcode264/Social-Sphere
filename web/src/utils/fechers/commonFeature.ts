@@ -1,11 +1,9 @@
-import axios from "axios"
+import { API } from "../axios";
 
-
-export const CommonFetcher=async(path:string,query?:any)=>{
-    console.log("common fetcher",path,query)
-const data = await axios.get(`${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/${path}`,{
-    params:query,
-    withCredentials:true
-});
-return data.data
-} 
+export const CommonFetcher = async (path: string, query?: any) => {
+  console.log("common fetcher", path, query);
+  const data = await API.get(`/${path}`, {
+    params: query,
+  });
+  return data.data;
+};

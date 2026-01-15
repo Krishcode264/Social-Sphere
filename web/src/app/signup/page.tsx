@@ -4,7 +4,6 @@ import Link from "next/link";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
-import axios from "axios";
 import { redirect, useRouter } from "next/navigation";
 import { UserAuthState, userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
 import { useSetRecoilState } from "recoil";
@@ -12,6 +11,7 @@ import googleLogo from '../images/google.png'
 import Image from "next/image";
 import googlePic from "@/images/google.png";
 import { useEffect } from "react";
+import { API } from "@/utils/axios";
 
 
 
@@ -43,18 +43,17 @@ const Signup = () => {
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
       // console.log(data);
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/signup`,
-        data,{withCredentials:true}
-      );
+      const res = await API.post(`/auth/signup`, data, { withCredentials: true });
       if (res.data.status === "success") {
-  
-        setUser((prevUser) => ({ ...prevUser, ...res.data.user }));
+        const { user, token } = res.data;
+
+        setUser((prevUser) => ({ ...prevUser, ...user }));
          setIsAuthenticated({ isAuthenticated: true });
       //  setPhotos((prev)=>([...prev]))
 
-  
-   
+        if (token) {
+          window.sessionStorage.setItem("token", token);
+        }
         Router.replace("/")
       
       }

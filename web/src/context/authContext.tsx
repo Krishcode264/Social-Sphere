@@ -32,9 +32,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (!user.id && userAuthState.isAuthenticated === false) {
           console.log("request is goinh ");
+          const token = window.sessionStorage.getItem("token");
           const res = await axios.get(
             `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
-            { withCredentials: true }
+            token
+              ? {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              : { withCredentials: true }
           );
 
           if (res.data?.user) {

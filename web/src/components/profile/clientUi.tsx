@@ -11,7 +11,7 @@ import { userInfoState } from "@/store/selectors/user-selector";
 import { redirect, useRouter } from "next/navigation";
 import type { FriendStatusType } from "@/types/types";
 import { Icon } from "@mui/material";
-import axios from "axios";
+import { API } from "@/utils/axios";
 
 export interface RelationStatus {
   title: string;
@@ -128,11 +128,8 @@ let state;
     console.log(friendStatus);
     if (friendStatus === "new" || friendState === "requested") {
       try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/friend-request?targetUserId=${guestId}&type=${relationStatus[friendStatus].qureyType}`,
-          {
-            withCredentials: true,
-          }
+        const res = await API.get(
+          `/message/friend-request?targetUserId=${guestId}&type=${relationStatus[friendStatus].qureyType}`
         );
         setFriendState(
           relationStatus[friendState as keyof RelationStatuses]

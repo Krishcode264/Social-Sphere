@@ -8,16 +8,25 @@ async function checkTokenValidity(
   next: NextFunction
 ) {
 
- const token=req.cookies.token;
+  let token: string | undefined;
 
-// console.log(token,"toekn at validate token",req.cookies,"here are the cookies " )
+  const authHeader = req.headers.authorization;
+
+  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    token = authHeader.slice(7).trim();
+  } else if (req.cookies && typeof req.cookies.token === "string") {
+    // Fallback to cookie-based token for backward compatibility
+    token = req.cookies.token;
+  }
+
   if (!token) {
-    console.log("token is not coming")
+    console.log("token is not coming");
     return res.status(401).json({
       message: "You Need to Authenticate",
       redirect: "/login",
     });
   }
+  // console.log("token in check token validity",token);
   const user = await tokenIsValid(token );
 
   if (user) {
@@ -41,17 +50,27 @@ async function checkTokenValidity(
 
 async function tokenIsValid(token: string): Promise<User | boolean> {
   try {
+    console.log("token in token is valid",token);
     const decodeToken: any = jwt.decode(token);
-  //  console.log(decodeToken,"decoded token")
-     if (decodeToken && Math.floor(Date.now() / 1000)>decodeToken.exp) {
-    //   console.log("token expired ");
-       return false
-     }
-    const user = await UserData.findById(decodeToken.id);
-   // console.log(user,"user in tokenis valid ")
-    if (user) {
-      return { name: user.name, id: user._id.toString() };
-    } return false
+
+    console.log(decodeToken, "decoded token");
+
+    if (!decodeToken) {
+      return false;
+    }
+
+    // Expiry check using the exp field from the JWT payload
+    if (decodeToken.exp && Math.floor(Date.now() / 1000) > decodeToken.exp) {
+      console.log("token expired");
+      return false;
+    }
+
+    // We already have the user info in the token payload, no need to hit the DB
+    if (decodeToken.id && decodeToken.name) {
+      return { name: decodeToken.name, id: decodeToken.id };
+    }
+
+    return false;
   } catch (err) {
     return false;
   }

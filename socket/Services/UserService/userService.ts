@@ -43,7 +43,7 @@ export default class UserService {
   static getUserSocketIdById = async (id: string): Promise<string | false> => {
     try {
       const targetUser: UserSchemaType | null = await UserData.findById(getObjectId(id));
-console.log(targetUser,"target user here ")
+       //console.log(targetUser,"target user here ")
       if (!targetUser?.socketID) {
         return false; // Return null when user is not found
       }

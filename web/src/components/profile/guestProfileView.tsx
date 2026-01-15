@@ -36,7 +36,7 @@ export const revalidate=1; //for dev
 const GuestProfileView = async ({id}:{id:string}) => {
 
   const user=await getUser(id)
-
+console.log(user,"user in guest profile view")
 if (!user){
   return (
 <Error tip="something went wrong fetching user data.." />

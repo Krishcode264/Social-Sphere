@@ -1,8 +1,9 @@
 
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+import {config,configDotenv} from "dotenv";
+config();
 import mongoose from 'mongoose'
 const mongoUrl = process.env.MONGO_URL;
-console.log(mongoUrl)
+console.log("mongo ",mongoUrl)
 export const connectMongo = async (): Promise<void> => {
   if (mongoUrl) {
     try {

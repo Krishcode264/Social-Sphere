@@ -5,6 +5,9 @@ import UserService from "../Services/UserService/userService";
 import { UserData } from "../mongoose/schemas/userSchema";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import {config,configDotenv} from "dotenv";
+config();
+
 const NEXT_PUBLIC_SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -26,7 +29,8 @@ const sanitizeUserData = (user: any) => {
 };
 const generateToken = (data: any) => {
   const secretKey = process.env.JWT_SECRET as string;
-  const token = jwt.sign(data, secretKey, { expiresIn: "7h" });
+  // Extended expiry for easier testing; adjust down for production if needed
+  const token = jwt.sign(data, secretKey, { expiresIn: "3d" });
 
   return token;
 };
@@ -57,6 +61,7 @@ const handleUserSignup = async (req: Request, res: Response) => {
           status: "success",
           message: "successfully signed up",
           user: sanitizeUserData(createdUser),
+          token,
         });
       }
     } else {
@@ -101,6 +106,7 @@ const handleUserLogin = async (req: Request, res: Response) => {
         status: "success",
         message: "successfully logged in",
         user: sanitizeUserData(userwithEmail),
+        token,
       });
       //  res.redirect(WEB_CLIENT_URL)
       //return res.send({ status: "success", message: "successfully logged in" });
@@ -181,7 +187,9 @@ async function handleGoogleCallback(req: Request, res: Response) {
             sameSite: "none",
             path: "/",
         });
-        // res.send({user:createdUser})
+        // NOTE: For Google auth we continue to rely on cookie-based auth
+        // and redirect back to the web client. If you want to move this
+        // flow to pure Bearer tokens, we should redesign this redirect.
         res.redirect(WEB_CLIENT_URL);
       }
     }

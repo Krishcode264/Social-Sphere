@@ -2,19 +2,25 @@
 import type { MessageHistoryResponse } from "@/app/messages";
 import type { ConvoType, User, UserSchemaType } from "@/types/types";
 import axios from "axios";
-import Cookies from "node_modules/@types/js-cookie";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
-import { API } from "../axios";
 
 //dont need to pass explicit token anymore issue resolved , keep in mind dont call server actions inside tanstak query :)))))
 
-//getcookietoken
-export const token =() => {
-  const cookieStore =  cookies();
-  const token = cookieStore.get("token")?.value;
-   console.log(token,"here is token at token methode at server action  ")
-  return `token=${token}`;
+// Get raw JWT token from cookie (if present)
+export const token = async (): Promise<string | undefined> => {
+  try {
+    const cookieStore = cookies();
+    const tokenCookie = cookieStore.get("token")?.value;
+    // Ensure we return a string, not a Promise
+    if (typeof tokenCookie === "string") {
+      return tokenCookie;
+    }
+    return undefined;
+  } catch (err) {
+    console.error("Error getting token from cookies:", err);
+    return undefined;
+  }
 };
 //feed
 export const getFeedUsers = cache(async () => {
@@ -29,18 +35,22 @@ export const getFeedUsers = cache(async () => {
   }
 });
 //profile
-export const getUser = cache(
+export const getUser = 
   async (id: string): Promise<UserSchemaType | null> => {
+    console.log(id,"id in get user at server action")
    console.log(headers().get("cookie"),"cookie headeres here at server action")
     try {
+      const authToken = await token();
+     // console.log("authToken type in getUser:", typeof authToken, "value:", authToken);
+      const authHeader = authToken ? `Bearer ${authToken}` : "";
+     // console.log("Authorization header being sent:", authHeader);
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
         {
           params: { id },
           headers: {
-            Cookie: headers().get("cookie") || "", // Set the token in the Cookie header
+            Authorization: authHeader,
           },
-          withCredentials: true,
         }
       );
       // const res = await API.get("/api/feed/getUser", {
@@ -53,40 +63,40 @@ export const getUser = cache(
       return null;
     }
   }
-);
 
-export const getUserPhotos = cache(async (id: string) => {
-     console.log("token at get user phtoso",await token())
+
+export const getUserPhotos = async (id: string) => {
+  const authToken = await token();
+  console.log("token at get user photos", authToken);
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
       {
         params: { id },
         headers: {
-          Cookie:await token(), // Set the token in the Cookie header
+          Authorization: authToken ? `Bearer ${authToken}` : "",
         },
-        withCredentials: true,
       }
     );
     // console.log(res,"user photos ")
 
     return res.data;
   } catch (err) {
-    console.log("err in get user photos ",err);
+    console.log("err in get user photos ");
     return [];
   }
-});
+};
 
 //on reload it will run in auth context
 export const getUserByToken = cache(async () => {
   try {
+    const authToken = await token();
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
       {
         headers: {
-          Cookie: await token(), // Set the token in the Cookie header
+          Authorization: authToken ? `Bearer ${authToken}` : "",
         },
-        withCredentials: true,
       }
     );
 
@@ -99,14 +109,14 @@ export const getUserByToken = cache(async () => {
 //user profile
 export const getPhotosbyUserId = cache(async (userId: string) => {
   console.log("getPhotos running ");
+  const authToken = await token();
   const photos = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
     {
       params: { id: userId },
       headers: {
-        Cookie: await token(), // Set the token in the Cookie header
+        Authorization: authToken ? `Bearer ${authToken}` : "",
       },
-      withCredentials: true,
     }
   );
   return photos.data;
@@ -114,14 +124,14 @@ export const getPhotosbyUserId = cache(async (userId: string) => {
 
 // post comments
 export const fetchCommentsForPost = async (photoId: string) => {
+  const authToken = await token();
   const res = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/post-events/getComments`,
     {
       params: { id: photoId },
       headers: {
-        Cookie: await token(), // Set the token in the Cookie header
+        Authorization: authToken ? `Bearer ${authToken}` : "",
       },
-      withCredentials: true,
     }
   );
  // console.log(res,"fetch comments res here ");
@@ -174,14 +184,14 @@ export const fetchMessageHistory = async (
 ): Promise<MessageHistoryResponse | null> => {
   try {
    console.log("fetch message history running")
+    const authToken = await token();
     const messageHistoryResponse = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getMessageHistory`,
       {
         params: { guestId: id },
-      
-         headers:{ Cookie: await token()},  // Set the token in the Cookie header
-      
-        withCredentials: true,
+        headers: {
+          Authorization: authToken ? `Bearer ${authToken}` : "",
+        },
       }
     );
   //  console.log("sending message History")
@@ -195,11 +205,13 @@ export const fetchMessageHistory = async (
 export const getUserConvos=async():Promise<ConvoType[]|[]>=>{
 try {
 
+  const authToken = await token();
   const userConvos = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getConvos`,
     {
-      headers: { Cookie: await token() }, // Set the token in the Cookie header
-      withCredentials: true,
+      headers: {
+        Authorization: authToken ? `Bearer ${authToken}` : "",
+      },
     }
   );
   return userConvos.data.data;

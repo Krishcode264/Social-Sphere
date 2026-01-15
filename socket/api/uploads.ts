@@ -75,8 +75,10 @@ const handleFileUploadMessageSuccess=async (req:Request,res:Response)=>{
    try {
     if (typeof key == "string" && typeof id == "string") {
       console.log(id, "id at handle file uplaod ");
-      const url = await AwsHandler.getObjectUrl(key, 604800); //7 days od expiry
-       res.send({url})
+      const url = await AwsHandler.getObjectUrl(key, 604800); //7 days of expiry
+      const urlExpirationTime = new Date(new Date().getTime() + 604800 * 1000); // 7 days from now
+      // Return both URL and expiration time so frontend can store it properly
+      res.send({url, urlExpirationTime})
     }
   }
     catch(err){

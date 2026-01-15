@@ -22,6 +22,8 @@ import type { User } from "./types/types";
 import { webRtcIoConnection } from "./webRTC";
 import { notificationIO } from "./Services/NotificationService/notificationIo";
 export const io = new Server(httpServer, { path: "/socket" });
+import {config,configDotenv} from "dotenv";
+config();
 
 let timer: string | number | NodeJS.Timeout | null | undefined = null;
 

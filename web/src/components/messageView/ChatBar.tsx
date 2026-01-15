@@ -161,7 +161,7 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
     if (value.trim().length > 0 || chatAttach.media.length > 0) {
       console.log("emiitng evevnt => message");
        setSending(true)
-      let files: { key: string; url: string; size: number,type:string }[] | null = null;
+      let files: { key: string; url: string; size: number,type:string, urlExpirationTime?: string }[] | null = null;
 
       if (chatAttach.media.length > 0 && conversationId) {
         const uploadedFiles = await handleFileUploadToS3(
@@ -179,13 +179,14 @@ const SearchBox = ({ receiver }: { receiver: string }) => {
                   key: matched.key,
                   url: matched.url,
                   size: Number(m.src.size),
-                  type:m.src.type
+                  type:m.src.type,
+                  urlExpirationTime: matched.urlExpirationTime
                 };
               }
               return undefined;
             })
             .filter(
-              (media): media is { key: string; url: string; size: number,type:string } =>
+              (media): media is { key: string; url: string; size: number,type:string, urlExpirationTime?: string } =>
                 media !== undefined // Filter out undefined values
             );
             console.log("new media after being sanitized ",newMedia)

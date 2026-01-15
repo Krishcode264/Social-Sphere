@@ -8,6 +8,7 @@ import { UserData } from "../mongoose/schemas/userSchema";
 import UserService from "../Services/UserService/userService";
 import mongoose, { Mongoose, Schema } from "mongoose";
 import { getObjectId } from "../lib/helpers";
+import { AwsHandler } from "../aws";
 export const messageRouter = express.Router();
 
 const getMessageHistory = async (req: Request, res: Response) => {
@@ -105,7 +106,19 @@ const getMessageHistory = async (req: Request, res: Response) => {
               status: "$$msg.status",
               repliedTo: "$$msg.repliedTo",
               timestamp: "$$msg.timestamp",
-              attachment: "$$msg.attachment",
+              attachment: {
+                $map: {
+                  input: { $ifNull: ["$$msg.attachment", []] },
+                  as: "att",
+                  in: {
+                    url: "$$att.url",
+                    key: "$$att.key",
+                    type: "$$att.type",
+                    size: "$$att.size",
+                    urlExpirationTime: "$$att.urlExpirationTime",
+                  },
+                },
+              },
               repliedToMessage: {
                 $arrayElemAt: [
                   {
@@ -148,21 +161,51 @@ const getMessageHistory = async (req: Request, res: Response) => {
   // });
   //console.log(completeMessagePagePayload)
   if (completeMessagePagePayload.length > 0) {
-    // const messages = await MessageData.find({ conversationId: convoData._id })
-    //   .sort({ timestamp: -1 })
-    //   .limit(20)
-    //   .lean();
-
-    // also if eaach message have repliedTo id of another message we want to grab that message content and its timeframe from the current message and also how many messages will ve there between these two
-
-
-   // console.log(completeMessagePagePayload[0]);
-         
-
-
-      
-
-    return res.send(completeMessagePagePayload[0]);
+    // Refresh expired attachment URLs before sending to client
+    const payload = completeMessagePagePayload[0];
+    if (payload.messages && Array.isArray(payload.messages)) {
+      for (const message of payload.messages) {
+        if (message.attachment && Array.isArray(message.attachment)) {
+          for (const attachment of message.attachment) {
+            // Check if URL has expired or if expiration time is missing
+            if (attachment.key) {
+              const needsRefresh = 
+                !attachment.urlExpirationTime || 
+                (attachment.urlExpirationTime && new Date() > new Date(attachment.urlExpirationTime));
+              
+              if (needsRefresh) {
+                try {
+                  console.log(`Refreshing URL for attachment: ${attachment.key} (expired: ${!attachment.urlExpirationTime ? 'missing expiration' : 'expired'})`);
+                  // Generate new presigned URL (7 days expiry)
+                  const newUrl = await AwsHandler.getObjectUrl(attachment.key, 604800);
+                  const newExpirationTime = new Date(new Date().getTime() + 604800 * 1000);
+                  
+                  // Update the attachment in the database
+                  await MessageData.updateOne(
+                    { _id: message._id, "attachment.key": attachment.key },
+                    {
+                      $set: {
+                        "attachment.$.url": newUrl,
+                        "attachment.$.urlExpirationTime": newExpirationTime,
+                      },
+                    }
+                  );
+                  
+                  // Update the attachment in the response
+                  attachment.url = newUrl;
+                  attachment.urlExpirationTime = newExpirationTime;
+                  console.log(`Successfully refreshed URL for attachment: ${attachment.key}`);
+                } catch (err) {
+                  console.error(`Error refreshing URL for attachment ${attachment.key}:`, err);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return res.send(payload);
   } else {
     const guestInfo = await UserData.findById(guestId)
       .select("profile name ")

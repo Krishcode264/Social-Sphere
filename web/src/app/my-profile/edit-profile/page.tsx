@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { array } from "zod";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import axios from "axios";
+import { API } from "@/utils/axios";
 import RotateLeftRoundedIcon from "@mui/icons-material/RotateLeftRounded";
 export type UserInfoState = {
   name?: string;
@@ -33,12 +33,9 @@ const Page = () => {
     try {
       setUpdating(true);
 
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/update-profile`,
+      const res = await API.post(
+        `/uploads/update-profile`,
         { data: userInfoState },
-        {
-          withCredentials: true,
-        }
       );
       // console.log(res.data);
      //  console.log(userInfo,1);

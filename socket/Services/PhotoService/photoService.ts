@@ -15,9 +15,11 @@ export class PhotoService {
   static async updatePhotoUrl(url: string, _id: mongoose.Types.ObjectId) {
     return new Promise(async (res, rej) => {
       try {
+        // Set expiration to 7 days (604800 seconds) to match the presigned URL expiration
+        const expirationTime = new Date(new Date().getTime() + 604800 * 1000);
         const updatedPhoto = await PhotosData.findByIdAndUpdate(_id, {
           imageUrl: url,
-          urlExpirationTime: new Date(new Date().getTime() + 1600 * 1000),
+          urlExpirationTime: expirationTime,
         });
         if (updatedPhoto) {
           res(true);
@@ -36,15 +38,15 @@ export class PhotoService {
     
         return await Promise.all(
           photos.map(async (photo) => {
-            console.log(
-              new Date() > new Date(photo.urlExpirationTime.toISOString()) ,"here is comparism"
-            );
-            console.log(
-              "current time ",
-              new Date(),
-              "photo expiration time",
-              new Date(photo.urlExpirationTime.toISOString())
-            );
+            // console.log(
+            //   new Date() > new Date(photo.urlExpirationTime.toISOString()) ,"here is comparism"
+            // );
+            // console.log(
+            //   "current time ",
+            //   new Date(),
+            //   "photo expiration time",
+            //   new Date(photo.urlExpirationTime.toISOString())
+            // );
             if (new Date() > new Date(photo.urlExpirationTime.toISOString())) {
               const url = await AwsHandler.getObjectUrl(photo.key, 604800);//7 days of expiry
               await this.updatePhotoUrl(url, photo._id);

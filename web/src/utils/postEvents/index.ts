@@ -1,4 +1,4 @@
-import axios from "axios";
+import { API } from "../axios";
 import type { Dispatch, SetStateAction } from "react";
 import { token } from "../fechers";
 
@@ -15,20 +15,13 @@ export class PostEvents {
     try {
       console.log(action, "here is action");
       console.log(photoId, userId);
-      const res = await axios.post(
-        `${this.socketUrl}/post-events/liked`,
+      const res = await API.post(
+        `/post-events/liked`,
         {
           photoId,
           userId,
           action,
         },
-
-        {
-          withCredentials: true,
-          // headers: {
-          //   Cookie: token(), // Set the token in the Cookie header
-          // },
-        }
       );
        handleLikeChange(true)
      

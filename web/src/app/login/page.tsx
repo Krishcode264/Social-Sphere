@@ -4,7 +4,6 @@ import { redirect, useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import {z}  from "zod";
-import axios from "axios";
 import { UserAuthState, userBasicInfoState } from "@/store/atoms/user-atom";
 import Link from "next/link";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
@@ -15,6 +14,7 @@ const LoginSchema = z.object({
 });
 import Image from "next/image";
 import { userInfoState } from "@/store/selectors/user-selector";
+import { API } from "@/utils/axios";
 
 
 type FormFields = z.infer<typeof LoginSchema>;
@@ -37,12 +37,9 @@ const handleLoginWithGoogle = () => {
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/login`,
-        data,{withCredentials:true}
-      );
+      const res = await API.post(`/auth/login`, data, { withCredentials: true });
       if (res.data.status === "success") {
-        const { user } = res.data;
+        const { user, token } = res.data;
       
         console.log(user,"got user ")
         setUser((prevUser) => ({
@@ -50,6 +47,9 @@ const handleLoginWithGoogle = () => {
           ...user
         }));
  setIsAuthenticated({isAuthenticated:true})
+        if (token) {
+          window.sessionStorage.setItem("token", token);
+        }
      
             Router.replace("/");
           

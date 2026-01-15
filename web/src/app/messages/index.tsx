@@ -8,7 +8,6 @@ import ProfilePic from "@/components/profile/profile_photo";
 import p1 from "@/images/duf.webp";
 import { fetchMessageHistory, getUserConvos } from "@/utils/fechers";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import Image, { type StaticImageData } from "next/image";
 import i2 from "@/images/duf.webp";
 import { cache, Suspense, useState } from "react";

@@ -3,7 +3,7 @@ import Image from "next/image";
 import i2 from '@/images/duf.webp'
 import Link from "next/link";
 import { useState } from "react";
-import axios from "axios";
+import { API } from "@/utils/axios";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/basic/loading";
 import type { User } from "@/types/types";
@@ -76,11 +76,8 @@ const Page = () => {
   const [currentList,setCurrentList]=useState<currentListType>("friends")
 
 const fetchList = async () => {
-  const userListdata = await axios.get(
-    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/relationlist/?type=${currentList}`,
-    {
-      withCredentials: true,
-    }
+  const userListdata = await API.get(
+    `/feed/relationlist/?type=${currentList}`
   );
 
   return userListdata.data;

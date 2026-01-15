@@ -5,24 +5,28 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+import {config,configDotenv} from "dotenv";
+config();
 import { fromEnv } from "@aws-sdk/credential-providers";
   console.log(
-  process.env.S3_ACCESS_KEY_ID,
+  process.env.AWS_ACCESS_KEY_ID,
   "access key id now",
-  process.env.S3_SECREAT_ACCESS_KEY,"secret access key from top"
+  process.env.AWS_SECRET_ACCESS_KEY,"secret access key from top"
 )
 export class AwsHandler {
 
   static s3Client = new S3Client({
     region: "ap-south-1",
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-      secretAccessKey: process.env.S3_SECREAT_ACCESS_KEY || "",
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
     },
   
   });
 
   static async getPresignedUrlForS3(key: string, type: any) {
+ console.log(process.env.AWS_ACCESS_KEY_ID,"access key id at aws handler");
+ console.log(process.env.AWS_SECRET_ACCESS_KEY,"secret access key at aws handler");
     const Command = new PutObjectCommand({
       Bucket: "krish-b264",
       Key: key,

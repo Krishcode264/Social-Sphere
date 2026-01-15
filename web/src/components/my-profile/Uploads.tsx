@@ -1,7 +1,7 @@
 
 import { userBasicInfoState, UserPhotosState } from "@/store/atoms/user-atom";
 import type { PhotoType } from "@/types/types";
-import axios from "axios";
+import { API } from "@/utils/axios";
 import { useEffect, useRef, useState } from "react";
 import { useSetRecoilState, useRecoilValue, useRecoilState } from "recoil";
 import AddIcon from "@mui/icons-material/Add";
@@ -65,26 +65,23 @@ useEffect(()=>{
     
       if (post.photo) {
           setIsUploading(true);
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/getPresignedUrl`,
+        const res = await API.get(
+          `/uploads/getPresignedUrl`,
           {
             params: { fileName: post.photo.name, type:post.photo.type },
-
-            withCredentials: true,
           }
         );
         const { url, key } = res.data;
        // console.log(url, key, "key and url from server");
-        const sendTos3 = await axios.put(url, post.photo);
+        const sendTos3 = await API.put(url, post.photo, { headers: {} });
         console.log(sendTos3,"send to s3 response");
-        const isSave = await axios.post(
-          `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/uploads/success`,
+        const isSave = await API.post(
+          `/uploads/success`,
           {
             key,
             caption:post.caption,
             tags:post.tags,
-      
-          },{withCredentials:true}
+          }
         );
         if (isSave.data.photo) {
           console.log(isSave.data.photo)
@@ -189,12 +186,11 @@ export  const  ImageGallary = () => {
   async function getPhotos() {
     console.log("getPhotos running ");
     // const token=Cookies.get("token")
-    const photos = await axios.get(
-      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
-      { 
-        params:{id},
-        withCredentials:true
-          }
+    const photos = await API.get(
+      `/feed/getUserPhotos`,
+      {
+        params: { id },
+      }
     );
     console.log(photos,"phtoos from image gallary at the user profile page ")
     setphotos(photos.data);

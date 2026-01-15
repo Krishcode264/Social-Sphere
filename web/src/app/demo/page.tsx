@@ -4,7 +4,6 @@ import { useSocket } from "@/context/socketContext";
 import { mediaStreamState } from "@/store/atoms/media-stream-atom";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
 import { playSound } from "@/utils/DomMutations/domMutations";
-import axios from "axios";
 import React, { createElement, useEffect, useRef, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { MessageTemplate } from "../messages";

@@ -15,12 +15,12 @@ function isString(value: any): value is string {
 }
 
 export async function getFeedUsers(req: Request, res: Response): Promise<void> {
-  console.log("get feed useres getting req ")
+ // console.log("get feed useres getting req ")
   try {
     const users = await UserData.find().select(
       "_id age name location gender profile"
     );
-
+    //console.log(users)
     res.status(200).send(users);
   } catch (err) {
     res.status(500).json({ message: "error fetching feed users" });

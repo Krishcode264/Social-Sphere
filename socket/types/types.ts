@@ -8,8 +8,10 @@ export type User = {
 export type MsgAttachment={
   key:string,
   url:string,
-  name:string,
-  size:number
+  name?:string,
+  size:number,
+  type?:string,
+  urlExpirationTime?:Date|string
 }
 
 export type Offer = {
