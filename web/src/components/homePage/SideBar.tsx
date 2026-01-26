@@ -15,7 +15,7 @@ import {
   useRecoilValue,
   useSetRecoilState,
 } from "recoil";
-import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-namespace";
+
 import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificationsRounded";
 import { userInfoState } from "@/store/selectors/user-selector";
 import i2 from "@/images/duf.webp";
@@ -24,12 +24,12 @@ import { usePath } from "@/context/pathContext";
 
 export type SideBarOptionType = {
   name: string;
-  icon: ReactJSXElement;
-  badge?:number;
+  icon: React.ReactNode;
+  badge?: number;
 };
 
 
-const SideBarOption = ({ name, icon,badge }: SideBarOptionType) => {
+const SideBarOption = ({ name, icon, badge }: SideBarOptionType) => {
   return (
     <Link
       key={name}
@@ -50,12 +50,12 @@ const SideBarOption = ({ name, icon,badge }: SideBarOptionType) => {
   );
 };
 const generateSideBarOptions = (
-  options: { name: string; icon: ReactJSXElement }[],
+  options: { name: string; icon: React.ReactNode }[],
 ) => {
   return options.map((option) => {
 
-   
-    return <SideBarOption name={option.name} icon={option.icon} key={option.name}/>;
+
+    return <SideBarOption name={option.name} icon={option.icon} key={option.name} />;
   });
 };
 
@@ -80,29 +80,29 @@ const Sidebarheader = () => {
   );
 };
 //we have to show message badge so to avoid unnecessary rendering we are bwriting separate messagesideoption components 
-const MessageSideBarOption=()=>{
-    const path=usePath()
-  const msgs = useRecoilValue(TotalUnreadMessageCountSelector);  ;
-        
+const MessageSideBarOption = () => {
+  const path = usePath()
+  const msgs = useRecoilValue(TotalUnreadMessageCountSelector);;
+
   //  console.log("current path is chnaging from message ",path.startsWith("/messages"))
 
   return (
     <SideBarOption name={"Messages"} badge={path.startsWith("/messages/") ? 0 : msgs} icon={<ChatIcon />} />
   );
 }
-  
 
-const NotificationsSideBarOption=()=>{
- 
-  const notifications=useRecoilValue(NotificationState)
 
-    return (
-      <SideBarOption
-        name={"Notification"}
-        badge={ notifications.length}
-        icon={<CircleNotificationsRoundedIcon />}
-      />
-    );
+const NotificationsSideBarOption = () => {
+
+  const notifications = useRecoilValue(NotificationState)
+
+  return (
+    <SideBarOption
+      name={"Notification"}
+      badge={notifications.length}
+      icon={<CircleNotificationsRoundedIcon />}
+    />
+  );
 }
 
 const SideBar = () => {
@@ -120,10 +120,10 @@ const SideBar = () => {
     ],
     []
   );
-   console.log("side bar rerendered");
-  useEffect(()=>{
- 
-  },[])
+  console.log("side bar rerendered");
+  useEffect(() => {
+
+  }, [])
 
   return (
     <div className="rounded-lg h-full  md:w-[8%] p-2 lg:w-[15%] sm:p-2 flex flex-col   justify-start font-mono text-l   bg-gradient-to-br from-slate-900 to-slate-800  ">
@@ -131,7 +131,7 @@ const SideBar = () => {
       <div className="flex flex-col gap-2 text-center  text-l mt-12  w-full  mx-auto">
         <MessageSideBarOption />
         {generateSideBarOptions(icons)}
-        <NotificationsSideBarOption/>
+        <NotificationsSideBarOption />
       </div>
     </div>
   );
