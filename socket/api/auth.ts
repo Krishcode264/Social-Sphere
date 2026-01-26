@@ -5,7 +5,7 @@ import UserService from "../Services/UserService/userService";
 import { UserData } from "../mongoose/schemas/userSchema";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-import {config,configDotenv} from "dotenv";
+import { config, configDotenv } from "dotenv";
 config();
 
 const NEXT_PUBLIC_SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
@@ -34,6 +34,11 @@ const generateToken = (data: any) => {
 
   return token;
 };
+
+const generateHandoffToken = (data: any) => {
+  const secretKey = process.env.JWT_SECRET as string;
+  return jwt.sign({ ...data, type: "handoff" }, secretKey, { expiresIn: "60s" });
+};
 const handleUserSignup = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
   // console.log(email, password, name);
@@ -52,8 +57,8 @@ const handleUserSignup = async (req: Request, res: Response) => {
           profile: createdUser.profile,
         });
         res.cookie("token", token, {
-           httpOnly: true,
-           secure: true,
+          httpOnly: true,
+          secure: true,
           sameSite: "none",
           path: "/",
         });
@@ -96,10 +101,10 @@ const handleUserLogin = async (req: Request, res: Response) => {
       });
       // console.log(sanitizeUserData(userwithEmail), "sanitized user data");
       res.cookie("token", token, {
-         httpOnly: true,
-         secure: true,
-         sameSite: "none",
-         path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
       }); //for developement
       //only sending token
       return res.send({
@@ -149,7 +154,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
       }
     );
     const { access_token } = response.data;
-    console.log(access_token,"accesstoken in res.data ")
+    console.log(access_token, "accesstoken in res.data ")
     const userInfo = await axios.get(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
@@ -157,7 +162,7 @@ async function handleGoogleCallback(req: Request, res: Response) {
       }
     );
     const user = userInfo.data;
-    console.log(user,"got user from acess tokemn")
+    console.log(user, "got user from acess tokemn")
     //  console.log(user,"got user from gogole heyyyyyy")
     const alreadyExistedUserWithSameEmail =
       await UserService.checkUserAlreadyExist(user.email);
@@ -175,52 +180,78 @@ async function handleGoogleCallback(req: Request, res: Response) {
         }
       );
       if (createdUser) {
-        const token = generateToken({
+        const handoffToken = generateHandoffToken({
           name: createdUser.name,
           id: createdUser._id,
           profile: createdUser.profile,
         });
 
-        res.cookie("token", token, {
-           httpOnly: true,
-           secure: true,
-            sameSite: "none",
-            path: "/",
-        });
-        // NOTE: For Google auth we continue to rely on cookie-based auth
-        // and redirect back to the web client. If you want to move this
-        // flow to pure Bearer tokens, we should redesign this redirect.
-        res.redirect(WEB_CLIENT_URL);
+        // Redirect with handoff token in hash
+        res.redirect(`${WEB_CLIENT_URL}/#handoff=${handoffToken}`);
       }
     }
     if (alreadyExistedUserWithSameEmail.length > 0) {
       const user = alreadyExistedUserWithSameEmail[0]; //we could check if user.authType.provider ==="google" if not tell them to lognin with previously looged in methode as "credential"
-      const token = generateToken({
+      const handoffToken = generateHandoffToken({
         name: user.name,
         id: user._id,
         profile: user.profile,
       });
-      // console.log("user alredy exist");
-      res.cookie("token", token, {
-        httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  path: "/",
-      });
-      res.redirect(WEB_CLIENT_URL);
+
+      // Redirect with handoff token in hash
+      res.redirect(`${WEB_CLIENT_URL}/#handoff=${handoffToken}`);
     }
   } catch (error) {
     res.redirect(`${WEB_CLIENT_URL}/login`);
-    console.error( "got eeror in gogole callback");
+    console.error("got eeror in gogole callback");
   }
 }
+
+const handleTokenExchange = async (req: Request, res: Response) => {
+  const { handoff } = req.body;
+
+  if (!handoff) {
+    return res.status(400).send({ status: "error", message: "No handoff token provided" });
+  }
+
+  try {
+    const secretKey = process.env.JWT_SECRET as string;
+    const decoded: any = jwt.verify(handoff, secretKey);
+
+    if (decoded.type !== "handoff") {
+      return res.status(400).send({ status: "error", message: "Invalid token type" });
+    }
+
+    // Generate real access token
+    const token = generateToken({
+      name: decoded.name,
+      id: decoded.id,
+      profile: decoded.profile,
+    });
+
+    return res.send({
+      status: "success",
+      message: "successfully exchanged token",
+      user: {
+        name: decoded.name,
+        id: decoded.id,
+        profile: decoded.profile,
+        // Re-fetch user if needed for fuller object, but this suffices for context
+      },
+      token,
+    });
+
+  } catch (err) {
+    return res.status(401).send({ status: "error", message: "Invalid or expired handoff token" });
+  }
+};
 
 const handleUserLogout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  path: "/",
+    secure: true,
+    sameSite: "none",
+    path: "/",
   });
   res.status(200).send("Logged out successfully");
 };
@@ -229,6 +260,7 @@ authRouter.post("/signup", handleUserSignup);
 authRouter.post("/login", handleUserLogin);
 authRouter.post("/logout", handleUserLogout);
 authRouter.get("/google", googleLogin);
+authRouter.post("/exchange", handleTokenExchange);
 authRouter.get("/callback/google", handleGoogleCallback);
 authRouter.get("/health", (req, res) => {
   return res.send("auth/health goood");
