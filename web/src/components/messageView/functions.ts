@@ -1,5 +1,6 @@
 "use client";
 import { API } from "@/utils/axios";
+import axios from "axios";
 
 export type MsgFilesType = {
   src: File;
@@ -26,7 +27,12 @@ export const handleFileUploadToS3 = async (
           console.log(preSigedUrlData.data, "presigned urls"); //url and key
 
           const { key, url } = preSigedUrlData.data;
-          const sendToS3 = await API.put(url, file.src, { headers: {} });
+          // Use vanilla axios to bypass API interceptor that adds Bearer token
+          const sendToS3 = await axios.put(url, file.src, {
+            headers: {
+              "Content-Type": file.src.type
+            }
+          });
           const isSave = await API.post(
             `/uploads/message/success`,
             {
@@ -34,9 +40,9 @@ export const handleFileUploadToS3 = async (
             }
           );
           console.log(isSave.data, "isSave.data");
-          return { 
-            key, 
-            url: isSave.data.url, 
+          return {
+            key,
+            url: isSave.data.url,
             name: file.src.name,
             urlExpirationTime: isSave.data.urlExpirationTime || new Date(Date.now() + 604800 * 1000).toISOString()
           };
