@@ -8,7 +8,7 @@ import {
   userBasicInfoState,
   UserPhotosState,
 } from "@/store/atoms/user-atom";
-import Cookies from "node_modules/@types/js-cookie";
+
 interface AuthContextProps {
   isValid: { status: boolean; message: string };
   isLoading: boolean;
@@ -97,13 +97,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } else {
         console.log("No token found in sessionStorage");
+        setIsValid({ status: false, message: "You need to Authenticate" });
       }
 
       setIsLoading(false);
     };
 
     initializeAuth();
-  }, []);
+  }, [userAuthState.isAuthenticated]);
 
   return (
     <AuthContext.Provider value={{ isValid, isLoading }}>

@@ -27,10 +27,10 @@ async function checkTokenValidity(
     });
   }
   // console.log("token in check token validity",token);
-  const user = await tokenIsValid(token );
+  const user = await tokenIsValid(token);
 
   if (user) {
-  //  console.log(user,"user at check token validity ")
+    //  console.log(user,"user at check token validity ")
     // if (req.path == "/validateToken") {
     //   res.send(user);
     //   console.log("valid token");
@@ -50,7 +50,7 @@ async function checkTokenValidity(
 
 async function tokenIsValid(token: string): Promise<User | boolean> {
   try {
-    console.log("token in token is valid",token);
+    console.log("token in token is valid", token);
     const decodeToken: any = jwt.decode(token);
 
     console.log(decodeToken, "decoded token");

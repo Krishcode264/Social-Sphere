@@ -8,7 +8,7 @@ export const getFeedUsers = cache(async () => {
             console.log()
     return res.data;
   } catch (err) {
-    console.log("error in get feedusers");
+    console.log("error in get feedusers", err);
     return [];
   }
 });
