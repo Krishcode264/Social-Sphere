@@ -56,7 +56,7 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
   );
 };
 const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
-  const { PC, createOffer, createAnswer ,createPeerConnection} = usePC();
+  const { PC, createOffer, createAnswer, createPeerConnection } = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
   const [userCallState, setcallstate] = useRecoilState(callState);
@@ -64,10 +64,10 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
     useRecoilState(mediaStreamState);
   const setShowCompennts = useSetRecoilState(showComponentState);
   const [guest, setGuest] = useRecoilState(guestState);
-    
+
   const offerer = useRecoilValue(userInfoState);
   const socket = useSocket();
-  console.log(userCallState,"user call state")
+  console.log(userCallState, "user call state")
   const toggleTracks = (type: string) => {
     console.log("senders0", PC?.getSenders());
     if (
@@ -90,14 +90,14 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
 
 
 
-const  handleCallWindowClose=async ()=>{
-   setGuest((prev) => ({ name: "", id: "", profile: "" }));
-   setcallstate(() => ({ action: "default", status: "default" }));
-   setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
-   createPeerConnection()
-  // await  navigator.mediaDevices.getUserMedia({audio:false,video:false})
-}
-const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
+  const handleCallWindowClose = async () => {
+    setGuest((prev) => ({ name: "", id: "", profile: "" }));
+    setcallstate(() => ({ action: "default", status: "default" }));
+    setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
+    createPeerConnection()
+    // await  navigator.mediaDevices.getUserMedia({audio:false,video:false})
+  }
+  const resetRemoteStreamState = useResetRecoilState(remoteStreamState)
   const startCall = async () => {
     if (userCallState.action === "default") {
       await createOffer();
@@ -137,31 +137,37 @@ const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
 
       setcallstate(() => ({ action: "default", status: "default" }));
       setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
-    createPeerConnection();
+      createPeerConnection();
     }
   };
+  /* Auto-start call for receiver */
+  useEffect(() => {
+    if (userCallState.action === "receiver" && userCallState.status === "default") {
+      // Automatically enable audio and start the connection
+      toggleTracks("audio");
+      startCall();
+    }
+  }, []); // Run on mount only
+
   const u = useRecoilValue(userInfoState);
   const [{ screenSize }, setScreenSize] = useRecoilState(CallWindowAtomState);
   return (
     <div
-      className={` ${
-        screenSize === "default" ? "defaultmediastream" : "popupmediastream"
-      } justify-between `}
+      className={` ${screenSize === "default" ? "defaultmediastream" : "popupmediastream"
+        } justify-between `}
     >
       <div
-        className={`${
-          screenSize === "default"
+        className={`${screenSize === "default"
             ? "defaultvideocontainer"
             : "popupvideocontainer"
-        } `}
+          } `}
       >
         {/* w-full h-full mb:h-[50%] sm:h-full */}
         <div
-          className={`${
-            screenSize === "default"
+          className={`${screenSize === "default"
               ? "defaultlocalstream "
               : " popuplocalstream "
-          } bg-slate-700 rounded-md}`}
+            } bg-slate-700 rounded-md}`}
         >
           {videoStream && video && (
             <VideoComponent media={videoStream} target="local" u={u} />
@@ -192,26 +198,25 @@ const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
 
       <div
         className={`
-          ${
-            screenSize === "default"
-              ? " defaultbottombuttons "
-              : "popupbottombuttons"
+          ${screenSize === "default"
+            ? " defaultbottombuttons "
+            : "popupbottombuttons"
           }  `}
       >
         {/* <div className=" flex w-[50%] gap-3 border justify-end "> */}
 
         {userCallState.status === "default" ||
           userCallState.status === "rejected" ? (
-            <div className="flex items-center justify-center">
-              <Tooltip title="close the call window">
-                <CloseIcon
-                  className="  text-orange-600  text-2xl cursor-pointer"
-                  sx={{ color: "orange" }}
-                  onClick={handleCallWindowClose}
-                />
-              </Tooltip>
-            </div>
-          ) : null }
+          <div className="flex items-center justify-center">
+            <Tooltip title="close the call window">
+              <CloseIcon
+                className="  text-orange-600  text-2xl cursor-pointer"
+                sx={{ color: "orange" }}
+                onClick={handleCallWindowClose}
+              />
+            </Tooltip>
+          </div>
+        ) : null}
 
         <div
           style={{
@@ -250,7 +255,7 @@ const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
           style={{
             backgroundColor:
               userCallState.status === "calling" ||
-              userCallState.status === "incall"
+                userCallState.status === "incall"
                 ? "red"
                 : "green",
             color: "white",
@@ -262,7 +267,7 @@ const resetRemoteStreamState=useResetRecoilState(remoteStreamState)
             }}
           >
             {userCallState.status === "calling" ||
-            userCallState.status === "incall" ? (
+              userCallState.status === "incall" ? (
               <CallEndRounded />
             ) : (
               <CallOutlined />
