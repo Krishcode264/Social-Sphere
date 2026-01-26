@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {
@@ -22,56 +23,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useRecoilState(userBasicInfoState);
   const [userAuthState, setIsAuthenticated] = useRecoilState(UserAuthState);
+  const router = useRouter();
+
   useEffect(() => {
-    const checkHandoff = async () => {
-      if (typeof window === "undefined") return;
+    const initializeAuth = async () => {
+      // 1. Check for Handoff Token in URL
+      if (typeof window !== "undefined") {
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        const handoffToken = hashParams.get("handoff");
 
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const handoffToken = hashParams.get("handoff");
+        if (handoffToken) {
+          try {
+            console.log("Found handoff token, exchanging...");
+            const res = await axios.post(
+              `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/exchange`,
+              { handoff: handoffToken }
+            );
 
-      if (handoffToken) {
-        try {
-          // Exchange handoff token for real access token
-          const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/exchange`,
-            { handoff: handoffToken }
-          );
+            if (res.data?.token) {
+              window.sessionStorage.setItem("token", res.data.token);
+              // Clear hash from URL
+              window.history.replaceState(null, "", " ");
 
-          if (res.data?.token) {
-            window.sessionStorage.setItem("token", res.data.token);
-            // Clear hash from URL
-            window.history.replaceState(null, "", " ");
+              // Set user data from response
+              if (res.data.user) {
+                setUser((prev) => ({ ...prev, ...res.data.user }));
+              }
+              setIsAuthenticated({ isAuthenticated: true });
+              setIsValid({ status: true, message: "Successfully logged in via handoff" });
 
-            // Set user data from response
-            if (res.data.user) {
-              setUser((prev) => ({ ...prev, ...res.data.user }));
+              // Handle Redirect to Previous Route
+              const previousRoute = window.sessionStorage.getItem("privousRoute");
+              if (previousRoute) {
+                console.log("Redirecting to previous route:", previousRoute);
+                window.sessionStorage.removeItem("privousRoute");
+                router.replace(previousRoute);
+              }
             }
-            setIsAuthenticated({ isAuthenticated: true });
-            setIsValid({ status: true, message: "Successfully logged in via handoff" });
+          } catch (error) {
+            console.error("Token exchange failed", error);
+            setIsValid({ status: false, message: "Token exchange failed" });
           }
-        } catch (error) {
-          console.error("Token exchange failed", error);
-          // Optional: redirect to login or show error
         }
       }
-    };
 
-    checkHandoff();
-  }, []);
+      // 2. Validate Token (Existing or Just Exchanged)
+      const token = typeof window !== "undefined" ? window.sessionStorage.getItem("token") : null;
 
-  useEffect(() => {
-    const validate = async () => {
-      try {
-        if (user.id && userAuthState.isAuthenticated) {
-          console.log("toke and userid both present", user.id);
-          setIsValid({ status: true, message: "success in fetching user" });
-          return; // Skip further validation if already authenticated
-        }
-
-        // Prioritize token from sessionStorage
-        const token = typeof window !== "undefined" ? window.sessionStorage.getItem("token") : null;
-
-        if (token) {
+      if (token) {
+        try {
           console.log("Validating with sessionStorage token");
           const res = await axios.get(
             `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
@@ -83,34 +83,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
 
           if (res.data?.user) {
-            console.log(res.data.user, "user found via token");
             setUser((prev) => ({ ...prev, ...res.data.user }));
-
             setIsValid({ status: true, message: "success in fetching user" });
             setIsAuthenticated({ isAuthenticated: true });
           }
-        } else {
-          // Fallback to cookie-based check (optional, or remove if fully migrating)
-          // For now, keeping it might help with transition, but if the goal is strict token auth:
-          console.log("No token found in sessionStorage");
-          setIsLoading(false);
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response) {
             setIsValid({
               status: false,
-              message:
-                error.response.data.message || "You need to Authenticate",
+              message: error.response.data.message || "You need to Authenticate",
             });
           }
         }
-      } finally {
-        setIsLoading(false);
+      } else {
+        console.log("No token found in sessionStorage");
       }
+
+      setIsLoading(false);
     };
-    validate();
-  }, [userAuthState.isAuthenticated]);
+
+    initializeAuth();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ isValid, isLoading }}>

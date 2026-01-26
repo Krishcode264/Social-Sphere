@@ -1,7 +1,8 @@
+"use client";
 import Image from 'next/image';
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import i2 from "@/images/duf.webp"
-import type { MessageTopBarProps } from '@/app/messages';
+import type { MessageTopBarProps, MessageHistoryResponse } from '@/app/messages';
 
 import Link from 'next/link';
 import type { ConvoType } from '@/types/types';
@@ -9,12 +10,13 @@ import { fetchMessageHistory, getUserConvos } from '@/utils/fechers';
 import Loading from '../basic/loading';
 import { ChatHead } from './ChatHead';
 import MessageContainer, { AudioVideoCallButton } from './MessageContainer';
+
 export const MessageTopBar = ({
-  guestInfo:{profile,name},
+  guestInfo: { profile, name },
   id
 }: {
   guestInfo: MessageTopBarProps;
-  id:string
+  id: string
 }) => {
   return (
     <div className="text-slate-300 flex items-center hover:bg-slate-800 bg-slate-950 justify-between py-2 px-3 rounded-md sticky top-0  ">
@@ -55,28 +57,56 @@ export const MessageTopBar = ({
 };
 
 
-    export const ChatHeadContainer = async () => {
-      const convos = await getUserConvos();
-      //  if(convos.length>0 ) redirect(`/messages/${convos[0].guestId}`)
-      return (
-        <Suspense fallback={<Loading />}>
-          <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[30%] items-center md:items-start  ">
-            {convos.length > 0 &&
-              convos.map((convo: ConvoType) => {
-                return <ChatHead convo={convo} key={convo.convoId} />;
-              })}
-          </div>
-        </Suspense>
-      );
-    };
+export const ChatHeadContainer = () => {
+  const [convos, setConvos] = useState<ConvoType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const DetailedChatView = async ({ id }: { id: string }) => {
-  // const {data,isError,isLoading,isSuccess}=useQuery({  // not able to use tanstak query for async server compoennt
-  //   queryKey:["user",id],
-  //   queryFn:getUserChatHistory
-  // })
-  const data = await fetchMessageHistory(id);
-//console.log(data?.messages,data?.guestInfo,"data at fetch messaage history")
+  useEffect(() => {
+    const loadConvos = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (token) {
+        const data = await getUserConvos(token);
+        setConvos(data);
+      }
+      setLoading(false);
+    };
+    loadConvos();
+  }, []);
+
+  if (loading) return <Loading />;
+
+  return (
+    <Suspense fallback={<Loading />}>
+      <div className="py-2 px-1.5 overflow-y-scroll flex flex-col gap-2  w-[20%]  md:w-[30%] items-center md:items-start  ">
+        {convos.length > 0 &&
+          convos.map((convo: ConvoType) => {
+            return <ChatHead convo={convo} key={convo.convoId} />;
+          })}
+      </div>
+    </Suspense>
+  );
+};
+
+export const DetailedChatView = ({ id }: { id: string }) => {
+  const [data, setData] = useState<MessageHistoryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (token) {
+        // fetchMessageHistory now accepts generic MessageHistoryResult type matching the one in helpers
+        // Actually based on index.ts it returns MessageHistoryResponse
+        const res = await fetchMessageHistory(id, token);
+        setData(res);
+      }
+      setLoading(false);
+    };
+    loadHistory();
+  }, [id]);
+
+  if (loading) return <Loading />;
+
   return (
     <Suspense fallback={<Loading />}>
       <div className=" flex flex-col gap-2 h-full overflow-y-scroll ">
@@ -85,9 +115,9 @@ export const DetailedChatView = async ({ id }: { id: string }) => {
         )}
         <MessageContainer
           guestId={id}
-          guestProfile={data?.guestInfo.profile}
-          guestName={data?.guestInfo.name}
-     
+          guestProfile={data?.guestInfo.profile || ""}
+          guestName={data?.guestInfo.name || ""}
+
         />
       </div>
     </Suspense>

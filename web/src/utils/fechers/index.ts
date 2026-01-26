@@ -35,15 +35,14 @@ export const getFeedUsers = cache(async () => {
   }
 });
 //profile
-export const getUser = 
-  async (id: string): Promise<UserSchemaType | null> => {
-    console.log(id,"id in get user at server action")
-   console.log(headers().get("cookie"),"cookie headeres here at server action")
+//profile
+export const getUser =
+  async (id: string, token?: string): Promise<UserSchemaType | null> => {
+    // console.log(id,"id in get user at server action")
     try {
-      const authToken = await token();
-     // console.log("authToken type in getUser:", typeof authToken, "value:", authToken);
+      const authToken = token;
       const authHeader = authToken ? `Bearer ${authToken}` : "";
-     // console.log("Authorization header being sent:", authHeader);
+
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUser`,
         {
@@ -53,10 +52,6 @@ export const getUser =
           },
         }
       );
-      // const res = await API.get("/api/feed/getUser", {
-      //   params: { id },
-      // });
-   //   console.log(res.data, "res .data in getuser");
       return res.data;
     } catch (err) {
       console.log("something went wron gin getuser actiom to feed/getUser server action");
@@ -65,9 +60,9 @@ export const getUser =
   }
 
 
-export const getUserPhotos = async (id: string) => {
-  const authToken = await token();
-  console.log("token at get user photos", authToken);
+export const getUserPhotos = async (id: string, token?: string) => {
+  const authToken = token;
+  // console.log("token at get user photos", authToken);
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
@@ -88,9 +83,10 @@ export const getUserPhotos = async (id: string) => {
 };
 
 //on reload it will run in auth context
-export const getUserByToken = cache(async () => {
+//on reload it will run in auth context
+export const getUserByToken = cache(async (token?: string) => {
   try {
-    const authToken = await token();
+    const authToken = token;
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserByToken`,
       {
@@ -107,9 +103,10 @@ export const getUserByToken = cache(async () => {
   }
 });
 //user profile
-export const getPhotosbyUserId = cache(async (userId: string) => {
+//user profile
+export const getPhotosbyUserId = cache(async (userId: string, token?: string) => {
   console.log("getPhotos running ");
-  const authToken = await token();
+  const authToken = token;
   const photos = await axios.get(
     `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/feed/getUserPhotos`,
     {
@@ -134,7 +131,7 @@ export const fetchCommentsForPost = async (photoId: string) => {
       },
     }
   );
- // console.log(res,"fetch comments res here ");
+  // console.log(res,"fetch comments res here ");
   return res.data;
 };
 
@@ -151,7 +148,7 @@ export const fetchCommentsForPost = async (photoId: string) => {
 
 
 //  cant use this for now , client request with tanstak showing error with server actions 
- const handlePostComm = async (    
+const handlePostComm = async (
   photoId: string,
   userId: string,
   data: any
@@ -180,11 +177,12 @@ export const fetchCommentsForPost = async (photoId: string) => {
 //messages
 
 export const fetchMessageHistory = async (
-  id: string
+  id: string,
+  token?: string
 ): Promise<MessageHistoryResponse | null> => {
   try {
-   console.log("fetch message history running")
-    const authToken = await token();
+    console.log("fetch message history running")
+    const authToken = token;
     const messageHistoryResponse = await axios.get(
       `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getMessageHistory`,
       {
@@ -194,7 +192,7 @@ export const fetchMessageHistory = async (
         },
       }
     );
-  //  console.log("sending message History")
+    //  console.log("sending message History")
     return messageHistoryResponse.data;
   } catch (err) {
     console.log("errr in messages feature");
@@ -202,23 +200,23 @@ export const fetchMessageHistory = async (
   }
 };
 
-export const getUserConvos=async():Promise<ConvoType[]|[]>=>{
-try {
+export const getUserConvos = async (token?: string): Promise<ConvoType[] | []> => {
+  try {
 
-  const authToken = await token();
-  const userConvos = await axios.get(
-    `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getConvos`,
-    {
-      headers: {
-        Authorization: authToken ? `Bearer ${authToken}` : "",
-      },
-    }
-  );
-  return userConvos.data.data;
-} catch (err) {
-  console.log("errr in fetching convos ");
-  return [];
-}
+    const authToken = token;
+    const userConvos = await axios.get(
+      `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/message/getConvos`,
+      {
+        headers: {
+          Authorization: authToken ? `Bearer ${authToken}` : "",
+        },
+      }
+    );
+    return userConvos.data.data;
+  } catch (err) {
+    console.log("errr in fetching convos ");
+    return [];
+  }
 }
 
 

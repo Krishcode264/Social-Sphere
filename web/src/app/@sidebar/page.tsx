@@ -10,10 +10,10 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import defaultUserProfile from "@/images/user-profile.png";
 import { useRecoilValue } from "recoil";
 import { userBasicInfoState } from "@/store/atoms/user-atom";
-import type { ReactJSXElement } from "node_modules/@emotion/react/types/jsx-namespace";
+
 import CircleNotificationsRoundedIcon from "@mui/icons-material/CircleNotificationsRounded";
 const generateSideBarOptions = (
-  options: { name: string; icon: ReactJSXElement }[]
+  options: { name: string; icon: React.ReactNode }[]
 ) => {
   return options.map((option) => {
     return (
@@ -25,7 +25,7 @@ const generateSideBarOptions = (
         <button className=" w-full  h-auto flex gap-2 items-center   mx-auto  text-orange-500 text-[100px]  bg-blue-400">
           {option.icon}
 
-          <p className="  text-blue-600"> {}dhhbdvhb</p>
+          <p className="  text-blue-600"> {option.name}</p>
         </button>
       </Link>
     );

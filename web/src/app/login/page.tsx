@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect, useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import {z}  from "zod";
+import { z } from "zod";
 import { UserAuthState, userBasicInfoState } from "@/store/atoms/user-atom";
 import Link from "next/link";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
@@ -21,13 +21,13 @@ type FormFields = z.infer<typeof LoginSchema>;
 
 const Login = () => {
   const Router = useRouter();
-  const setIsAuthenticated=useSetRecoilState(UserAuthState)
-const handleLoginWithGoogle = () => {
-  const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
-  window.location.href = path;
-};
+  const setIsAuthenticated = useSetRecoilState(UserAuthState)
+  const handleLoginWithGoogle = () => {
+    const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
+    window.location.href = path;
+  };
   const setUser = useSetRecoilState(userBasicInfoState);
-  const {id}=useRecoilValue(userInfoState)
+  const { id } = useRecoilValue(userInfoState)
   const {
     register,
     handleSubmit,
@@ -40,19 +40,25 @@ const handleLoginWithGoogle = () => {
       const res = await API.post(`/auth/login`, data, { withCredentials: true });
       if (res.data.status === "success") {
         const { user, token } = res.data;
-      
-        console.log(user,"got user ")
+
+        console.log(user, "got user ")
         setUser((prevUser) => ({
           ...prevUser,
           ...user
         }));
- setIsAuthenticated({isAuthenticated:true})
+        setIsAuthenticated({ isAuthenticated: true })
         if (token) {
           window.sessionStorage.setItem("token", token);
         }
-     
-            Router.replace("/");
-          
+
+        const previousRoute = window.sessionStorage.getItem("privousRoute");
+        if (previousRoute) {
+          window.sessionStorage.removeItem("privousRoute");
+          Router.replace(previousRoute);
+        } else {
+          Router.replace("/");
+        }
+
       }
       if (res.data.status === "error") {
         setError("root", { message: res.data.message });
