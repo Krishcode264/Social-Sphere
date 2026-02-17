@@ -8,11 +8,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {config,configDotenv} from "dotenv";
 config();
 import { fromEnv } from "@aws-sdk/credential-providers";
-  console.log(
-  process.env.AWS_ACCESS_KEY_ID,
-  "access key id now",
-  process.env.AWS_SECRET_ACCESS_KEY,"secret access key from top"
-)
+//   console.log(
+//   process.env.AWS_ACCESS_KEY_ID,
+//   "access key id now",
+//   process.env.AWS_SECRET_ACCESS_KEY,"secret access key from top"
+// )
 export class AwsHandler {
 
   static s3Client = new S3Client({
