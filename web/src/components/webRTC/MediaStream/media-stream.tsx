@@ -55,7 +55,7 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
     </>
   );
 };
-const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
+const MediaStream = ({ getMedia }: { getMedia: (s: string) => Promise<MediaStream | null> }) => {
   const { PC, createOffer, createAnswer, createPeerConnection } = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
@@ -64,40 +64,48 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
     useRecoilState(mediaStreamState);
   const setShowCompennts = useSetRecoilState(showComponentState);
   const [guest, setGuest] = useRecoilState(guestState);
+  const { mode } = useRecoilValue(CallWindowAtomState);
 
   const offerer = useRecoilValue(userInfoState);
   const socket = useSocket();
-  console.log(userCallState, "user call state")
-  const toggleTracks = (type: string) => {
-    console.log("senders0", PC?.getSenders());
-    if (
-      PC?.getSenders().filter((sender) => sender.track?.kind === type)
-        .length === 0
-    ) {
-      getMedia(type);
-      type === "audio" ? setAudio(() => true) : setVideo(() => true);
+  console.log(userCallState, "user call state");
+
+  const toggleTracks = async (type: string) => {
+    const existingSenders = PC?.getSenders().filter((sender) => sender.track?.kind === type) || [];
+    if (existingSenders.length === 0) {
+      const stream = await getMedia(type);
+      if (stream) {
+        type === "audio" ? setAudio(true) : setVideo(true);
+      }
       return;
     }
 
     PC?.getSenders().forEach((sender: RTCRtpSender) => {
       if (sender.track?.kind === type) {
         sender.track.enabled = !sender.track.enabled;
-        console.log(type);
+        console.log(type, "enabled:", sender.track.enabled);
       }
     });
     type === "audio" ? setAudio((prev) => !prev) : setVideo((prev) => !prev);
   };
 
-
-
   const handleCallWindowClose = async () => {
-    setGuest((prev) => ({ name: "", id: "", profile: "" }));
+    if (guest?.id) {
+      socket?.emit("end-call", { guest, offerer });
+    }
+    videoStream?.getTracks().forEach((track) => track.stop());
+    audioStream?.getTracks().forEach((track) => track.stop());
+    setAudio(false);
+    setVideo(false);
+    resetRemoteStreamState();
+    setGuest({ name: "", id: "", profile: "" });
     setcallstate(() => ({ action: "default", status: "default" }));
     setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
-    createPeerConnection()
-    // await  navigator.mediaDevices.getUserMedia({audio:false,video:false})
-  }
-  const resetRemoteStreamState = useResetRecoilState(remoteStreamState)
+    createPeerConnection();
+  };
+
+  const resetRemoteStreamState = useResetRecoilState(remoteStreamState);
+
   const startCall = async () => {
     if (userCallState.action === "default") {
       await createOffer();
@@ -111,16 +119,16 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
       userCallState.status === "calling" ||
       userCallState.status === "incall"
     ) {
-      setGuest((prev) => ({ name: "", id: "", profile: "" }));
-      socket?.emit("end-call", { guest, offerer });
+      if (guest?.id) {
+        socket?.emit("end-call", { guest, offerer });
+      }
 
       videoStream?.getTracks().forEach((track) => track.stop());
       audioStream?.getTracks().forEach((track) => track.stop());
       setAudio(false);
       setVideo(false);
-      resetRemoteStreamState()
+      resetRemoteStreamState();
       if (PC) {
-        //pc hoga hi
         PC.onicecandidate = null;
         PC.ontrack = null;
         PC.oniceconnectionstatechange = null;
@@ -128,26 +136,35 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => void }) => {
         PC.close();
       }
 
-      setMedia((prev) => ({
+      setMedia({
         audioStream: null,
         videoStream: null,
         video: false,
         audio: false,
-      }));
+      });
 
+      setGuest({ name: "", id: "", profile: "" });
       setcallstate(() => ({ action: "default", status: "default" }));
       setShowCompennts((prev) => ({ ...prev, showCallWindow: false }));
       createPeerConnection();
     }
   };
-  /* Auto-start call for receiver */
+
+  /* Auto-start call for receiver & pre-acquire media for offerer */
   useEffect(() => {
-    if (userCallState.action === "receiver" && userCallState.status === "default") {
-      // Automatically enable audio and start the connection
-      toggleTracks("audio");
-      startCall();
-    }
-  }, []); // Run on mount only
+    const initCall = async () => {
+      if (userCallState.action === "receiver" && userCallState.status === "default") {
+        await toggleTracks("audio");
+        await startCall();
+      } else if (userCallState.action === "default" && userCallState.status === "default") {
+        await toggleTracks("audio");
+        if (mode === "video") {
+          await toggleTracks("video");
+        }
+      }
+    };
+    initCall();
+  }, []);
 
   const u = useRecoilValue(userInfoState);
   const [{ screenSize }, setScreenSize] = useRecoilState(CallWindowAtomState);

@@ -42,6 +42,9 @@ export default class UserService {
 
   static getUserSocketIdById = async (id: string): Promise<string | false> => {
     try {
+      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return false;
+      }
       const targetUser: UserSchemaType | null = await UserData.findById(getObjectId(id));
        //console.log(targetUser,"target user here ")
       if (!targetUser?.socketID) {

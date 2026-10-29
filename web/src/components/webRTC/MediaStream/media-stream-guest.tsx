@@ -19,24 +19,22 @@ const MediaStreamGuest:React.FC = () => {
       const guest = useRecoilValue(guestState);
       const {screenSize}=useRecoilValue(CallWindowAtomState)
   return (
-    <div className={`${screenSize==="popout"? "popupremotestream": "defaultremotestream"} rounded-md `}>
+    <div className={`${screenSize === "popout" ? "popupremotestream" : "defaultremotestream"} rounded-md relative overflow-hidden`}>
       {video && <VideoComponent media={video} target="remote" u={guest} />}
-      {audio && <AudioComponent media={audio} target="remote" u={guest} />}
       {screen && <VideoComponent media={screen} target="remote" u={guest} />}
-      {!video && !audio && !screen && (
-        <>
-          <div className=" bg-slate-700 flex items-center justify-center w-full h-full rounded-md">
-            <Image
-              alt="guest image m-2"
-              unoptimized={true}
-              width={5}
-              height={5}
-              src={guest.profile || i2}
-              className="w-24 h-24  rounded-full "
-            ></Image>
-          </div>
-        </>
+      {!video && !screen && (
+        <div className="bg-slate-700 flex items-center justify-center w-full h-full rounded-md">
+          <Image
+            alt="guest image"
+            unoptimized={true}
+            width={96}
+            height={96}
+            src={guest.profile || i2}
+            className="w-24 h-24 rounded-full object-cover"
+          />
+        </div>
       )}
+      {audio && <AudioComponent media={audio} target="remote" u={guest} />}
     </div>
   );
 };

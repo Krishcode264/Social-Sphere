@@ -20,9 +20,17 @@ export type PCContextType = {
 const PcContext = createContext<PCContextType | null>(null);
 
 export const PcProvider = ({ children }: { children: React.ReactNode }) => {
-  const configForPeerconnection = {
-    echoCancellation: true,
-    iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
+  const configForPeerconnection: RTCConfiguration = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:stun.services.mozilla.com" },
+      { urls: "stun:global.stun.twilio.com:3478" },
+    ],
+    iceCandidatePoolSize: 10,
   };
   const [guest, setGuest] = useRecoilState(guestState);
   const offerer = useRecoilValue(userInfoState);
@@ -32,6 +40,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   const [offer, setOffer] = useRecoilState(offerState);
   const setStream = useSetRecoilState(remoteStreamState);
   const iceCandidateBuffer: RTCIceCandidate[] = [];
+  const pendingCandidates: RTCIceCandidateInit[] = [];
 
   const [PC, setPeerConnection] = useState<RTCPeerConnection | null>(() => {
     if (typeof window !== "undefined") {
@@ -46,13 +55,45 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
     return newPeerConnection;
   };
 
+  const flushPendingCandidates = async (peer: RTCPeerConnection) => {
+    while (pendingCandidates.length > 0) {
+      const cand = pendingCandidates.shift();
+      if (cand) {
+        try {
+          await peer.addIceCandidate(cand);
+        } catch (err) {
+          console.error("Error adding queued candidate:", err);
+        }
+      }
+    }
+  };
+
+  const addCandidateSafely = async (candidate: RTCIceCandidateInit) => {
+    if (!PC) return;
+    try {
+      if (PC.remoteDescription && PC.remoteDescription.type) {
+        await PC.addIceCandidate(candidate);
+      } else {
+        pendingCandidates.push(candidate);
+      }
+    } catch (err) {
+      console.error("Error in addCandidateSafely:", err);
+    }
+  };
+
   const createOffer = async (): Promise<RTCSessionDescriptionInit | undefined> => {
     try {
+      if (!guest?.id) {
+        console.log("No guest ID to create offer for");
+        return undefined;
+      }
       const createdOffer = await PC?.createOffer();
-      await PC?.setLocalDescription(createdOffer);
-      socket?.emit("offer", { offer: createdOffer, guest, offerer });
-      console.log("emitting ofeer ");
-      return createdOffer;
+      if (createdOffer && PC) {
+        await PC.setLocalDescription(createdOffer);
+        socket?.emit("offer", { offer: createdOffer, guest, offerer });
+        console.log("emitting offer to guest:", guest.id);
+        return createdOffer;
+      }
     } catch (error) {
       console.error("Error creating offer:", error);
       return undefined;
@@ -60,11 +101,12 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const createAnswer = async () => {
-    if (offer) {
-      await PC?.setRemoteDescription(offer);
-      const createdAnswer = await PC?.createAnswer();
+    if (offer && PC) {
+      await PC.setRemoteDescription(offer);
+      await flushPendingCandidates(PC);
+      const createdAnswer = await PC.createAnswer();
       if (createdAnswer) {
-        await PC?.setLocalDescription(createdAnswer);
+        await PC.setLocalDescription(createdAnswer);
         socket?.emit("answer", {
           answer: createdAnswer,
           guest,
@@ -79,8 +121,10 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
     if (PC && socket) {
       PC.onnegotiationneeded = async () => {
         try {
-          console.log("Renegotiation needed - creating new offer");
-          await createOffer();
+          if (guest?.id && (callStates.status === "calling" || callStates.status === "incall")) {
+            console.log("Renegotiation needed - creating new offer for guest:", guest.id);
+            await createOffer();
+          }
         } catch (err) {
           console.error("Renegotiation failed:", err);
         }
@@ -88,83 +132,92 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
 
       PC.onicecandidate = (event) => {
         if (event.candidate) {
+          if (guest?.id) {
+            socket.emit("ice-candidate", { candidate: event.candidate, guest, offerer });
+          }
           iceCandidateBuffer.push(event.candidate);
         }
       };
 
       PC.ontrack = (e: RTCTrackEvent) => {
-        console.log("getting remote streams e.streams ", e.streams);
-        if (e.streams && e.streams[0]) {
-          console.log("tracks on remote stream", e.streams[0].getTracks());
-          const kind = e.streams[0].getTracks()[0].kind;
+        console.log("PC.ontrack event track kind:", e.track.kind, "id:", e.track.id);
+        const incomingStream = (e.streams && e.streams[0]) ? e.streams[0] : new MediaStream([e.track]);
 
-          if (kind === "audio") {
-            console.log("setting up audio remote stream");
-            setStream((prev) => ({ ...prev, audio: e.streams[0] }));
-          }
-          if (kind === "video") {
-            console.log("setting up video remote stream");
-            setStream((prev) => ({ ...prev, video: e.streams[0] }));
-          }
-          if (kind === "screen") {
-            console.log("setting up screen remote stream");
-            setStream((prev) => ({ ...prev, screen: e.streams[0] }));
-          }
+        if (e.track.kind === "video") {
+          console.log("setting up video remote stream");
+          setStream((prev) => ({ ...prev, video: incomingStream }));
+        } else if (e.track.kind === "audio") {
+          console.log("setting up audio remote stream");
+          setStream((prev) => ({ ...prev, audio: incomingStream }));
         }
+
+        e.track.onended = () => {
+          if (e.track.kind === "video") {
+            setStream((prev) => ({ ...prev, video: null }));
+          } else if (e.track.kind === "audio") {
+            setStream((prev) => ({ ...prev, audio: null }));
+          }
+        };
       };
 
       const emitcandidates = () => {
-        console.log("sending ice candidate from guest ");
-        socket?.emit("guest-candidate", { iceCandidateBuffer, guest, offerer });
-      };
-
-      const handleGuestCandidate = async ({ iceCandidateBuffer: receivedCandidates }: Candidate) => {
-        receivedCandidates.forEach(async (candidate) => {
-          await PC.addIceCandidate(candidate);
-        });
-        console.log("adding ice candidate from guest ");
-      };
-
-      const handleCandidate = async ({ iceCandidateBuffer: receivedCandidates }: Candidate) => {
-        console.log("Getting ICE candidate from guest");
-        if (PC.remoteDescription) {
-          receivedCandidates.forEach(async (candidate) => {
-            await PC.addIceCandidate(candidate);
-          });
-          console.log("adding ice candidate from offerer");
-          emitcandidates();
+        if (guest?.id && iceCandidateBuffer.length > 0) {
+          socket.emit("guest-candidate", { iceCandidateBuffer, guest, offerer });
         }
       };
 
+      const handleIceCandidate = async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
+        if (candidate) {
+          await addCandidateSafely(candidate);
+        }
+      };
+
+      const handleGuestCandidate = async ({ iceCandidateBuffer: receivedCandidates }: Candidate) => {
+        if (Array.isArray(receivedCandidates)) {
+          for (const cand of receivedCandidates) {
+            await addCandidateSafely(cand);
+          }
+        }
+      };
+
+      const handleCandidate = async ({ iceCandidateBuffer: receivedCandidates }: Candidate) => {
+        if (Array.isArray(receivedCandidates)) {
+          for (const cand of receivedCandidates) {
+            await addCandidateSafely(cand);
+          }
+        }
+        emitcandidates();
+      };
+
       const handleAnswer = async (data: any) => {
-        if (guest.id === data.offerer.id) {
-          console.log("getting answer");
-          await PC?.setRemoteDescription(data.answer);
-          console.log(iceCandidateBuffer, "ice candifdate buffer ");
-          socket.emit("candidate", { iceCandidateBuffer, guest, offerer });
-          iceCandidateBuffer.length = 0;
+        if (guest.id === data.offerer.id && PC) {
+          console.log("getting answer from guest:", data.offerer.id);
+          await PC.setRemoteDescription(data.answer);
+          await flushPendingCandidates(PC);
+          if (iceCandidateBuffer.length > 0) {
+            socket.emit("candidate", { iceCandidateBuffer, guest, offerer });
+            iceCandidateBuffer.length = 0;
+          }
         }
       };
 
       const handleOffer = async (data: any) => {
-        console.log("getting offer ");
-        const isRenegotiation = guest.id === data.offerer.id;
+        console.log("getting offer from:", data.offerer?.id);
+        const isRenegotiation =
+          (guest.id && data.offerer?.id && guest.id === data.offerer.id) ||
+          (callStates.status === "calling" || callStates.status === "incall");
 
         if (isRenegotiation) {
-          console.log("Renegotiation offer from current guest - auto-answering");
+          console.log("Renegotiation offer from current peer - auto-answering");
           try {
-            // Handle conflicting offers (glare) if necessary, but skipping for simplicity now
             await PC.setRemoteDescription(data.offer);
+            await flushPendingCandidates(PC);
             const answer = await PC.createAnswer();
             await PC.setLocalDescription(answer);
             socket.emit("answer", {
               answer,
               guest: data.offerer,
-              offerer: offerer // I am the responder (offerer in the answer payload context depends on backend naming, usually 'offerer' key in answer packet means 'who sent the answer' or 'who sent the original offer'? 
-              // Looking at backend: socket.on("answer", ({ answer, guest, offerer }))
-              // Backend relays to guest.id (which is the original offerer).
-              // The client 'createAnswer' function uses: socket.emit("answer", { answer, guest, offerer }) where guest is the original offerer.
-              // So here: guest is data.offerer. offerer is ME.
+              offerer: offerer,
             });
           } catch (err) {
             console.error("Error handling renegotiation offer:", err);
@@ -175,14 +228,14 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         if (
           callStates.status === "calling" ||
           callStates.status === "incall" ||
-          PC?.remoteDescription ||
-          guest.id
+          PC.remoteDescription
         ) {
           console.log("user is busy ");
           socket.emit("busy", data);
-          return; // Stop processing if busy
+          return;
         }
-        console.log("offer", data.offerer);
+
+        console.log("incoming call offer from:", data.offerer);
         setOffer(data.offer);
         setGuest(data.offerer);
         setShowComponent((prev) => ({
@@ -194,28 +247,29 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
       const handleUserBusy = ({ guest: busyGuest }: { guest: any }) => {
         console.log("User is busy:", busyGuest?.name);
         toast(`${busyGuest?.name || "User"} is busy with another call.`, {
-          style: { background: "orange", color: "white", fontWeight: 700 }
+          style: { background: "orange", color: "white", fontWeight: 700 },
         });
-        // User requested to keep the window open even if busy
-        // setCallState({ status: "default", action: "default" });
-        // setGuest({ id: "", name: "" });
-        // setShowComponent((prev) => ({ ...prev, showCall: false, showCallWindow: false }));
       };
 
       const handleCallEnded = ({ by }: { by: any }) => {
         console.log("Call ended by:", by?.name);
         toast(`${by?.name || "User"} ended the call.`, {
-          style: { background: "red", color: "white", fontWeight: 700 }
+          style: { background: "red", color: "white", fontWeight: 700 },
         });
         setCallState({ status: "default", action: "default" });
         setGuest({ id: "", name: "" });
         setShowComponent((prev) => ({ ...prev, showCallWindow: false, showCall: false }));
         if (PC) {
-          PC.getSenders().forEach((sender) => PC.removeTrack(sender));
+          PC.getSenders().forEach((sender) => {
+            try {
+              PC.removeTrack(sender);
+            } catch (e) {}
+          });
         }
-        window.location.reload();
+        createPeerConnection();
       };
 
+      socket.on("ice-candidate", handleIceCandidate);
       socket.on("guest-candidate", handleGuestCandidate);
       socket.on("candidate", handleCandidate);
       socket.on("answer", handleAnswer);
@@ -224,6 +278,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
       socket.on("call-ended", handleCallEnded);
 
       return () => {
+        socket.off("ice-candidate", handleIceCandidate);
         socket.off("guest-candidate", handleGuestCandidate);
         socket.off("candidate", handleCandidate);
         socket.off("answer", handleAnswer);
@@ -234,7 +289,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         PC.ontrack = null;
       };
     }
-  }, [PC, socket, guest]); // check deps carefully
+  }, [PC, socket, guest, callStates]);
 
   return (
     <PcContext.Provider value={{ PC, createOffer, createAnswer, createPeerConnection }}>

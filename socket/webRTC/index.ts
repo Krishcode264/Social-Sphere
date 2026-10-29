@@ -62,12 +62,11 @@ export function webRtcIoConnection(socket: Socket) {
 
   //making RTCP handshake
   socket.on("offer", async ({ offer, guest, offerer }: HandShakeDataType) => {
-    if (guest) {
-      console.log("1 => emititign to offer to guest", guest.id)
+    if (guest?.id) {
+      console.log("1 => emititign to offer to guest", guest.id);
       const socketID = await UserService.getUserSocketIdById(guest.id);
       console.log("guests socket id ", socketID, guest.name);
       if (socketID) {
-        console.log("guests socket id ", socketID, guest.name)
         io.to(socketID).emit("offer", {
           offer,
           guest,
@@ -75,26 +74,21 @@ export function webRtcIoConnection(socket: Socket) {
         });
       }
     }
-  })
+  });
 
-
-  //   socket.on("handshaketoRTC", (data: User) => {
-  //     console.log(data, "data from ahndshake with create answer from client ");
-  //   });
   socket.on(
     "answer",
     async ({ answer, guest, offerer }: HandShakeDataType) => {
       console.log("2=> getting create answer from req user", offerer);
-      if (guest) {
-        UserService.getUserSocketIdById(guest.id).then((socketID) => {
-          if (socketID) {
-            io.to(socketID).emit("answer", {
-              answer,
-              guest,
-              offerer
-            });
-          }
-        });
+      if (guest?.id) {
+        const socketID = await UserService.getUserSocketIdById(guest.id);
+        if (socketID) {
+          io.to(socketID).emit("answer", {
+            answer,
+            guest,
+            offerer,
+          });
+        }
       }
     }
   );
@@ -102,35 +96,50 @@ export function webRtcIoConnection(socket: Socket) {
   socket.on(
     "candidate",
     async ({ iceCandidateBuffer, guest, offerer }: Candidate) => {
-      //console.log(guest,"this is from ",offerer.name)
-      console.log("candidate", guest)
-      UserService.getUserSocketIdById(guest.id).then((socketID) => {
+      if (guest?.id) {
+        const socketID = await UserService.getUserSocketIdById(guest.id);
         if (socketID) {
           io.to(socketID).emit("candidate", {
             iceCandidateBuffer,
             offerer,
             guest,
           });
-          console.log("received  target user to send candidate");
+          console.log("received target user to send candidate");
         }
-      });
+      }
     }
   );
 
   socket.on(
     "guest-candidate",
     async ({ iceCandidateBuffer, guest, offerer }: Candidate) => {
-      //console.log(guest,"this is from ",offerer.name)
-      UserService.getUserSocketIdById(guest.id).then((socketID) => {
+      if (guest?.id) {
+        const socketID = await UserService.getUserSocketIdById(guest.id);
         if (socketID) {
           io.to(socketID).emit("guest-candidate", {
             iceCandidateBuffer,
             offerer,
             guest,
           });
-          console.log("received  target user to send candidate");
+          console.log("received target user to send candidate");
         }
-      });
+      }
+    }
+  );
+
+  socket.on(
+    "ice-candidate",
+    async ({ candidate, guest, offerer }: any) => {
+      if (guest?.id) {
+        const socketID = await UserService.getUserSocketIdById(guest.id);
+        if (socketID) {
+          io.to(socketID).emit("ice-candidate", {
+            candidate,
+            offerer,
+            guest,
+          });
+        }
+      }
     }
   );
 

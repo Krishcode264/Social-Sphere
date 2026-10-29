@@ -59,15 +59,17 @@ const WebrtcConnection = () => {
     addTracksToExistingStream(stream, mode);
   };
 
-  const getMedia = async (mode: string) => {
+  const getMedia = async (mode: string): Promise<MediaStream | null> => {
     try {
       const params = mode === "audio" ? { audio: true } : { video: true };
       const mediaStream = await navigator.mediaDevices.getUserMedia(params);
       addtrackTOPC(mediaStream, mode);
       setPermissionError(false); // Clear error on success
+      return mediaStream;
     } catch (err) {
       console.error("Failed to get media permissions:", err);
       setPermissionError(true);
+      return null;
     }
   };
 

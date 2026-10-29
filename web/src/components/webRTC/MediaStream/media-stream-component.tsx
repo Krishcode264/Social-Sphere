@@ -11,35 +11,28 @@ interface MediaProps {
   u:User
 }
 
-export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
+export const VideoComponent: React.FC<MediaProps> = ({ media, target }) => {
   const videoref = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
-    // console.log(media, "from video component ");
-    if (videoref.current) {
-      // console.log(media,"video src object here ")
-       videoref.current.muted = true;
-      videoref.current.srcObject = media;
-      console.log(media.getTracks(), target)
-      videoref.current.addEventListener("loadedmetadata", () => {
-       
-        videoref.current?.play().catch((err) => {
-          console.log("error while playing video on loaded metatdata", err);
-          throw err;
-        });
+    const videoEl = videoref.current;
+    if (videoEl && media) {
+      videoEl.muted = target === "local";
+      videoEl.srcObject = media;
+      videoEl.play().catch((err) => {
+        console.log("Video auto-play:", err);
       });
-         videoref.current.addEventListener("error", (err) => {
-           console.error("Video element error:", err);
-         });
     }
-  }, [videoref, media]);
+  }, [media, target]);
+
   return (
-    <div className="w-full h-full bg-slate-700  rounded-md   ">
+    <div className="w-full h-full bg-slate-700 rounded-md">
       <video
         ref={videoref}
-        className=" defaultvideo popupvideo rounded-sm  h-full w-full bg-cover "
-         
-        
-        autoPlay={true}
+        className="defaultvideo popupvideo rounded-sm h-full w-full bg-cover"
+        autoPlay
+        playsInline
+        muted={target === "local"}
       >
         <track kind="captions"></track>
       </video>
@@ -47,29 +40,23 @@ export const VideoComponent: React.FC<MediaProps> = ({ media ,target }) => {
   );
 };
 
-export const AudioComponent: React.FC<MediaProps> = ({ media ,target,u}) => {
+export const AudioComponent: React.FC<MediaProps> = ({ media, target }) => {
   const audioref = useRef<HTMLAudioElement>(null);
-         console.log(u)
+
   useEffect(() => {
-    if (audioref.current) {
-      audioref.current.srcObject = media;
-      audioref.current.addEventListener("loadedmetadata", () => {
-        audioref.current?.play().catch((err) => {
-          console.log("error while playing video on loaded metatdata", err);
-          throw err;
-        });
+    const audioEl = audioref.current;
+    if (audioEl && media) {
+      audioEl.muted = target === "local";
+      audioEl.srcObject = media;
+      audioEl.play().catch((err) => {
+        console.log("Audio auto-play failed:", err);
       });
     }
-  }, []);
+  }, [media, target]);
+
   return (
-   
-
-     
-        <audio ref={audioref} className="" muted={target==="local"? true : false}>
-          <track kind="captions"></track>
-        </audio>
-      
-
-  
+    <audio ref={audioref} autoPlay playsInline muted={target === "local"}>
+      <track kind="captions"></track>
+    </audio>
   );
 };
