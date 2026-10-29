@@ -15,14 +15,23 @@ export const VideoComponent: React.FC<MediaProps> = ({ media, target }) => {
   const videoref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const videoEl = videoref.current;
     if (videoEl && media) {
       videoEl.muted = target === "local";
       videoEl.srcObject = media;
-      videoEl.play().catch((err) => {
-        console.log("Video auto-play:", err);
-      });
+      const playPromise = videoEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          if (isMounted && err.name !== "AbortError") {
+            console.log("Video auto-play:", err);
+          }
+        });
+      }
     }
+    return () => {
+      isMounted = false;
+    };
   }, [media, target]);
 
   return (
@@ -44,14 +53,23 @@ export const AudioComponent: React.FC<MediaProps> = ({ media, target }) => {
   const audioref = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const audioEl = audioref.current;
     if (audioEl && media) {
       audioEl.muted = target === "local";
       audioEl.srcObject = media;
-      audioEl.play().catch((err) => {
-        console.log("Audio auto-play failed:", err);
-      });
+      const playPromise = audioEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          if (isMounted && err.name !== "AbortError") {
+            console.log("Audio auto-play failed:", err);
+          }
+        });
+      }
     }
+    return () => {
+      isMounted = false;
+    };
   }, [media, target]);
 
   return (

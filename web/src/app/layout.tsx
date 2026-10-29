@@ -27,7 +27,7 @@ export default async function RootLayout({
     <html lang="en">
       <head>
         <title>Social Sphere</title>
-        <link rel="icon" href="@/images/logo.jpg" type="image/jpg"></link>
+        <link rel="icon" href={logo.src} type="image/jpeg" />
         <meta name="referrer" content="no-referrer" />
       </head>
       <body className="  h-screen w-screen">

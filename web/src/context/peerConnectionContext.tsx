@@ -14,8 +14,9 @@ import { mediaStreamState, remoteStreamState } from "@/store/atoms/media-stream-
 export type PCContextType = {
   PC: RTCPeerConnection | null;
   createOffer: () => Promise<RTCSessionDescriptionInit | undefined>;
-  createAnswer: () => void;
+  createAnswer: () => Promise<void>;
   createPeerConnection: () => RTCPeerConnection;
+  attachLocalTrackToPC: (track: MediaStreamTrack | null, kind: "audio" | "video") => Promise<void>;
 };
 const PcContext = createContext<PCContextType | null>(null);
 
@@ -42,15 +43,23 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   const iceCandidateBuffer: RTCIceCandidate[] = [];
   const pendingCandidates: RTCIceCandidateInit[] = [];
 
+  const createPeerConnectionInstance = () => {
+    const newPC = new RTCPeerConnection(configForPeerconnection);
+    // Prepare transceivers upfront with sendrecv for instant zero-renegotiation media
+    newPC.addTransceiver("audio", { direction: "sendrecv" });
+    newPC.addTransceiver("video", { direction: "sendrecv" });
+    return newPC;
+  };
+
   const [PC, setPeerConnection] = useState<RTCPeerConnection | null>(() => {
     if (typeof window !== "undefined") {
-      return new RTCPeerConnection(configForPeerconnection);
+      return createPeerConnectionInstance();
     }
     return null;
   });
 
   const createPeerConnection = () => {
-    const newPeerConnection = new RTCPeerConnection(configForPeerconnection);
+    const newPeerConnection = createPeerConnectionInstance();
     setPeerConnection(newPeerConnection);
     return newPeerConnection;
   };
@@ -78,6 +87,36 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (err) {
       console.error("Error in addCandidateSafely:", err);
+    }
+  };
+
+  const attachLocalTrackToPC = async (track: MediaStreamTrack | null, kind: "audio" | "video") => {
+    if (!PC) return;
+    try {
+      const transceivers = PC.getTransceivers();
+      const transceiver = transceivers.find(
+        (t) => t.receiver.track.kind === kind || t.sender.track?.kind === kind
+      );
+
+      if (transceiver && transceiver.sender) {
+        await transceiver.sender.replaceTrack(track);
+        console.log(`[WebRTC] replaceTrack succeeded for ${kind}:`, track ? track.id : "null (off)");
+        return;
+      }
+
+      const sender = PC.getSenders().find((s) => s.track?.kind === kind);
+      if (sender) {
+        await sender.replaceTrack(track);
+        console.log(`[WebRTC] replaceTrack via sender succeeded for ${kind}:`, track ? track.id : "null (off)");
+        return;
+      }
+
+      if (track) {
+        PC.addTrack(track);
+        console.log(`[WebRTC] addTrack for ${kind}:`, track.id);
+      }
+    } catch (err) {
+      console.error(`[WebRTC] Failed to attach track for ${kind}:`, err);
     }
   };
 
@@ -112,7 +151,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
           guest,
           offerer,
         });
-        setCallState(() => ({ status: "calling", action: "receiver" }));
+        setCallState(() => ({ status: "incall", action: "receiver" }));
       }
     }
   };
@@ -126,8 +165,13 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
     if (PC && socket) {
       PC.onnegotiationneeded = async () => {
         try {
-          if (guest?.id && (callStateRef.current.status === "calling" || callStateRef.current.status === "incall")) {
-            console.log("Renegotiation needed - creating new offer for guest:", guest.id);
+          if (
+            guest?.id &&
+            callStateRef.current.action === "offerer" &&
+            callStateRef.current.status === "incall" &&
+            PC.signalingState === "stable"
+          ) {
+            console.log("Renegotiation needed (offerer only) - creating new offer for guest:", guest.id);
             await createOffer();
           }
         } catch (err) {
@@ -157,10 +201,20 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         e.track.onended = () => {
+          console.log(`[WebRTC] Remote track ended: ${e.track.kind}`);
           if (e.track.kind === "video") {
             setStream((prev) => ({ ...prev, video: null }));
           } else if (e.track.kind === "audio") {
             setStream((prev) => ({ ...prev, audio: null }));
+          }
+        };
+
+        e.track.onunmute = () => {
+          console.log(`[WebRTC] Remote track unmuted: ${e.track.kind}`);
+          if (e.track.kind === "video") {
+            setStream((prev) => ({ ...prev, video: incomingStream }));
+          } else if (e.track.kind === "audio") {
+            setStream((prev) => ({ ...prev, audio: incomingStream }));
           }
         };
       };
@@ -264,13 +318,13 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         });
         setCallState({ status: "default", action: "default" });
         setGuest({ id: "", name: "" });
+        setStream({ audio: null, video: null, screen: null });
         setShowComponent((prev) => ({ ...prev, showCallWindow: false, showCall: false }));
         if (PC) {
-          PC.getSenders().forEach((sender) => {
-            try {
-              PC.removeTrack(sender);
-            } catch (e) {}
-          });
+          PC.onicecandidate = null;
+          PC.ontrack = null;
+          PC.onnegotiationneeded = null;
+          PC.close();
         }
         createPeerConnection();
       };
@@ -299,7 +353,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
   }, [PC, socket, guest]);
 
   return (
-    <PcContext.Provider value={{ PC, createOffer, createAnswer, createPeerConnection }}>
+    <PcContext.Provider value={{ PC, createOffer, createAnswer, createPeerConnection, attachLocalTrackToPC }}>
       {children}
     </PcContext.Provider>
   );

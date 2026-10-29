@@ -57,11 +57,11 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
 };
 interface MediaStreamProps {
   getMedia: (s: string, attachToPC?: boolean) => Promise<MediaStream | null>;
-  addtrackTOPC: (stream: MediaStream, mode?: string) => void;
+  addtrackTOPC: (stream: MediaStream, mode?: string) => Promise<void> | void;
 }
 
 const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => {
-  const { PC, createOffer, createAnswer, createPeerConnection } = usePC();
+  const { PC, createOffer, createAnswer, createPeerConnection, attachLocalTrackToPC } = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
   const [userCallState, setcallstate] = useRecoilState(callState);
@@ -76,29 +76,27 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
   console.log(userCallState, "user call state");
 
   const toggleTracks = async (type: string) => {
-    const isCallActive =
-      userCallState.status === "calling" || userCallState.status === "incall";
-
     if (type === "audio") {
       const nextAudio = !audio;
       setAudio(nextAudio);
 
       if (nextAudio) {
-        if (!audioStream || audioStream.getAudioTracks().length === 0) {
-          const stream = await getMedia("audio", isCallActive);
-          if (stream) {
-            stream.getAudioTracks().forEach((t) => (t.enabled = true));
-          }
-        } else {
-          audioStream.getAudioTracks().forEach((t) => (t.enabled = true));
-          if (isCallActive) {
-            addtrackTOPC(audioStream, "audio");
+        let stream = audioStream;
+        if (!stream || stream.getAudioTracks().length === 0) {
+          stream = await getMedia("audio", false);
+        }
+        if (stream) {
+          const track = stream.getAudioTracks()[0];
+          if (track) {
+            track.enabled = true;
+            await attachLocalTrackToPC(track, "audio");
           }
         }
       } else {
         if (audioStream) {
           audioStream.getAudioTracks().forEach((t) => (t.enabled = false));
         }
+        await attachLocalTrackToPC(null, "audio");
       }
     }
 
@@ -107,21 +105,22 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
       setVideo(nextVideo);
 
       if (nextVideo) {
-        if (!videoStream || videoStream.getVideoTracks().length === 0) {
-          const stream = await getMedia("video", isCallActive);
-          if (stream) {
-            stream.getVideoTracks().forEach((t) => (t.enabled = true));
-          }
-        } else {
-          videoStream.getVideoTracks().forEach((t) => (t.enabled = true));
-          if (isCallActive) {
-            addtrackTOPC(videoStream, "video");
+        let stream = videoStream;
+        if (!stream || stream.getVideoTracks().length === 0) {
+          stream = await getMedia("video", false);
+        }
+        if (stream) {
+          const track = stream.getVideoTracks()[0];
+          if (track) {
+            track.enabled = true;
+            await attachLocalTrackToPC(track, "video");
           }
         }
       } else {
         if (videoStream) {
           videoStream.getVideoTracks().forEach((t) => (t.enabled = false));
         }
+        await attachLocalTrackToPC(null, "video");
       }
     }
   };
@@ -157,10 +156,12 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
 
       // Attach enabled local tracks to PC before creating the offer
       if (audio && audioStream) {
-        addtrackTOPC(audioStream, "audio");
+        const track = audioStream.getAudioTracks()[0];
+        if (track) await attachLocalTrackToPC(track, "audio");
       }
       if (video && videoStream) {
-        addtrackTOPC(videoStream, "video");
+        const track = videoStream.getVideoTracks()[0];
+        if (track) await attachLocalTrackToPC(track, "video");
       }
 
       setcallstate({ status: "calling", action: "offerer" });
@@ -168,7 +169,7 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
       return;
     }
 
-    // 2. Receiver answering the incoming call
+    // 2. Receiver answering the incoming call (if manual green button clicked)
     if (
       userCallState.action === "receiver" &&
       userCallState.status === "default"
@@ -176,14 +177,15 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
       console.log("Receiver answering call from guest:", guest.id);
 
       if (audio && audioStream) {
-        addtrackTOPC(audioStream, "audio");
+        const track = audioStream.getAudioTracks()[0];
+        if (track) await attachLocalTrackToPC(track, "audio");
       }
       if (video && videoStream) {
-        addtrackTOPC(videoStream, "video");
+        const track = videoStream.getVideoTracks()[0];
+        if (track) await attachLocalTrackToPC(track, "video");
       }
 
       await createAnswer();
-      setcallstate({ status: "incall", action: "receiver" });
       return;
     }
 
@@ -204,8 +206,7 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
       if (PC) {
         PC.onicecandidate = null;
         PC.ontrack = null;
-        PC.oniceconnectionstatechange = null;
-        PC.ondatachannel = null;
+        PC.onnegotiationneeded = null;
         PC.close();
       }
 
@@ -223,35 +224,43 @@ const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => 
     }
   };
 
-  /* Preview setup: Offerer only previews locally; Receiver answers call */
+  /* Preview setup: Offerer only previews locally; Receiver answers call immediately */
   useEffect(() => {
-    const initPreview = async () => {
-      if (
+    const initCall = async () => {
+      if (userCallState.action === "receiver") {
+        // Receiver accepted incoming call: answer immediately to establish peer connection!
+        console.log("Auto-answering incoming call as receiver");
+        await createAnswer();
+
+        // Optionally acquire media if user permits; doesn't block receiving media
+        const aStream = await getMedia("audio", false);
+        if (aStream) {
+          setAudio(true);
+          const track = aStream.getAudioTracks()[0];
+          if (track) await attachLocalTrackToPC(track, "audio");
+        }
+        if (mode === "video" || mode === "") {
+          const vStream = await getMedia("video", false);
+          if (vStream) {
+            setVideo(true);
+            const track = vStream.getVideoTracks()[0];
+            if (track) await attachLocalTrackToPC(track, "video");
+          }
+        }
+      } else if (
         userCallState.action === "default" &&
         userCallState.status === "default"
       ) {
-        // Offerer popup opened: pre-acquire local media for preview ONLY (do NOT attach to PC yet)
+        // Offerer popup opened: pre-acquire local media for preview ONLY
         const aStream = await getMedia("audio", false);
         if (aStream) setAudio(true);
-        if (mode === "video") {
+        if (mode === "video" || mode === "") {
           const vStream = await getMedia("video", false);
           if (vStream) setVideo(true);
         }
-      } else if (
-        userCallState.action === "receiver" &&
-        userCallState.status === "default"
-      ) {
-        // Receiver accepted incoming call: acquire media and answer
-        const aStream = await getMedia("audio", true);
-        if (aStream) setAudio(true);
-        if (mode === "video") {
-          const vStream = await getMedia("video", true);
-          if (vStream) setVideo(true);
-        }
-        await startCall();
       }
     };
-    initPreview();
+    initCall();
   }, []);
 
   const u = useRecoilValue(userInfoState);
