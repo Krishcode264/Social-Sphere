@@ -55,7 +55,12 @@ export const ToggleButtons: React.FC<ToggleButtonsProps> = ({
     </>
   );
 };
-const MediaStream = ({ getMedia }: { getMedia: (s: string) => Promise<MediaStream | null> }) => {
+interface MediaStreamProps {
+  getMedia: (s: string, attachToPC?: boolean) => Promise<MediaStream | null>;
+  addtrackTOPC: (stream: MediaStream, mode?: string) => void;
+}
+
+const MediaStream: React.FC<MediaStreamProps> = ({ getMedia, addtrackTOPC }) => {
   const { PC, createOffer, createAnswer, createPeerConnection } = usePC();
   const [audio, setAudio] = useState(false);
   const [video, setVideo] = useState(false);
@@ -71,26 +76,62 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => Promise<MediaStrea
   console.log(userCallState, "user call state");
 
   const toggleTracks = async (type: string) => {
-    const existingSenders = PC?.getSenders().filter((sender) => sender.track?.kind === type) || [];
-    if (existingSenders.length === 0) {
-      const stream = await getMedia(type);
-      if (stream) {
-        type === "audio" ? setAudio(true) : setVideo(true);
+    const isCallActive =
+      userCallState.status === "calling" || userCallState.status === "incall";
+
+    if (type === "audio") {
+      const nextAudio = !audio;
+      setAudio(nextAudio);
+
+      if (nextAudio) {
+        if (!audioStream || audioStream.getAudioTracks().length === 0) {
+          const stream = await getMedia("audio", isCallActive);
+          if (stream) {
+            stream.getAudioTracks().forEach((t) => (t.enabled = true));
+          }
+        } else {
+          audioStream.getAudioTracks().forEach((t) => (t.enabled = true));
+          if (isCallActive) {
+            addtrackTOPC(audioStream, "audio");
+          }
+        }
+      } else {
+        if (audioStream) {
+          audioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+        }
       }
-      return;
     }
 
-    PC?.getSenders().forEach((sender: RTCRtpSender) => {
-      if (sender.track?.kind === type) {
-        sender.track.enabled = !sender.track.enabled;
-        console.log(type, "enabled:", sender.track.enabled);
+    if (type === "video") {
+      const nextVideo = !video;
+      setVideo(nextVideo);
+
+      if (nextVideo) {
+        if (!videoStream || videoStream.getVideoTracks().length === 0) {
+          const stream = await getMedia("video", isCallActive);
+          if (stream) {
+            stream.getVideoTracks().forEach((t) => (t.enabled = true));
+          }
+        } else {
+          videoStream.getVideoTracks().forEach((t) => (t.enabled = true));
+          if (isCallActive) {
+            addtrackTOPC(videoStream, "video");
+          }
+        }
+      } else {
+        if (videoStream) {
+          videoStream.getVideoTracks().forEach((t) => (t.enabled = false));
+        }
       }
-    });
-    type === "audio" ? setAudio((prev) => !prev) : setVideo((prev) => !prev);
+    }
   };
 
   const handleCallWindowClose = async () => {
-    if (guest?.id) {
+    if (
+      (userCallState.status === "calling" ||
+        userCallState.status === "incall") &&
+      guest?.id
+    ) {
       socket?.emit("end-call", { guest, offerer });
     }
     videoStream?.getTracks().forEach((track) => track.stop());
@@ -107,14 +148,46 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => Promise<MediaStrea
   const resetRemoteStreamState = useResetRecoilState(remoteStreamState);
 
   const startCall = async () => {
-    if (userCallState.action === "default") {
+    // 1. Offerer explicitly clicks the green call button in popup to initiate the call!
+    if (
+      userCallState.action === "default" &&
+      userCallState.status === "default"
+    ) {
+      console.log("Green call button clicked: Initiating call to guest:", guest.id);
+
+      // Attach enabled local tracks to PC before creating the offer
+      if (audio && audioStream) {
+        addtrackTOPC(audioStream, "audio");
+      }
+      if (video && videoStream) {
+        addtrackTOPC(videoStream, "video");
+      }
+
+      setcallstate({ status: "calling", action: "offerer" });
       await createOffer();
-      setcallstate((prev) => ({ status: "calling", action: "offerer" }));
-    }
-    if (userCallState.action === "receiver") {
-      await createAnswer();
+      return;
     }
 
+    // 2. Receiver answering the incoming call
+    if (
+      userCallState.action === "receiver" &&
+      userCallState.status === "default"
+    ) {
+      console.log("Receiver answering call from guest:", guest.id);
+
+      if (audio && audioStream) {
+        addtrackTOPC(audioStream, "audio");
+      }
+      if (video && videoStream) {
+        addtrackTOPC(videoStream, "video");
+      }
+
+      await createAnswer();
+      setcallstate({ status: "incall", action: "receiver" });
+      return;
+    }
+
+    // 3. Ending active call (red button clicked)
     if (
       userCallState.status === "calling" ||
       userCallState.status === "incall"
@@ -150,20 +223,35 @@ const MediaStream = ({ getMedia }: { getMedia: (s: string) => Promise<MediaStrea
     }
   };
 
-  /* Auto-start call for receiver & pre-acquire media for offerer */
+  /* Preview setup: Offerer only previews locally; Receiver answers call */
   useEffect(() => {
-    const initCall = async () => {
-      if (userCallState.action === "receiver" && userCallState.status === "default") {
-        await toggleTracks("audio");
-        await startCall();
-      } else if (userCallState.action === "default" && userCallState.status === "default") {
-        await toggleTracks("audio");
+    const initPreview = async () => {
+      if (
+        userCallState.action === "default" &&
+        userCallState.status === "default"
+      ) {
+        // Offerer popup opened: pre-acquire local media for preview ONLY (do NOT attach to PC yet)
+        const aStream = await getMedia("audio", false);
+        if (aStream) setAudio(true);
         if (mode === "video") {
-          await toggleTracks("video");
+          const vStream = await getMedia("video", false);
+          if (vStream) setVideo(true);
         }
+      } else if (
+        userCallState.action === "receiver" &&
+        userCallState.status === "default"
+      ) {
+        // Receiver accepted incoming call: acquire media and answer
+        const aStream = await getMedia("audio", true);
+        if (aStream) setAudio(true);
+        if (mode === "video") {
+          const vStream = await getMedia("video", true);
+          if (vStream) setVideo(true);
+        }
+        await startCall();
       }
     };
-    initCall();
+    initPreview();
   }, []);
 
   const u = useRecoilValue(userInfoState);

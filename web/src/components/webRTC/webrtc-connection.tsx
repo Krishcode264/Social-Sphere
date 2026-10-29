@@ -39,7 +39,7 @@ const WebrtcConnection = () => {
     }
   };
 
-  const addtrackTOPC = (stream: MediaStream, mode: string) => {
+  const addtrackTOPC = (stream: MediaStream, mode?: string) => {
     const senders = PC?.getSenders();
 
     stream.getTracks().forEach((track) => {
@@ -47,8 +47,8 @@ const WebrtcConnection = () => {
         (sender) => sender.track === track
       );
 
-      if (!trackAlreadyExists) {
-        PC?.addTrack(track, stream);
+      if (!trackAlreadyExists && PC) {
+        PC.addTrack(track, stream);
         console.log("Track added to peer connection:", track);
       } else {
         console.log("Track already exists in peer connection:", track);
@@ -56,14 +56,20 @@ const WebrtcConnection = () => {
     });
     console.log(stream.getTracks(), "tracks of the stream");
 
-    addTracksToExistingStream(stream, mode);
+    if (mode) {
+      addTracksToExistingStream(stream, mode);
+    }
   };
 
-  const getMedia = async (mode: string): Promise<MediaStream | null> => {
+  const getMedia = async (mode: string, attachToPC: boolean = false): Promise<MediaStream | null> => {
     try {
       const params = mode === "audio" ? { audio: true } : { video: true };
       const mediaStream = await navigator.mediaDevices.getUserMedia(params);
-      addtrackTOPC(mediaStream, mode);
+      if (attachToPC) {
+        addtrackTOPC(mediaStream, mode);
+      } else {
+        addTracksToExistingStream(mediaStream, mode);
+      }
       setPermissionError(false); // Clear error on success
       return mediaStream;
     } catch (err) {
@@ -80,11 +86,7 @@ const WebrtcConnection = () => {
         <p className="text-slate-400">Please allow access to your camera and microphone to continue the call.</p>
         <button
           onClick={() => {
-            getMedia("audio"); // Retry (defaulting to audio/video based on flow context usually, simplified here)
-            // Ideally we should know which one failed or retry both if needed.
-            // For now, let's assume we retry based on the active call type or just reset and let the user trigger it via the MediaPermission component if visible
-            // Actually, MediaStream/MediaPermission component handles the buttons.
-            // But if we blocked here, we need a way to retry.
+            getMedia("audio", false);
             setPermissionError(false);
           }}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
@@ -95,7 +97,7 @@ const WebrtcConnection = () => {
     );
   }
 
-  return <MediaStream getMedia={getMedia} />;
+  return <MediaStream getMedia={getMedia} addtrackTOPC={addtrackTOPC} />;
 };
 
 export default WebrtcConnection;

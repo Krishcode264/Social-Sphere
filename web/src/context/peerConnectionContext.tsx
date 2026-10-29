@@ -1,7 +1,7 @@
 "use client";
 import { userInfoState } from "@/store/selectors/user-selector";
 import { toast } from "sonner";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSocket } from "./socketContext";
 import type { Candidate } from "@/types/types";
@@ -117,11 +117,16 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const callStateRef = useRef(callStates);
+  useEffect(() => {
+    callStateRef.current = callStates;
+  }, [callStates]);
+
   useEffect(() => {
     if (PC && socket) {
       PC.onnegotiationneeded = async () => {
         try {
-          if (guest?.id && (callStates.status === "calling" || callStates.status === "incall")) {
+          if (guest?.id && (callStateRef.current.status === "calling" || callStateRef.current.status === "incall")) {
             console.log("Renegotiation needed - creating new offer for guest:", guest.id);
             await createOffer();
           }
@@ -194,6 +199,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
           console.log("getting answer from guest:", data.offerer.id);
           await PC.setRemoteDescription(data.answer);
           await flushPendingCandidates(PC);
+          setCallState((prev) => ({ ...prev, status: "incall" }));
           if (iceCandidateBuffer.length > 0) {
             socket.emit("candidate", { iceCandidateBuffer, guest, offerer });
             iceCandidateBuffer.length = 0;
@@ -205,7 +211,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("getting offer from:", data.offerer?.id);
         const isRenegotiation =
           (guest.id && data.offerer?.id && guest.id === data.offerer.id) ||
-          (callStates.status === "calling" || callStates.status === "incall");
+          (callStateRef.current.status === "calling" || callStateRef.current.status === "incall");
 
         if (isRenegotiation) {
           console.log("Renegotiation offer from current peer - auto-answering");
@@ -226,8 +232,8 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         if (
-          callStates.status === "calling" ||
-          callStates.status === "incall" ||
+          callStateRef.current.status === "calling" ||
+          callStateRef.current.status === "incall" ||
           PC.remoteDescription
         ) {
           console.log("user is busy ");
@@ -285,11 +291,12 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         socket.off("offer", handleOffer);
         socket.off("user-busy", handleUserBusy);
         socket.off("call-ended", handleCallEnded);
+        PC.onnegotiationneeded = null;
         PC.onicecandidate = null;
         PC.ontrack = null;
       };
     }
-  }, [PC, socket, guest, callStates]);
+  }, [PC, socket, guest]);
 
   return (
     <PcContext.Provider value={{ PC, createOffer, createAnswer, createPeerConnection }}>

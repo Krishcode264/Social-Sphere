@@ -11,30 +11,27 @@ import { useContext } from "react";
 import { showComponentState } from "@/store/atoms/show-component";
 import { useSocket } from "@/context/socketContext";
 import { usePC } from "@/context/peerConnectionContext";
+import { userInfoState } from "@/store/selectors/user-selector";
 import { callState } from "@/store/atoms/calling-state";
+
 const Call = () => {
-  
-  const [persontoHandshake , setPersontoHandshake] = useRecoilState(guestState);
-  const {createAnswer}= usePC()
-
+  const [persontoHandshake, setPersontoHandshake] = useRecoilState(guestState);
+  const { createAnswer } = usePC();
+  const offerer = useRecoilValue(userInfoState);
   const [offer, setOffer] = useRecoilState(offerState);
-const socket=useSocket()
-  const setShowComponent=useSetRecoilState(showComponentState)
-  const [callstate,setCall]=useRecoilState(callState)
-    
-
+  const socket = useSocket();
+  const setShowComponent = useSetRecoilState(showComponentState);
+  const [callstate, setCall] = useRecoilState(callState);
 
   const handleAccept = async (): Promise<void> => {
-if(callstate.status === "default" && callstate.action==="default"){
-     setCall((prev) => ({ status: "default", action: "receiver" }));
-     setShowComponent((prev) => ({
-       ...prev,
-       showCall: false,
-       showCallWindow: true,
-     }));
-}
-    
-            
+    if (callstate.status === "default" && callstate.action === "default") {
+      setCall((prev) => ({ status: "default", action: "receiver" }));
+      setShowComponent((prev) => ({
+        ...prev,
+        showCall: false,
+        showCallWindow: true,
+      }));
+    }
   };
 
   const handleAcceptClick = () => {
@@ -42,10 +39,14 @@ if(callstate.status === "default" && callstate.action==="default"){
       console.error("Error in handleAccept:", error);
     });
   };
+
   const handleReject = (): void => {
+    if (persontoHandshake?.id) {
+      socket?.emit("end-call", { guest: persontoHandshake, offerer });
+    }
     setShowComponent((prev) => ({ ...prev, showCall: false }));
     setPersontoHandshake({ name: "", id: "" });
-    setOffer( null );
+    setOffer(null);
   };
 
   return (
