@@ -2,6 +2,7 @@ import axios from "axios";
 
 export const API = axios.create({
   baseURL: process.env.NEXT_PUBLIC_SOCKET_SERVER_URL,
+  timeout: 8000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

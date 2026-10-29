@@ -5,6 +5,8 @@ import axios from "axios";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 
+axios.defaults.timeout = 8000;
+
 //dont need to pass explicit token anymore issue resolved , keep in mind dont call server actions inside tanstak query :)))))
 
 // Get raw JWT token from cookie (if present)

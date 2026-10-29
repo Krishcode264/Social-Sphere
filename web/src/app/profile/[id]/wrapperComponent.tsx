@@ -1,10 +1,6 @@
-// "use client"
+"use client";
 import Loading from "@/app/loading";
-import AuthNav from "@/components/profile/auth_nav";
-import { userInfoState } from "@/store/selectors/user-selector";
-
 import React, { Suspense } from "react";
-import { useRecoilValue } from "recoil";
 
 const WrapperComponent = ({ children }: { children: React.ReactNode[] }) => {
       // const { id } = useRecoilValue(userInfoState);
