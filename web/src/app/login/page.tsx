@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { redirect, useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -7,6 +8,7 @@ import { z } from "zod";
 import { UserAuthState, userBasicInfoState } from "@/store/atoms/user-atom";
 import Link from "next/link";
 import WorkspacesOutlinedIcon from "@mui/icons-material/WorkspacesOutlined";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import googlePic from "@/images/google.png";
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -22,6 +24,7 @@ type FormFields = z.infer<typeof LoginSchema>;
 const Login = () => {
   const Router = useRouter();
   const setIsAuthenticated = useSetRecoilState(UserAuthState)
+  const [isGuestSubmitting, setIsGuestSubmitting] = useState(false);
   const handleLoginWithGoogle = () => {
     const path = `${process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}/auth/google`;
     window.location.href = path;
@@ -34,6 +37,38 @@ const Login = () => {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({ resolver: zodResolver(LoginSchema) });
+
+  const handleGuestLogin = async () => {
+    try {
+      setIsGuestSubmitting(true);
+      const res = await API.post(`/auth/guest`, {}, { withCredentials: true });
+      if (res.data.status === "success") {
+        const { user, token } = res.data;
+        setUser((prevUser) => ({
+          ...prevUser,
+          ...user,
+        }));
+        setIsAuthenticated({ isAuthenticated: true });
+        if (token) {
+          window.sessionStorage.setItem("token", token);
+        }
+        const previousRoute = window.sessionStorage.getItem("privousRoute");
+        if (previousRoute) {
+          window.sessionStorage.removeItem("privousRoute");
+          Router.replace(previousRoute);
+        } else {
+          Router.replace("/");
+        }
+      } else {
+        setError("root", { message: res.data.message || "Failed to log in as guest" });
+      }
+    } catch (err: any) {
+      console.error("Guest login error:", err);
+      setError("root", { message: "Could not log in as guest. Please try again." });
+    } finally {
+      setIsGuestSubmitting(false);
+    }
+  };
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     if (process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
@@ -98,7 +133,7 @@ const Login = () => {
           )}
 
           <button
-            disabled={isSubmitting}
+            disabled={isSubmitting || isGuestSubmitting}
             type="submit"
             className="p-2 rounded-xl text-xl hover:bg-blue-700 text-slate-100 bg-blue-600 font-medium "
           >
@@ -107,9 +142,29 @@ const Login = () => {
               <WorkspacesOutlinedIcon className="animate-spin" />
             )}
           </button>
+
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isGuestSubmitting}
+            onClick={handleGuestLogin}
+            className="p-2.5 hover:bg-emerald-600 active:scale-[0.98] transition-all rounded-xl text-lg bg-emerald-500 text-white font-semibold flex items-center justify-center gap-2 shadow-md shadow-emerald-950/40"
+          >
+            {isGuestSubmitting ? (
+              <>
+                <WorkspacesOutlinedIcon className="animate-spin" />
+                <span>Entering as Guest...</span>
+              </>
+            ) : (
+              <>
+                <AccountCircleIcon className="text-2xl" />
+                <span>Sign in as Guest</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={isSubmitting || isGuestSubmitting}
             data-onsuccess="onSignIn"
             onClick={handleLoginWithGoogle}
             className="g-signin2 p-2 hover:bg-slate-700 rounded-xl text-xl bg-slate-800 text-slate-400 font-medium flex items-center justify-center gap-2"

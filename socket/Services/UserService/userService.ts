@@ -80,7 +80,7 @@ export default class UserService {
   static getUserProfile = async (id: string) => {
     try {
       const User = await UserData.findById(id).select(
-        "name age email  profile gender intrests _id  languages_learning_or_speak pronouns userName places_want_to_visit likedPhotos"
+        "name age email profile gender intrests _id languages_learning_or_speak pronouns userName places_want_to_visit likedPhotos intro"
       );
       // const photos = await PhotosData.find({ uploader: User?._id }).select(
       //   "key imageUrl uploadedAt likes _id urlExpirationTime"

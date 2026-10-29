@@ -8,6 +8,7 @@ export const userSchema = new Schema({
   },
   userName:{type:String},
   pronouns:{type:String},
+  intro:{type:String},
   password: { type: String },
   socketID: { type: String },
   email: { type: String ,unique:true},

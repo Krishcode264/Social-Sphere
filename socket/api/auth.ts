@@ -256,9 +256,137 @@ const handleUserLogout = (req: Request, res: Response) => {
   res.status(200).send("Logged out successfully");
 };
 
+const handleGuestLogin = async (req: Request, res: Response) => {
+  try {
+    let guestUser = await UserData.findOne({ email: DUMMY_GUEST_USER.email });
+
+    if (!guestUser) {
+      guestUser = await UserData.create(DUMMY_GUEST_USER);
+    } else {
+      // Ensure existing guest profile has rich metadata populated
+      if (!guestUser.intro || !guestUser.intrests?.length) {
+        guestUser.intro = DUMMY_GUEST_USER.intro;
+        guestUser.intrests = DUMMY_GUEST_USER.intrests;
+        guestUser.places_want_to_visit = DUMMY_GUEST_USER.places_want_to_visit;
+        guestUser.languages_learning_or_speak = DUMMY_GUEST_USER.languages_learning_or_speak;
+        guestUser.profile = guestUser.profile || DUMMY_GUEST_USER.profile;
+        guestUser.country = guestUser.country || DUMMY_GUEST_USER.country;
+        guestUser.pronouns = guestUser.pronouns || DUMMY_GUEST_USER.pronouns;
+        await guestUser.save();
+      }
+    }
+
+    // Ensure sample posts exist for guest user
+    try {
+      const existingPhotos = await PhotosData.find({ uploader: guestUser._id });
+      if (existingPhotos.length === 0) {
+        for (const photo of DUMMY_GUEST_PHOTOS) {
+          await PhotosData.create({
+            ...photo,
+            uploader: guestUser._id,
+            likes: [],
+            comments: [],
+          });
+        }
+      }
+    } catch (photoErr) {
+      console.warn("Could not seed dummy photos for guest user:", photoErr);
+    }
+
+    const token = generateToken({
+      name: guestUser.name,
+      id: guestUser._id,
+      profile: guestUser.profile,
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+
+    return res.send({
+      status: "success",
+      message: "Successfully logged in as guest",
+      user: sanitizeUserData(guestUser),
+      token,
+    });
+  } catch (err) {
+    console.error("Guest login failed:", err);
+    return res.status(500).send({
+      status: "error",
+      message: "Failed to sign in as guest. Please try again.",
+    });
+  }
+};
+
+const DUMMY_GUEST_USER = {
+  name: "Guest Explorer",
+  userName: "guest_explorer",
+  email: "guest@socialsphere.demo",
+  pronouns: "They/Them",
+  intro: "Welcome to Social-Sphere! 🚀 I'm a guest explorer account for recruiters, hiring managers, and visitors to test out real-time WebRTC video calls, chat, presence, and interactive feeds.",
+  country: "United States",
+  age: 26,
+  gender: "Non-binary",
+  sexuality: "Open",
+  intrests: [
+    "Full-Stack Engineering",
+    "React & Next.js",
+    "WebRTC Video & Audio",
+    "System Design",
+    "UI/UX Design",
+    "Open Source",
+    "Photography",
+  ],
+  places_want_to_visit: [
+    "Tokyo, Japan",
+    "San Francisco, USA",
+    "Reykjavik, Iceland",
+    "Zurich, Switzerland",
+    "Kyoto, Japan",
+  ],
+  languages_learning_or_speak: [
+    "English (Fluent)",
+    "Spanish (Conversational)",
+    "Japanese (Learning)",
+  ],
+  profile: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+  authType: {
+    provider: "guest",
+  },
+};
+
+const DUMMY_GUEST_PHOTOS = [
+  {
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+    key: "guest_sample_1",
+    caption: "Exploring Yosemite Valley at sunset 🌄 #nature #travel #hiking",
+    tags: ["nature", "travel", "hiking"],
+    urlExpirationTime: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1000&q=80",
+    key: "guest_sample_2",
+    caption: "Late night coding sessions & building real-time WebRTC apps 💻⚡ #developer #react #coding",
+    tags: ["developer", "react", "coding"],
+    urlExpirationTime: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000),
+  },
+  {
+    imageUrl: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1000&q=80",
+    key: "guest_sample_3",
+    caption: "Coffee & photography weekend walk in the city ☕📸 #weekend #cityvibes #coffee",
+    tags: ["weekend", "cityvibes", "coffee"],
+    urlExpirationTime: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000),
+  },
+];
+
 authRouter.post("/signup", handleUserSignup);
 authRouter.post("/login", handleUserLogin);
 authRouter.post("/logout", handleUserLogout);
+authRouter.post("/guest", handleGuestLogin);
+authRouter.get("/guest", handleGuestLogin);
 authRouter.get("/google", googleLogin);
 authRouter.post("/exchange", handleTokenExchange);
 authRouter.get("/callback/google", handleGoogleCallback);
