@@ -114,8 +114,7 @@ export const MessageMedia = ({
       >
         <Image
           src={src.url}
-        
-          alt={src.key.split("/")[2].slice(0, 10)}
+          alt={src?.key ? (src.key.split("/")[2]?.slice(0, 10) || src.key.slice(0, 10)) : "attachment"}
           width={30}
           height={30}
           className=" w-full h-full     "
@@ -170,15 +169,16 @@ export const MessageMedia = ({
   };
 
   return attachments.map((a: FileAttachment) => {
-    if (a.type.startsWith("image")) {
-      return <ImageItem src={a} key={a.key} />;
+    const key = a.key || a.url;
+    if (a.type && a.type.startsWith("image")) {
+      return <ImageItem src={a} key={key} />;
     }
-    if (a.type.startsWith("video")) {
-      return <VideoItem src={a} key={a.key} />;
+    if (a.type && a.type.startsWith("video")) {
+      return <VideoItem src={a} key={key} />;
     }
-    if (a.type.startsWith("audio")) {
-      return <AudioItem src={a}  key={a.key}/>;
-    } else return <DefaultItem src={a} key={a.key}/>;
+    if (a.type && a.type.startsWith("audio")) {
+      return <AudioItem src={a} key={key} />;
+    } else return <DefaultItem src={a} key={key} />;
   });
 };
 

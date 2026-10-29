@@ -2,6 +2,7 @@ import http from "http";
 import express from "express";
 const app = express();
 export const httpServer = http.createServer(app);
+import mongoose from "mongoose";
 import { connectMongo } from "./mongoose/connectMongo";
 import { Server } from "socket.io";
 import { authRouter } from "./api/auth";
@@ -52,6 +53,16 @@ async function init() {
   app.use(bodyParser.json());
   app.use(cookieParser());
   app.use(express.json());
+
+  // Ultra-lightweight health check endpoint (no DB calls, minimal compute for recurring cron pings)
+  app.get(["/health", "/api/health"], (req, res) => {
+    return res.status(200).json({
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   app.use(limiter);
   app.use(
     "/graphql",
@@ -70,11 +81,6 @@ async function init() {
   app.use("/uploads", checkTokenValidity, uploadRouter);
   app.use("/post-events", checkTokenValidity, postEventsRouter);
   app.use("/message", checkTokenValidity, messageRouter);
-  app.get("/health", (req, res) => {
-    console.log("req is comming on health")
-    res.cookie("token", "this is token as coojkie ");
-    res.send(" healthy :) 11 ");
-  });
   httpServer.listen(process.env.PORT || 8080, () => {
     console.log("server is listening on port ", process.env.PORT);
     connectMongo();

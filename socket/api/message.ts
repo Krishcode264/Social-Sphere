@@ -165,40 +165,73 @@ const getMessageHistory = async (req: Request, res: Response) => {
     // Refresh expired attachment URLs before sending to client
     const payload = completeMessagePagePayload[0];
     if (payload.messages && Array.isArray(payload.messages)) {
+      // Filter out any null messages from empty conversations
+      payload.messages = payload.messages.filter(Boolean);
+
       for (const message of payload.messages) {
-        if (message.attachment && Array.isArray(message.attachment)) {
+        if (message && message.attachment && Array.isArray(message.attachment)) {
           for (const attachment of message.attachment) {
-            // Check if URL has expired or if expiration time is missing
-            if (attachment.key) {
+            if (!attachment) continue;
+
+            let key = attachment.key;
+            // If key is missing, attempt to extract it from the presigned S3 url
+            if (!key && attachment.url) {
+              try {
+                const parsed = new URL(attachment.url);
+                key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
+                attachment.key = key;
+              } catch (e) {
+                // Not a valid URL
+              }
+            }
+
+            if (key) {
+              const expiration = attachment.urlExpirationTime ? new Date(attachment.urlExpirationTime) : null;
+              // Check if URL has expired, missing expiration, or expiring within 10 minutes (buffer)
               const needsRefresh =
-                !attachment.urlExpirationTime ||
-                (attachment.urlExpirationTime && new Date() > new Date(attachment.urlExpirationTime));
+                !expiration ||
+                isNaN(expiration.getTime()) ||
+                new Date().getTime() >= expiration.getTime() - 10 * 60 * 1000;
 
               if (needsRefresh) {
                 try {
-                  console.log(`Refreshing URL for attachment: ${attachment.key} (expired: ${!attachment.urlExpirationTime ? 'missing expiration' : 'expired'})`);
-                  // Generate new presigned URL (7 days expiry)
-                  const newUrl = await AwsHandler.getObjectUrl(attachment.key, 604800);
-                  const newExpirationTime = new Date(new Date().getTime() + 604800 * 1000);
+                  const reason = !expiration ? "missing expiration" : (isNaN(expiration.getTime()) ? "invalid date" : "expired/about to expire");
+                  console.log(`[CHAT_MEDIA] 🔄 GENERATING NEW URL: Attachment key: ${key} (reason: ${reason})`);
+                  // Generate new presigned URL (max 7 days = 604800 seconds)
+                  const maxExpirySeconds = 604800;
+                  const newUrl = await AwsHandler.getObjectUrl(key, maxExpirySeconds);
+                  const newExpirationTime = new Date(Date.now() + maxExpirySeconds * 1000);
 
-                  // Update the attachment in the database
+                  // Update the attachment in the database with max expiry
+                  const updateFilter: any = { _id: message._id };
+                  if (attachment.key) {
+                    updateFilter["attachment.key"] = attachment.key;
+                  } else if (attachment.url) {
+                    updateFilter["attachment.url"] = attachment.url;
+                  }
+
                   await MessageData.updateOne(
-                    { _id: message._id, "attachment.key": attachment.key },
+                    updateFilter,
                     {
                       $set: {
                         "attachment.$.url": newUrl,
                         "attachment.$.urlExpirationTime": newExpirationTime,
+                        ...(key ? { "attachment.$.key": key } : {}),
                       },
                     }
                   );
 
-                  // Update the attachment in the response
+                  // Update the attachment in the response payload
                   attachment.url = newUrl;
                   attachment.urlExpirationTime = newExpirationTime;
-                  console.log(`Successfully refreshed URL for attachment: ${attachment.key}`);
+                  attachment.key = key;
+                  console.log(`[CHAT_MEDIA] ✅ Generated & saved new URL to DB: Attachment ${key}`);
                 } catch (err) {
-                  console.error(`Error refreshing URL for attachment ${attachment.key}:`, err);
+                  console.error(`[CHAT_MEDIA] ❌ Failed to generate URL for attachment ${key}:`, err);
                 }
+              } else {
+                const remainingHours = expiration ? ((expiration.getTime() - Date.now()) / (1000 * 60 * 60)).toFixed(1) : 0;
+                console.log(`[CHAT_MEDIA] 🟢 URL VALID (NO new URL needed): Attachment ${key} (valid for ~${remainingHours} more hours)`);
               }
             }
           }

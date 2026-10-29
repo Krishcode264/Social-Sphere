@@ -25,8 +25,8 @@ export class AwsHandler {
   });
 
   static async getPresignedUrlForS3(key: string, type: any) {
- console.log(process.env.AWS_ACCESS_KEY_ID,"access key id at aws handler");
- console.log(process.env.AWS_SECRET_ACCESS_KEY,"secret access key at aws handler");
+    // console.log(process.env.AWS_ACCESS_KEY_ID,"access key id at aws handler");
+    // console.log(process.env.AWS_SECRET_ACCESS_KEY,"secret access key at aws handler");
     const Command = new PutObjectCommand({
       Bucket: "krish-b264",
       Key: key,

@@ -17,8 +17,10 @@ import { Toaster } from 'sonner';
  
 export default async function RootLayout({
   children,
+  sidebar,
 }: Readonly<{
   children: React.ReactNode;
+  sidebar: React.ReactNode;
 }>) {
 
   return (

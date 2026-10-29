@@ -22,12 +22,16 @@ export const messageIoConection = (socket: Socket) => {
       roomId: string;
       conformationId: string;
       repliedTo: string | null;
+      attachment?: MsgAttachment[];
       attachmwnt?: MsgAttachment[];
       repliedToMessage: ReplyMessageType | null;
     }) => {
       console.log(data, "new mag at socket ");
-
-      const savedmsg = await MessageService.saveMessage(data);
+      const attachments = data.attachment || data.attachmwnt;
+      const savedmsg = await MessageService.saveMessage({
+        ...data,
+        attachment: attachments,
+      });
       console.log("got the evevnt => message ");
       if (savedmsg) {
         const {

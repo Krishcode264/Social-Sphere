@@ -74,11 +74,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "krish-b264.s3.ap-south-1.amazonaws.com/*",
+        hostname: "krish-b264.s3.ap-south-1.amazonaws.com",
       },
       {
         protocol: "https",
-        hostname: "krish-b264.s3.ap-south-1.amazonaws.com",
+        hostname: "**.amazonaws.com",
       },
     ],
   },

@@ -50,10 +50,10 @@ async function checkTokenValidity(
 
 async function tokenIsValid(token: string): Promise<User | boolean> {
   try {
-    console.log("token in token is valid", token);
+    // console.log("token in token is valid", token);
     const decodeToken: any = jwt.decode(token);
 
-    console.log(decodeToken, "decoded token");
+    // console.log(decodeToken, "decoded token");
 
     if (!decodeToken) {
       return false;

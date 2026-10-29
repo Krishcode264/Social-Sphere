@@ -37,15 +37,21 @@ function closeCommentBox(){
       className="postView   w-full  p-4   bg-slate-900 rounded-xl mb-4 relative "
       key={photo.id}
     >
-      <Image
-        src={photo.imageUrl}
-        width={200}
-        height={200}
-        alt="user profile"
-        unoptimized={true}
-        className=" w-full h-[300px] sm:h-[400px] bg-contain bg-center mx-auto rounded-sm "
-      />
-      {photo.tags && photo.tags.length>0 && renderTags(photo.tags)}
+      {photo.imageUrl ? (
+        <Image
+          src={photo.imageUrl}
+          width={200}
+          height={200}
+          alt={photo.caption || "User post"}
+          unoptimized={true}
+          className=" w-full h-[300px] sm:h-[400px] bg-contain bg-center mx-auto rounded-sm object-cover "
+        />
+      ) : (
+        <div className="w-full h-[300px] sm:h-[400px] flex items-center justify-center bg-slate-800 text-slate-500 rounded-sm">
+          Image unavailable
+        </div>
+      )}
+      {photo.tags && photo.tags.length > 0 && renderTags(photo.tags)}
    {photo.caption && <Caption caption={photo.caption}/>}
       <div className="postinfo   flex gap-3 text-slate-600   " style={{marginTop:photo.caption && photo.caption.length>0 ? "0px" : "4px"}}>
         <span>

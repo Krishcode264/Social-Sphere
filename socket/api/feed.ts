@@ -30,10 +30,13 @@ export async function getFeedUsers(req: Request, res: Response): Promise<void> {
 
 export async function getUserPhotos(req: Request, res: Response) {
   const { id } = req.query;
-  //console.log("id of user in request.query",id)
+  console.log(`[PROFILE_MEDIA] 📥 Client requested photos for user: ${id}`);
   if (isString(id)) {
-    res.send(await PhotoService.getPhotosbyId(id));
+    const photos = await PhotoService.getPhotosbyId(id);
+    console.log(`[PROFILE_MEDIA] 📤 Sending ${photos?.length || 0} photos back to client`);
+    return res.status(200).send(photos || []);
   }
+  return res.status(400).send({ message: "Invalid user id" });
 }
 export async function getUser(req: Request, res: Response) {
   const { id } = req.query;
@@ -43,9 +46,9 @@ export async function getUser(req: Request, res: Response) {
     if (isString(id)) {
       const userProfile = await UserService.getUserProfile(id);
       const friendStatus = await UserService.checkUserInFriendLists(userId, id);
-      console.log(friendStatus, "friend status at getuser ");
+      // console.log(friendStatus, "friend status at getuser ");
       res.send({ ...userProfile, friendStatus });
-      console.log("check", userProfile?._id?.toString() === userId)
+      // console.log("check", userProfile?._id?.toString() === userId)
       if (
         userProfile &&
         userProfile._id &&
@@ -85,7 +88,7 @@ export async function getUserByToken(req: Request, res: Response) {
 const handleFriendFetch = async (req: Request, res: Response) => {
   const { id } = req.body.user;
   const { type } = req.query;
-  console.log(type, "type");
+  // console.log(type, "type");
   try {
     const lookupFriends = await FriendsData.aggregate([
       {

@@ -1,5 +1,5 @@
 **/node_modules/
-**/.env.development
-**/.env.production
+**/.env
+**/.env.*
 /socket/build
 /socket/node_modules
