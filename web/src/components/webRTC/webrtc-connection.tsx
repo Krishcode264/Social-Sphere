@@ -5,46 +5,34 @@ import { mediaStreamState } from "@/store/atoms/media-stream-atom";
 import { usePC } from "@/context/peerConnectionContext";
 
 const WebrtcConnection = () => {
-  const [{ audioStream, videoStream }, setMediaStreamAll] =
-    useRecoilState(mediaStreamState);
-  const { PC, attachLocalTrackToPC } = usePC();
+  const [mediaState, setMediaStreamAll] = useRecoilState(mediaStreamState);
+  const { attachLocalTrackToPC } = usePC();
 
-  const addTracksToExistingStream = (newStream: MediaStream, mode: string) => {
-    if (mode === "audio") {
-      setMediaStreamAll((prev) => ({
-        ...prev,
-        audioStream: newStream,
-      }));
-      return;
-    }
-    if (mode === "video") {
-      setMediaStreamAll((prev) => ({
-        ...prev,
-        videoStream: newStream,
-      }));
-    }
-  };
-
-  const addtrackTOPC = async (stream: MediaStream, mode?: string) => {
-    const kind = mode === "video" ? "video" : "audio";
-    const track = kind === "video" ? stream.getVideoTracks()[0] : stream.getAudioTracks()[0];
-    if (track) {
-      await attachLocalTrackToPC(track, kind);
-    }
-    if (mode) {
-      addTracksToExistingStream(stream, mode);
-    }
+  const storeStream = (newStream: MediaStream, kind: "audio" | "video") => {
+    // release the previous device slot before swapping in the new stream
+    const previous = kind === "audio" ? mediaState.audioStream : mediaState.videoStream;
+    const oldTrack = kind === "audio" ? previous?.getAudioTracks() : previous?.getVideoTracks();
+    oldTrack?.forEach((t) => {
+      try {
+        t.stop();
+      } catch {}
+    });
+    setMediaStreamAll((prev) =>
+      kind === "audio" ? { ...prev, audioStream: newStream } : { ...prev, videoStream: newStream }
+    );
   };
 
   const getMedia = async (mode: string, attachToPC: boolean = false): Promise<MediaStream | null> => {
     try {
       const params = mode === "audio" ? { audio: true } : { video: true };
       const mediaStream = await navigator.mediaDevices.getUserMedia(params);
+      const kind = mode === "audio" ? "audio" : "video";
       if (attachToPC) {
-        await addtrackTOPC(mediaStream, mode);
-      } else {
-        addTracksToExistingStream(mediaStream, mode);
+        const track =
+          kind === "audio" ? mediaStream.getAudioTracks()[0] : mediaStream.getVideoTracks()[0];
+        if (track) await attachLocalTrackToPC(track, kind);
       }
+      storeStream(mediaStream, kind);
       return mediaStream;
     } catch (err) {
       console.warn(`Local ${mode} permission not granted or device not available:`, err);
@@ -52,7 +40,7 @@ const WebrtcConnection = () => {
     }
   };
 
-  return <MediaStream getMedia={getMedia} addtrackTOPC={addtrackTOPC} />;
+  return <MediaStream getMedia={getMedia} />;
 };
 
 export default WebrtcConnection;

@@ -16,7 +16,7 @@ import { callState } from "@/store/atoms/calling-state";
 
 const Call = () => {
   const [persontoHandshake, setPersontoHandshake] = useRecoilState(guestState);
-  const { createAnswer } = usePC();
+  const { cleanupCall } = usePC();
   const offerer = useRecoilValue(userInfoState);
   const [offer, setOffer] = useRecoilState(offerState);
   const socket = useSocket();
@@ -44,6 +44,7 @@ const Call = () => {
     if (persontoHandshake?.id) {
       socket?.emit("end-call", { guest: persontoHandshake, offerer });
     }
+    cleanupCall();
     setShowComponent((prev) => ({ ...prev, showCall: false }));
     setPersontoHandshake({ name: "", id: "" });
     setOffer(null);

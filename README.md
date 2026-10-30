@@ -170,6 +170,49 @@ built using a modern web development stack with a focus on real-time communicati
 
 
 
+## WebRTC Calls: STUN/TURN configuration
+
+Calls are peer-to-peer via WebRTC. STUN alone fails on strict networks
+(mobile carrier CGNAT, corporate/hotel Wi-Fi); a TURN relay is required for
+those. Setup summary:
+
+- STUN entries are public and always included (Google + Cloudflare).
+- TURN credentials are fetched at call time from the backend route
+  `GET /api/turn-credentials` (Render service), which talks to the TURN
+  provider server-side. If the fetch fails/times out, calls fall back to
+  STUN-only (degraded, not broken).
+
+### Environment variables
+
+Backend (`socket/`, Render service, secret — server only):
+
+| Variable | Purpose |
+|---|---|
+| `TURN_PROVIDER_API_URL` | TURN provider credentials endpoint (e.g. Metered Open Relay). Copy the exact URL from the provider's dashboard. |
+| `TURN_PROVIDER_API_KEY` | TURN provider API key. Never exposed to the client. |
+
+Frontend (`web/`, safe to be public):
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_TURN_CREDENTIALS_URL` | Full URL of the backend route, e.g. `https://<render-domain>/api/turn-credentials`. |
+| `NEXT_PUBLIC_DEBUG_RTC` | Verbose `RTC`/`ICE` logs (on by default; set `false` to silence). |
+| `NEXT_PUBLIC_RTC_FORCE_RELAY` | Dev-only force-relay (`iceTransportPolicy: "relay"`) to prove TURN works. Ignored in production builds. Also available via `?forceRelay` query param in dev. |
+
+### Route behavior
+
+- Requires the same JWT auth as other protected routes (`401` if anonymous).
+- Cached in memory for 15 minutes; per-user rate limit of 6 req/min.
+- On provider failure returns `200` with STUN only and `degraded: true`.
+
+### TURN usage limits
+
+The free Open Relay tier is metered (only calls that cannot connect directly
+are relayed, so usage stays small early on). If you approach the free
+allowance: move to a paid provider plan, or switch to a self-hosted coturn
+server — only the backend route's provider call changes, the client code does
+not.
+
 ## License
 
 MIT License.

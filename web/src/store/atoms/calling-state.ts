@@ -10,3 +10,12 @@ export const callState=atom<CallStateProps>({
         action:"default"
     }
 })
+
+export type RtcConnectionStatusProps = {
+  status: "default" | "connected" | "reconnecting";
+};
+
+export const rtcConnectionState = atom<RtcConnectionStatusProps>({
+  key: "rtc-connection-state",
+  default: { status: "default" },
+});

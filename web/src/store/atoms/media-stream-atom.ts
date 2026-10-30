@@ -32,3 +32,18 @@ export const remoteStreamState=atom<RemoteStreamStateType>({
         screen:null
     }
 })
+
+export type RemoteMediaStateType = {
+  audio: boolean;
+  video: boolean;
+};
+
+/**
+ * UI truth for the REMOTE peer's mic/camera state.
+ * Driven only by explicit `media-state` signaling messages,
+ * NOT by track existence (pre-negotiated tracks exist even when off).
+ */
+export const remoteMediaState = atom<RemoteMediaStateType>({
+  key: "remote-media-state",
+  default: { audio: false, video: false },
+});

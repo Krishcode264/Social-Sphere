@@ -17,6 +17,7 @@ import { postEventsRouter } from "./api/postEvents";
 import cookieParser from "cookie-parser";
 import { messageRouter } from "./api/message";
 import { limiter } from "./middlewares/rateLimiter";
+import { turnCredentialsRouter } from "./api/turnCredentials";
 import { messageIoConection } from "./Services/MessageService/messageIo";
 import { MessageService } from "./Services/MessageService/messageService";
 import { UserData } from "./mongoose/schemas/userSchema";
@@ -81,6 +82,7 @@ async function init() {
   app.use("/uploads", checkTokenValidity, uploadRouter);
   app.use("/post-events", checkTokenValidity, postEventsRouter);
   app.use("/message", checkTokenValidity, messageRouter);
+  app.use("/api/turn-credentials", turnCredentialsRouter);
   httpServer.listen(process.env.PORT || 8080, () => {
     console.log("server is listening on port ", process.env.PORT);
     connectMongo();

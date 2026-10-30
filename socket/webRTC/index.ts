@@ -143,6 +143,15 @@ export function webRtcIoConnection(socket: Socket) {
     }
   );
 
+  socket.on("media-state", async ({ audio, video, guest, offerer }: any) => {
+    if (guest?.id) {
+      const socketID = await UserService.getUserSocketIdById(guest.id);
+      if (socketID) {
+        io.to(socketID).emit("media-state", { audio, video, offerer, guest });
+      }
+    }
+  });
+
   socket.on("busy", async ({ guest, offerer }: any) => {
     console.log("relay busy event to caller", offerer?.name);
     // If 'guest' is busy, we tell 'offerer' (who initiated the call)
