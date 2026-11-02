@@ -21,7 +21,8 @@ const MediaStreamGuest: React.FC = () => {
   const guest = useRecoilValue(guestState);
   const { screenSize } = useRecoilValue(CallWindowAtomState);
 
-  const showVideo = !!remoteMedia.video && !!video;
+  const hasLiveVideoTrack = !!video && video.getVideoTracks().some((t) => t.readyState === "live" && !t.muted);
+  const showVideo = !!video && (remoteMedia.video || hasLiveVideoTrack);
 
   return (
     <div

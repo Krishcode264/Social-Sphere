@@ -52,24 +52,30 @@ const Call = () => {
 
   return (
     <div className="text-white p-5 absolute  bg-black rounded-lg flex flex-col top-0 right-0 z-50">
-      <div className="mb-6">
-        <h1 className="text-xl">
-          {persontoHandshake?.name &&
-            `${persontoHandshake.name} is calling you...`}
+      <div className="mb-4">
+        <h1 className="text-xl font-semibold">
+          {persontoHandshake?.name
+            ? `${persontoHandshake.name} is calling you...`
+            : "Incoming call..."}
         </h1>
+        <p className="text-xs text-slate-400 mt-1">
+          Accept to open call window, enable camera & mic, and answer
+        </p>
       </div>
 
-      <div className="flex justify-center items-center gap-2">
+      <div className="flex justify-center items-center gap-4">
         <button
-          className=" animate-bounce rounded-full bg-green-500 hover:bg-green-800  p-4"
+          className="animate-bounce rounded-full bg-green-500 hover:bg-green-600 p-4 transition-all"
           onClick={handleAcceptClick}
+          title="Open call window to enable camera & mic and answer"
         >
           <IconBtn icon={CallIcon} br="50%" />
         </button>
 
         <button
-          className=" animate-bounce bg-rose-500  hover:bg-rose-800 rounded-full p-4 "
+          className="animate-bounce bg-rose-500 hover:bg-rose-600 rounded-full p-4 transition-all"
           onClick={handleReject}
+          title="Decline call"
         >
           <IconBtn icon={CallEndIcon} br="50%" />
         </button>

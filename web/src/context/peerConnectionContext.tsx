@@ -180,11 +180,15 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
     if (!peer) return;
     if (peer.getTransceivers().length >= 2) return;
     const ls = getOrCreateLocalStream();
-    const audioT = peer.addTransceiver("audio", { direction: "sendrecv", streams: [ls] });
-    const videoT = peer.addTransceiver("video", { direction: "sendrecv", streams: [ls] });
+    const aTrack = localPreviewRef.current.audioStream?.getAudioTracks()[0];
+    const vTrack = localPreviewRef.current.videoStream?.getVideoTracks()[0];
+    if (aTrack && !ls.getTracks().includes(aTrack)) ls.addTrack(aTrack);
+    if (vTrack && !ls.getTracks().includes(vTrack)) ls.addTrack(vTrack);
+    const audioT = peer.addTransceiver(aTrack || "audio", { direction: "sendrecv", streams: [ls] });
+    const videoT = peer.addTransceiver(vTrack || "video", { direction: "sendrecv", streams: [ls] });
     audioTransceiverRef.current = audioT;
     videoTransceiverRef.current = videoT;
-    dlog("caller transceivers pre-allocated (audio, video, sendrecv)");
+    dlog("caller transceivers pre-allocated with tracks (audio, video, sendrecv)");
   };
 
   /**
@@ -199,7 +203,7 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
 
     newPC.onicecandidate = (event) => {
       if (event.candidate) {
-        if (guestRef.current?.id) {
+        if (guestRef.current?.id && callStateRef.current.status !== "default") {
           socket?.emit("ice-candidate", {
             candidate: event.candidate,
             guest: guestRef.current,
@@ -408,8 +412,17 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
         return true;
       }
 
-      dlog(`No transceiver slot for ${kind} - track NOT attached`);
-      return false;
+      // If no transceiver slot exists yet on the peer:
+      const ls = getOrCreateLocalStream();
+      if (track && !ls.getTracks().includes(track)) ls.addTrack(track);
+      if (track) {
+        transceiver = peer.addTransceiver(track, { direction: "sendrecv", streams: [ls] });
+      } else {
+        transceiver = peer.addTransceiver(kind, { direction: "sendrecv", streams: [ls] });
+      }
+      ref.current = transceiver;
+      dlog(`addTransceiver created new slot for ${kind}`);
+      return true;
     } catch (err) {
       console.error(`[RTC] Failed to attach track for ${kind}:`, err);
       return false;
@@ -598,20 +611,34 @@ export const PcProvider = ({ children }: { children: React.ReactNode }) => {
       dlog("remote description set (offer); signalingState =", peer.signalingState);
       await flushPendingCandidates(peer);
 
-      // Flip all m-line transceivers to sendrecv so local tracks can be
-      // injected later (via replaceTrack) without any renegotiation.
-      peer.getTransceivers().forEach((t) => {
-        const kind = t.receiver.track.kind;
+      // Flip all m-line transceivers to sendrecv and attach receiver's local tracks!
+      const aTrack = localPreviewRef.current.audioStream?.getAudioTracks()[0];
+      const vTrack = localPreviewRef.current.videoStream?.getVideoTracks()[0];
+      const ls = getOrCreateLocalStream();
+
+      for (const t of peer.getTransceivers()) {
+        const kind = t.receiver.track?.kind;
         if (kind === "audio" || kind === "video") {
           t.direction = "sendrecv";
           try {
-            (t.sender as any).setStreams?.([getOrCreateLocalStream()]);
+            (t.sender as any).setStreams?.([ls]);
           } catch {}
-          if (kind === "audio") audioTransceiverRef.current = t;
-          else videoTransceiverRef.current = t;
+          if (kind === "audio") {
+            audioTransceiverRef.current = t;
+            if (aTrack) {
+              await t.sender.replaceTrack(aTrack);
+              if (!ls.getTracks().includes(aTrack)) ls.addTrack(aTrack);
+            }
+          } else if (kind === "video") {
+            videoTransceiverRef.current = t;
+            if (vTrack) {
+              await t.sender.replaceTrack(vTrack);
+              if (!ls.getTracks().includes(vTrack)) ls.addTrack(vTrack);
+            }
+          }
         }
-      });
-      logTransceivers(peer, "after transceiver setup (expect 2, all sendrecv)");
+      }
+      logTransceivers(peer, "after transceiver setup with attached tracks");
 
       const createdAnswer = await peer.createAnswer();
       await peer.setLocalDescription(createdAnswer);

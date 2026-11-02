@@ -91,6 +91,11 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
    * mic mute uses track.enabled (instant). Emits `media-state` after
    * every settled change. Serialized per kind for rapid taps.
    */
+  /**
+   * Local mic/camera toggles. Camera off stops the track (LED off);
+   * mic mute uses track.enabled (instant). Emits `media-state` after
+   * every settled change. Serialized per kind for rapid taps.
+   */
   const toggleTracks = async (type: string) => {
     if (type !== "audio" && type !== "video") return;
     if (togglesBusyRef.current[type]) {
@@ -113,17 +118,12 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
             const track = stream.getVideoTracks()[0];
             if (track) {
               track.enabled = true;
-              const attached = await attachLocalTrackToPC(track, "video");
-              if (attached) {
-                setMedia((prev) => ({ ...prev, videoStream: stream, video: true }));
-                setVideo(true);
-                videoRef.current = true;
+              setMedia((prev) => ({ ...prev, videoStream: stream, video: true }));
+              setVideo(true);
+              videoRef.current = true;
+              if (callStateRef.current.status === "incall") {
+                await attachLocalTrackToPC(track, "video");
                 sendMediaState({ audio: audioRef.current, video: true });
-              } else if (callStateRef.current.status !== "default") {
-                // preview stage has no negotiated slots yet - that is expected
-                toast("Camera slot not negotiated yet. Try again.", {
-                  style: { background: "orange", color: "white", fontWeight: 700 },
-                });
               }
             }
           } else {
@@ -133,7 +133,10 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           }
         } else {
           // camera OFF: detach slot, stop track (LED off), clear stream
-          await attachLocalTrackToPC(null, "video");
+          if (callStateRef.current.status === "incall") {
+            await attachLocalTrackToPC(null, "video");
+            sendMediaState({ audio: audioRef.current, video: false });
+          }
           streamsRef.current.videoStream?.getVideoTracks().forEach((t) => {
             try {
               t.stop();
@@ -142,7 +145,6 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           setMedia((prev) => ({ ...prev, videoStream: null, video: false }));
           setVideo(false);
           videoRef.current = false;
-          sendMediaState({ audio: audioRef.current, video: false });
         }
       }
 
@@ -157,16 +159,12 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
             const track = stream.getAudioTracks()[0];
             if (track) {
               track.enabled = true;
-              const attached = await attachLocalTrackToPC(track, "audio");
-              if (attached) {
-                setMedia((prev) => ({ ...prev, audioStream: stream, audio: true }));
-                setAudio(true);
-                audioRef.current = true;
+              setMedia((prev) => ({ ...prev, audioStream: stream, audio: true }));
+              setAudio(true);
+              audioRef.current = true;
+              if (callStateRef.current.status === "incall") {
+                await attachLocalTrackToPC(track, "audio");
                 sendMediaState({ audio: true, video: videoRef.current });
-              } else if (callStateRef.current.status !== "default") {
-                toast("Audio slot not negotiated yet. Try again.", {
-                  style: { background: "orange", color: "white", fontWeight: 700 },
-                });
               }
             }
           } else {
@@ -175,14 +173,23 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
             });
           }
         } else {
-          // mic mute: keep track in the sender, instant silence
-          streamsRef.current.audioStream?.getAudioTracks().forEach((t) => {
-            t.enabled = false;
-          });
+          // mic mute
+          if (callStateRef.current.status === "incall") {
+            streamsRef.current.audioStream?.getAudioTracks().forEach((t) => {
+              t.enabled = false;
+            });
+            sendMediaState({ audio: false, video: videoRef.current });
+          } else {
+            streamsRef.current.audioStream?.getAudioTracks().forEach((t) => {
+              try {
+                t.stop();
+              } catch {}
+            });
+            setMedia((prev) => ({ ...prev, audioStream: null, audio: false }));
+          }
           setMedia((prev) => ({ ...prev, audio: false }));
           setAudio(false);
           audioRef.current = false;
-          sendMediaState({ audio: false, video: videoRef.current });
         }
       }
     } finally {
@@ -198,7 +205,9 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
   const handleCallWindowClose = () => {
     dlog("call window closed manually");
     if (
-      (userCallState.status === "calling" || userCallState.status === "incall") &&
+      (userCallState.status === "calling" ||
+        userCallState.status === "incall" ||
+        userCallState.action === "receiver") &&
       guest?.id
     ) {
       socket?.emit("end-call", { guest, offerer });
@@ -232,10 +241,16 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
 
   const startCall = async () => {
     // 1. Offerer explicitly clicks the green call button to initiate the call!
-    if (userCallState.action === "default" && userCallState.status === "default") {
+    if (userCallState.action !== "receiver" && userCallState.status === "default") {
       if (!guest?.id) {
         toast("Choose a person to call first.", {
           style: { background: "orange", color: "white", fontWeight: 700 },
+        });
+        return;
+      }
+      if (!audioRef.current || !videoRef.current) {
+        toast("Please turn on both camera and microphone before placing the call.", {
+          style: { background: "#ea580c", color: "white", fontWeight: 700 },
         });
         return;
       }
@@ -246,7 +261,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
       await attachCurrentTracks();
 
       setcallstate({ status: "calling", action: "offerer" });
-      sendMediaState({ audio: audioRef.current, video: videoRef.current });
+      sendMediaState({ audio: true, video: true });
       await createOffer();
       // if nobody accepts, clean up after the ring timeout
       if (ringTimerRef.current != null) window.clearTimeout(ringTimerRef.current);
@@ -263,11 +278,15 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
 
     // 2. Receiver answering the incoming call via the green button
     if (userCallState.action === "receiver" && userCallState.status === "default") {
+      if (!audioRef.current || !videoRef.current) {
+        toast("Please turn on both camera and microphone before picking up the call.", {
+          style: { background: "#ea580c", color: "white", fontWeight: 700 },
+        });
+        return;
+      }
       dlog("Receiver answering call from guest:", guest.id);
-      // answer FIRST: transceiver slots only exist after the offer is applied
       await createAnswer();
-      await attachCurrentTracks();
-      sendMediaState({ audio: audioRef.current, video: videoRef.current });
+      sendMediaState({ audio: true, video: true });
       return;
     }
 
@@ -286,29 +305,6 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
     }
   };
 
-  /* Mount semantics: receiver auto-answers (connection established immediately,
-     no media required). Camera and mic start OFF for both sides; the user
-     enables them via the toggle buttons. Offerer pre-acquires nothing here
-     (they clicked the call button via startCall). */
-  useEffect(() => {
-    const initCall = async () => {
-      try {
-        if (userCallState.action === "receiver") {
-          dlog("Auto-answering incoming call as receiver (no local media grabbed yet)");
-          await createAnswer();
-          // Both sides start with camera and mic OFF.
-          // The user turns them on via the toggle buttons.
-          sendMediaState({ audio: false, video: false });
-        }
-        // offerer popup: no preview grab here either; media is opt-in.
-      } catch (err) {
-        dlog("initCall error (non-blocking):", err);
-      }
-    };
-    initCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const u = useRecoilValue(userInfoState);
   const [{ screenSize }, setScreenSize] = useRecoilState(CallWindowAtomState);
   const { status: rtcStatus } = useRecoilValue(rtcConnectionState);
@@ -325,6 +321,51 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           className="text-white text-sm rounded-md px-3 py-2 m-2 text-center"
         >
           Reconnecting...
+        </div>
+      )}
+      {/* Guidance banner based on call role & state */}
+      {userCallState.status === "default" && userCallState.action !== "receiver" && (
+        <div className="bg-slate-800/95 border-b border-slate-700 px-4 py-2 flex flex-wrap items-center justify-between text-xs text-slate-200">
+          <div className="flex items-center gap-2">
+            <span>Call with <strong className="text-blue-400">{guest?.name || "Guest"}</strong></span>
+            <span className="text-slate-400">| Turn on camera & mic before calling</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+              Camera {video ? "✓ ON" : "✕ OFF"}
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+              Mic {audio ? "✓ ON" : "✕ OFF"}
+            </span>
+          </div>
+        </div>
+      )}
+      {userCallState.status === "default" && userCallState.action === "receiver" && (
+        <div className="bg-indigo-950/95 border-b border-indigo-700/60 px-4 py-2 flex flex-wrap items-center justify-between text-xs text-slate-100">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>Incoming call from <strong className="text-emerald-400">{guest?.name || "Guest"}</strong></span>
+            <span className="text-slate-300">| Turn on camera & mic to pick up</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+              Camera {video ? "✓ ON" : "✕ OFF"}
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+              Mic {audio ? "✓ ON" : "✕ OFF"}
+            </span>
+          </div>
+        </div>
+      )}
+      {userCallState.status === "calling" && (
+        <div className="bg-blue-950/95 border-b border-blue-800 px-4 py-2 text-center text-xs text-blue-200">
+          <span>Calling <strong className="text-white">{guest?.name || "Guest"}</strong>... Waiting for answer</span>
+        </div>
+      )}
+      {userCallState.status === "incall" && (
+        <div className="bg-emerald-950/80 border-b border-emerald-800/60 px-4 py-1.5 flex items-center justify-center gap-2 text-xs text-emerald-300">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>In call with <strong className="text-white">{guest?.name || "Guest"}</strong></span>
         </div>
       )}
       <div
@@ -405,24 +446,35 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           </button>
         </div>
         <div
-          className="w-10 h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full flex items-center justify-center"
+          className={`w-10 h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full flex items-center justify-center transition-all ${
+            userCallState.status === "calling" || userCallState.status === "incall"
+              ? "bg-red-600 hover:bg-red-700"
+              : (!audio || !video)
+              ? "bg-slate-700 opacity-60 cursor-not-allowed border border-slate-600"
+              : "bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/50 animate-pulse"
+          }`}
           style={{
-            backgroundColor:
-              userCallState.status === "calling" ||
-              userCallState.status === "incall"
-                ? "red"
-                : "green",
             color: "white",
           }}
         >
-          <button onClick={() => startCall()}>
-            {userCallState.status === "calling" ||
-            userCallState.status === "incall" ? (
-              <CallEndRounded />
-            ) : (
-              <CallOutlined />
-            )}
-          </button>
+          <Tooltip
+            title={
+              userCallState.status === "calling" || userCallState.status === "incall"
+                ? "End call"
+                : userCallState.action === "receiver"
+                ? (!audio || !video ? "Turn on camera and mic to pick up" : "Pick up call")
+                : (!audio || !video ? "Turn on camera and mic to call" : "Start call")
+            }
+          >
+            <button onClick={() => startCall()}>
+              {userCallState.status === "calling" ||
+              userCallState.status === "incall" ? (
+                <CallEndRounded />
+              ) : (
+                <CallOutlined />
+              )}
+            </button>
+          </Tooltip>
         </div>
         <div className="text-orange-700 hover:cursor-pointer flex gap-2 justify-end ml-auto">
           {screenSize === "default" ? (
