@@ -255,12 +255,6 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
         });
         return;
       }
-      if (!audioRef.current || !videoRef.current) {
-        toast("Please turn on both camera and microphone before placing the call.", {
-          style: { background: "#ea580c", color: "white", fontWeight: 700 },
-        });
-        return;
-      }
       dlog("Initiating call to guest:", guest.id);
       // make sure the connection uses fresh TURN credentials for this call
       await prepareForCall();
@@ -268,7 +262,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
       await attachCurrentTracks();
 
       setcallstate({ status: "calling", action: "offerer" });
-      sendMediaState({ audio: true, video: true });
+      sendMediaState({ audio: audioRef.current, video: videoRef.current });
       await createOffer();
       // if nobody accepts, clean up after the ring timeout
       if (ringTimerRef.current != null) window.clearTimeout(ringTimerRef.current);
@@ -285,15 +279,9 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
 
     // 2. Receiver answering the incoming call via the green button
     if (userCallState.action === "receiver" && userCallState.status === "default") {
-      if (!audioRef.current || !videoRef.current) {
-        toast("Please turn on both camera and microphone before picking up the call.", {
-          style: { background: "#ea580c", color: "white", fontWeight: 700 },
-        });
-        return;
-      }
       dlog("Receiver answering call from guest:", guest.id);
       await createAnswer();
-      sendMediaState({ audio: true, video: true });
+      sendMediaState({ audio: audioRef.current, video: videoRef.current });
       return;
     }
 
@@ -335,13 +323,13 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
         <div className="bg-slate-800/95 border-b border-slate-700 px-4 py-2 flex flex-wrap items-center justify-between text-xs text-slate-200">
           <div className="flex items-center gap-2">
             <span>Call with <strong className="text-blue-400">{guest?.name || "Guest"}</strong></span>
-            <span className="text-slate-400">| Turn on camera & mic before calling</span>
+            <span className="text-slate-400">| Camera and mic can be toggled anytime</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-slate-700 text-slate-300 border border-slate-600"}`}>
               Camera {video ? "✓ ON" : "✕ OFF"}
             </span>
-            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-slate-700 text-slate-300 border border-slate-600"}`}>
               Mic {audio ? "✓ ON" : "✕ OFF"}
             </span>
           </div>
@@ -352,13 +340,13 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             <span>Incoming call from <strong className="text-emerald-400">{guest?.name || "Guest"}</strong></span>
-            <span className="text-slate-300">| Turn on camera & mic to pick up</span>
+            <span className="text-slate-300">| Click Pick Up to answer</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${video ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-slate-700 text-slate-300 border border-slate-600"}`}>
               Camera {video ? "✓ ON" : "✕ OFF"}
             </span>
-            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-amber-600/30 text-amber-400 border border-amber-500/30"}`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${audio ? "bg-emerald-600/30 text-emerald-400 border border-emerald-500/30" : "bg-slate-700 text-slate-300 border border-slate-600"}`}>
               Mic {audio ? "✓ ON" : "✕ OFF"}
             </span>
           </div>
@@ -454,8 +442,6 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           className={`w-10 h-10 p-2 xl:w-14 xl:h-14 xl:p-4 rounded-full flex items-center justify-center transition-all ${
             userCallState.status === "calling" || userCallState.status === "incall"
               ? "bg-red-600 hover:bg-red-700"
-              : (!audio || !video)
-              ? "bg-slate-700 opacity-60 cursor-not-allowed border border-slate-600"
               : "bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/50 animate-pulse"
           }`}
           style={{
@@ -467,8 +453,8 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
               userCallState.status === "calling" || userCallState.status === "incall"
                 ? "End call"
                 : userCallState.action === "receiver"
-                ? (!audio || !video ? "Turn on camera and mic to pick up" : "Pick up call")
-                : (!audio || !video ? "Turn on camera and mic to call" : "Start call")
+                ? "Pick up call"
+                : "Start call"
             }
           >
             <button onClick={() => startCall()}>

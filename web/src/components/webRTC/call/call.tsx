@@ -59,7 +59,7 @@ const Call = () => {
             : "Incoming call..."}
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Accept to open call window, enable camera & mic, and answer
+          Accept to answer call
         </p>
       </div>
 
@@ -67,7 +67,7 @@ const Call = () => {
         <button
           className="animate-bounce rounded-full bg-green-500 hover:bg-green-600 p-4 transition-all"
           onClick={handleAcceptClick}
-          title="Open call window to enable camera & mic and answer"
+          title="Answer call"
         >
           <IconBtn icon={CallIcon} br="50%" />
         </button>
