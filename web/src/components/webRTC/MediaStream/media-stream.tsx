@@ -106,18 +106,23 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
     try {
       if (type === "video") {
         if (!videoRef.current) {
-          // camera ON: always request a fresh track
-          const stream = await getMedia("video", false);
-          if (stream) {
-            // release the old device slot before attaching the new one
-            streamsRef.current.videoStream?.getVideoTracks().forEach((t) => {
+          // Release any existing dead video tracks before acquiring a fresh one
+          if (streamsRef.current.videoStream) {
+            streamsRef.current.videoStream.getVideoTracks().forEach((t) => {
               try {
                 t.stop();
               } catch {}
             });
+            streamsRef.current.videoStream = null;
+          }
+
+          // Camera ON: request fresh video stream from getUserMedia
+          const stream = await getMedia("video");
+          if (stream) {
             const track = stream.getVideoTracks()[0];
             if (track) {
               track.enabled = true;
+              streamsRef.current.videoStream = stream;
               setMedia((prev) => ({ ...prev, videoStream: stream, video: true }));
               setVideo(true);
               videoRef.current = true;
@@ -132,7 +137,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
             });
           }
         } else {
-          // camera OFF: detach slot, stop track (LED off), clear stream
+          // Camera OFF: detach slot, stop track (LED off), clear stream
           if (callStateRef.current.status === "incall") {
             await attachLocalTrackToPC(null, "video");
             sendMediaState({ audio: audioRef.current, video: false });
@@ -142,6 +147,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
               t.stop();
             } catch {}
           });
+          streamsRef.current.videoStream = null;
           setMedia((prev) => ({ ...prev, videoStream: null, video: false }));
           setVideo(false);
           videoRef.current = false;
@@ -150,22 +156,22 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
 
       if (type === "audio") {
         if (!audioRef.current) {
-          // mic first-time ON (or ON again after full release)
+          // Mic ON
           let stream = streamsRef.current.audioStream;
-          if (!stream || stream.getAudioTracks().length === 0) {
-            stream = await getMedia("audio", false);
+          let track = stream?.getAudioTracks()[0];
+          if (!track || track.readyState === "ended") {
+            stream = await getMedia("audio");
+            track = stream?.getAudioTracks()[0];
           }
-          if (stream) {
-            const track = stream.getAudioTracks()[0];
-            if (track) {
-              track.enabled = true;
-              setMedia((prev) => ({ ...prev, audioStream: stream, audio: true }));
-              setAudio(true);
-              audioRef.current = true;
-              if (callStateRef.current.status === "incall") {
-                await attachLocalTrackToPC(track, "audio");
-                sendMediaState({ audio: true, video: videoRef.current });
-              }
+          if (stream && track) {
+            track.enabled = true;
+            streamsRef.current.audioStream = stream;
+            setMedia((prev) => ({ ...prev, audioStream: stream, audio: true }));
+            setAudio(true);
+            audioRef.current = true;
+            if (callStateRef.current.status === "incall") {
+              await attachLocalTrackToPC(track, "audio");
+              sendMediaState({ audio: true, video: videoRef.current });
             }
           } else {
             toast("Microphone unavailable or blocked. Enable it in browser settings.", {
@@ -173,7 +179,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
             });
           }
         } else {
-          // mic mute
+          // Mic MUTE
           if (callStateRef.current.status === "incall") {
             streamsRef.current.audioStream?.getAudioTracks().forEach((t) => {
               t.enabled = false;
@@ -185,6 +191,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
                 t.stop();
               } catch {}
             });
+            streamsRef.current.audioStream = null;
             setMedia((prev) => ({ ...prev, audioStream: null, audio: false }));
           }
           setMedia((prev) => ({ ...prev, audio: false }));
@@ -375,15 +382,13 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
           } `}
       >
         <div
-          className={`${screenSize === "default"
-              ? "defaultlocalstream "
-              : " popuplocalstream "
-            } bg-slate-700 rounded-md}`}
+          className={`${
+            screenSize === "default" ? "defaultlocalstream" : "popuplocalstream"
+          } bg-slate-800 rounded-md relative overflow-hidden flex items-center justify-center`}
         >
-          {mediaState.videoStream && video && (
+          {mediaState.videoStream && video ? (
             <VideoComponent media={mediaState.videoStream} target="local" u={u} />
-          )}
-          {!video && (
+          ) : (
             <div className="w-full h-full bg-slate-700 rounded-md flex items-center justify-center">
               <Image
                 alt="local user"
@@ -391,7 +396,7 @@ const MediaStream: React.FC<{ getMedia: (s: string, attachToPC?: boolean) => Pro
                 width={96}
                 height={96}
                 src={u.profile || i2}
-                className="w-24 h-24 rounded-full "
+                className="w-24 h-24 rounded-full object-cover"
               />
             </div>
           )}

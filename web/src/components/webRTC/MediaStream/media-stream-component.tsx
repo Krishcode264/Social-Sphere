@@ -20,25 +20,41 @@ export const VideoComponent: React.FC<MediaProps> = ({ media, target }) => {
     if (videoEl && media) {
       videoEl.muted = target === "local";
       videoEl.srcObject = media;
-      const playPromise = videoEl.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          if (isMounted && err.name !== "AbortError") {
-            console.log("Video auto-play:", err);
-          }
-        });
-      }
+
+      const attemptPlay = () => {
+        if (!isMounted) return;
+        const playPromise = videoEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            if (isMounted && err.name !== "AbortError") {
+              console.log("Video auto-play:", err);
+            }
+          });
+        }
+      };
+
+      videoEl.onloadedmetadata = () => {
+        attemptPlay();
+      };
+
+      attemptPlay();
     }
     return () => {
       isMounted = false;
+      if (videoEl) {
+        videoEl.onloadedmetadata = null;
+      }
     };
   }, [media, target]);
 
   return (
-    <div className="w-full h-full bg-slate-700 rounded-md">
+    <div className="w-full h-full relative overflow-hidden bg-slate-800 rounded-md flex items-center justify-center">
       <video
         ref={videoref}
-        className="defaultvideo popupvideo rounded-sm h-full w-full bg-cover"
+        className="w-full h-full object-cover rounded-md"
+        style={{
+          transform: target === "local" ? "scaleX(-1)" : "none",
+        }}
         autoPlay
         playsInline
         muted={target === "local"}
